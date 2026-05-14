@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wells Fargo EDS Migration Plan</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+  --bg:#ffffff;--bg2:#f6f8fa;--bg3:#eef1f5;--fg:#1a1a2e;--fg2:#444d56;--fg3:#6a737d;
+  --accent:#0366d6;--accent2:#0550ae;--border:#d1d5da;--border2:#e1e4e8;
+  --red:#d73a49;--green:#22863a;--yellow:#e36209;--purple:#6f42c1;
+  --shadow:0 1px 3px rgba(0,0,0,.12);--shadow2:0 3px 12px rgba(0,0,0,.15);
+  --radius:6px;--sidebar-w:260px;
+}
+[data-theme="dark"]{
+  --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--fg:#c9d1d9;--fg2:#8b949e;--fg3:#6e7681;
+  --accent:#58a6ff;--accent2:#79c0ff;--border:#30363d;--border2:#21262d;
+  --red:#f85149;--green:#3fb950;--yellow:#d29922;--purple:#bc8cff;
+  --shadow:0 1px 3px rgba(0,0,0,.4);--shadow2:0 3px 12px rgba(0,0,0,.5);
+}
+html{font-size:15px;scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--fg);line-height:1.6;display:flex;min-height:100vh}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+
+/* Sidebar */
+.sidebar{position:fixed;top:0;left:0;width:var(--sidebar-w);height:100vh;background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;padding:16px 12px;z-index:100;transition:transform .3s}
+.sidebar h2{font-size:.85rem;text-transform:uppercase;letter-spacing:.05em;color:var(--fg3);margin-bottom:12px}
+.sidebar nav a{display:block;padding:6px 10px;border-radius:var(--radius);font-size:.85rem;color:var(--fg2);transition:background .15s}
+.sidebar nav a:hover,.sidebar nav a.active{background:var(--bg3);color:var(--fg);text-decoration:none}
+.sidebar nav a .num{color:var(--fg3);margin-right:4px;font-size:.8em}
+.sidebar-toggle{display:none;position:fixed;top:12px;left:12px;z-index:200;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:6px 12px;cursor:pointer;font-family:var(--font);color:var(--fg)}
+
+/* Main */
+.main{margin-left:var(--sidebar-w);flex:1;max-width:960px;padding:32px 40px 80px}
+.main>header{margin-bottom:32px;padding-bottom:20px;border-bottom:2px solid var(--border)}
+.main>header h1{font-size:1.8rem;margin-bottom:8px}
+.main>header .meta{font-size:.9rem;color:var(--fg2)}
+.main>header .meta span{margin-right:16px}
+
+/* Controls */
+.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:24px;padding:12px 16px;background:var(--bg2);border-radius:var(--radius);border:1px solid var(--border2)}
+.controls button,.controls label{font-family:var(--font);font-size:.82rem;padding:5px 12px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg);color:var(--fg);cursor:pointer;transition:background .15s}
+.controls button:hover{background:var(--bg3)}
+.controls .search-box{flex:1;min-width:180px;padding:6px 12px;border:1px solid var(--border);border-radius:var(--radius);font-family:var(--font);font-size:.85rem;background:var(--bg);color:var(--fg)}
+.controls .search-box::placeholder{color:var(--fg3)}
+.theme-toggle{margin-left:auto;display:flex;align-items:center;gap:4px;font-size:.82rem;color:var(--fg2);cursor:pointer}
+.theme-toggle input{accent-color:var(--accent)}
+
+/* Sections */
+section{margin-bottom:32px}
+section>.section-header{display:flex;align-items:center;gap:10px;cursor:pointer;padding:10px 14px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);user-select:none;transition:background .15s}
+section>.section-header:hover{background:var(--bg3)}
+section>.section-header h2{font-size:1.15rem;flex:1}
+section>.section-header .chevron{font-size:1.1rem;transition:transform .2s;color:var(--fg3)}
+section>.section-header .chevron.open{transform:rotate(90deg)}
+section>.section-body{padding:16px 4px 8px}
+section>.section-body.collapsed{display:none}
+
+/* Tables */
+table{width:100%;border-collapse:collapse;font-size:.85rem;margin:12px 0}
+th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--border2);vertical-align:top}
+th{background:var(--bg2);font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:.03em;color:var(--fg2);cursor:pointer;white-space:nowrap;position:relative}
+th:hover{background:var(--bg3)}
+th .sort-arrow{font-size:.7em;margin-left:4px;opacity:.4}
+th .sort-arrow.active{opacity:1;color:var(--accent)}
+tr:hover td{background:var(--bg2)}
+tr.hidden-row{display:none}
+td code{font-family:var(--mono);font-size:.82em;background:var(--bg3);padding:1px 5px;border-radius:3px}
+
+/* Tags */
+.tag{display:inline-block;font-size:.72rem;padding:2px 7px;border-radius:10px;font-weight:600;margin:1px}
+.tag-repo{background:#ddf4ff;color:#0550ae}
+.tag-collection{background:#dafbe1;color:#116329}
+.tag-custom{background:#fff8c5;color:#6e5600}
+.tag-s{background:#dafbe1;color:#116329}
+.tag-m{background:#fff8c5;color:#6e5600}
+.tag-l{background:#ffebe9;color:#82071e}
+[data-theme="dark"] .tag-repo{background:#0c2d48;color:#58a6ff}
+[data-theme="dark"] .tag-collection{background:#0d2818;color:#3fb950}
+[data-theme="dark"] .tag-custom{background:#2d2000;color:#d29922}
+[data-theme="dark"] .tag-s{background:#0d2818;color:#3fb950}
+[data-theme="dark"] .tag-m{background:#2d2000;color:#d29922}
+[data-theme="dark"] .tag-l{background:#3d0c0c;color:#f85149}
+
+/* Color swatches */
+.swatch{display:inline-block;width:18px;height:18px;border-radius:3px;vertical-align:middle;margin-right:6px;border:1px solid var(--border)}
+
+/* Worklist */
+.worklist{counter-reset:step}
+.worklist .step{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border2)}
+.worklist .step-num{min-width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:var(--accent);color:#fff;border-radius:50%;font-size:.8rem;font-weight:700}
+.worklist .step-content{flex:1}
+.worklist .step-content h4{font-size:.92rem;margin-bottom:2px}
+.worklist .step-content p{font-size:.82rem;color:var(--fg2)}
+.worklist .dep{font-size:.75rem;color:var(--fg3);font-style:italic}
+
+/* Bullet lists */
+.plan-list{padding-left:20px;margin:8px 0}
+.plan-list li{margin:4px 0;font-size:.9rem}
+
+/* Risk matrix */
+.risk-high{color:var(--red);font-weight:600}
+.risk-med{color:var(--yellow);font-weight:600}
+.risk-low{color:var(--green);font-weight:600}
+
+/* Open questions */
+.questions ol{padding-left:24px}.questions li{margin:8px 0;font-size:.9rem}
+
+/* Print */
+@media print{
+  .sidebar,.sidebar-toggle,.controls,.theme-toggle{display:none!important}
+  .main{margin-left:0;max-width:100%;padding:16px}
+  section>.section-body.collapsed{display:block!important}
+  section>.section-header .chevron{display:none}
+  body{font-size:11pt;color:#000;background:#fff}
+  table{font-size:9pt}th,td{padding:4px 6px}
+  .tag{border:1px solid #999}
+  a{color:#000;text-decoration:underline}
+  section{break-inside:avoid}
+  h1{font-size:16pt}h2{font-size:13pt}
+}
+/* Responsive */
+@media(max-width:900px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .sidebar-toggle{display:block}
+  .main{margin-left:0;padding:20px 16px}
+}
+</style>
+</head>
+<body>
+
+<button class="sidebar-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle sidebar">&#9776; TOC</button>
+
+<aside class="sidebar">
+  <h2>Table of Contents</h2>
+  <nav id="toc">
+    <a href="#executive-summary"><span class="num">1.</span> Executive Summary</a>
+    <a href="#template-inventory"><span class="num">2.</span> Template Inventory</a>
+    <a href="#block-inventory"><span class="num">3.</span> Block Inventory</a>
+    <a href="#design-tokens"><span class="num">4.</span> Design Tokens</a>
+    <a href="#navigation-plan"><span class="num">5.</span> Navigation Plan</a>
+    <a href="#bulk-import"><span class="num">6.</span> Bulk Import Strategy</a>
+    <a href="#out-of-scope"><span class="num">7.</span> Out-of-Scope</a>
+    <a href="#worklist"><span class="num">8.</span> Sequenced Worklist</a>
+    <a href="#risks"><span class="num">9.</span> Risks &amp; Mitigations</a>
+    <a href="#open-questions"><span class="num">10.</span> Open Questions</a>
+  </nav>
+</aside>
+
+<div class="main">
+<header>
+  <h1>Wells Fargo &mdash; EDS Migration Plan</h1>
+  <div class="meta">
+    <span><strong>Source:</strong> wellsfargo.com (1,281 sitemap URLs &mdash; 907 EN + 374 ES)</span>
+    <span><strong>Target:</strong> DA &mdash; da.live/#/mkbansal1/wellsfargo</span>
+    <span><strong>Date:</strong> 2026-05-14</span>
+  </div>
+</header>
+
+<div class="controls">
+  <button onclick="expandAll()">Expand All</button>
+  <button onclick="collapseAll()">Collapse All</button>
+  <input type="text" class="search-box" id="searchBox" placeholder="Search tables..." oninput="filterTables(this.value)">
+  <label class="theme-toggle"><input type="checkbox" id="themeSwitch" onchange="toggleTheme()"> Dark Mode</label>
+</div>
+
+<!-- 1. EXECUTIVE SUMMARY -->
+<section id="executive-summary">
+  <div class="section-header" onclick="toggleSection(this)">
+    <span class="chevron open">&#9654;</span>
+    <h2>1. Executive Summary</h2>
+  </div>
+  <div class="section-body">
+    <ul class="plan-list">
+      <li><strong>1,281 sitemap URLs</strong> total: <strong>907 English</strong> + <strong>374 Spanish</strong>. Of the 907 English pages, <strong>644 are in scope</strong> across <strong>14 templates</strong>. 263 English pages + 374 Spanish pages are scoped out (see Section 2 breakdown).</li>
+      <li><strong>6 blocks already in the repo:</strong> hero, cards, columns, fragment, header, footer</li>
+      <li><strong>4 blocks from Adobe Block Collection:</strong> accordion, tabs, carousel, table</li>
+      <li><strong>7 custom blocks required:</strong> promo-bar, rate-checker, large-promo, app-promo, contact-bar, product-comparison, icon-cards</li>
+      <li>Proprietary font <em>"Wells Fargo Sans Regular"</em> requires licensing decision before design Phase 1</li>
+      <li>Mega-menu with 6 top-level groups and nested product links requires custom header decoration</li>
+      <li>Interactive widgets (rate checker, location finder, chatbot, calculators) are <strong>out of scope</strong> &mdash; replaced with static CTAs</li>
+      <li><strong>637 pages scoped out:</strong> 374 Spanish (<code>/es/</code>), 255 private foundations (repetitive grant pages), 3 nav links, 3 test pages, 2 jump/redirect pages. Auth flows, commerce, MarTech also deferred.</li>
+      <li>Design palette: brand red (#D71E28), yellow (#FCC60A), navy (#27455C), warm grays, purple links (#5A469B)</li>
+      <li>Estimated effort: <strong>3 phases</strong> &mdash; infrastructure + design (~5 sessions), block dev (~5 sessions), bulk import + QA (~3 sessions)</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 2. TEMPLATE INVENTORY -->
+<section id="template-inventory">
+  <div class="section-header" onclick="toggleSection(this)">
+    <span class="chevron open">&#9654;</span>
+    <h2>2. Template Inventory</h2>
+  </div>
+  <div class="section-body">
+    <table id="templateTable">
+      <thead><tr>
+        <th onclick="sortTable('templateTable',0)"># <span class="sort-arrow">&#9650;</span></th>
+        <th onclick="sortTable('templateTable',1)">Template <span class="sort-arrow">&#9650;</span></th>
+        <th onclick="sortTable('templateTable',2)">Est. Pages <span class="sort-arrow">&#9650;</span></th>
+        <th onclick="sortTable('templateTable',3)">Representative URL <span class="sort-arrow">&#9650;</span></th>
+        <th onclick="sortTable('templateTable',4)">Sections <span class="sort-arrow">&#9650;</span></th>
+        <th onclick="sortTable('templateTable',5)">Key Blocks <span class="sort-arrow">&#9650;</span></th>
+        <th onclick="sortTable('templateTable',6)">Interactive Elements <span class="sort-arrow">&#9650;</span></th>
+      </tr></thead>
+      <tbody>
+        <tr><td>1</td><td><code>homepage</code></td><td>1</td><td>wellsfargo.com</td><td>Hero marquee, product nav, 3&times; promo cards, rate checker, large promo, 3&times; guidance cards, app promo (dark), community columns, contact bar</td><td>hero, cards, columns, promo-bar, rate-checker, large-promo, app-promo, contact-bar</td><td>Rate dropdown, location modal, chatbot</td></tr>
+        <tr><td>2</td><td><code>product-hub</code></td><td>6</td><td>wellsfargo.com/checking/</td><td>Hero, tabbed product selector, comparison cards, feature grid, FAQ accordion, app promo, contact bar</td><td>hero, tabs, cards, icon-cards, accordion, app-promo, contact-bar</td><td>Tab switcher, product comparison</td></tr>
+        <tr><td>3</td><td><code>product-detail</code></td><td>57</td><td>wellsfargo.com/checking/everyday/</td><td>Hero + CTA, benefits cards, fees table, trust icons, app promo, FAQ accordion, contact bar</td><td>hero, cards, table, icon-cards, accordion, app-promo, contact-bar</td><td>Fee calculator, appointment scheduler</td></tr>
+        <tr><td>4</td><td><code>mortgage</code></td><td>87</td><td>wellsfargo.com/mortgage/</td><td>Hero + dual CTA, journey cards, grant promos, tools grid, FAQ accordion, testimonials, consultant</td><td>hero, cards, accordion, columns, contact-bar</td><td>Rate calculator, pre-qualification</td></tr>
+        <tr><td>5</td><td><code>business</code></td><td>107</td><td>wellsfargo.com/biz/</td><td>Hero, product cards, feature blocks, 3-col value props, Zelle promo, resource grid</td><td>hero, cards, columns, app-promo</td><td>Product selector, sign-on form</td></tr>
+        <tr><td>6</td><td><code>commercial</code></td><td>90</td><td>wellsfargo.com/com/</td><td>Login portal, hero infographic, 3-col value props, industry focus, insights, case studies</td><td>hero, cards, columns</td><td>Login portal, industry tool</td></tr>
+        <tr><td>7</td><td><code>cib</code></td><td>60</td><td>wellsfargo.com/cib/</td><td>Hero, testimonials, perspectives grid, solutions 6-col, careers spotlight</td><td>hero, cards, columns, carousel</td><td>Video embeds</td></tr>
+        <tr><td>8</td><td><code>education-hub</code></td><td>18</td><td>wellsfargo.com/financial-education/</td><td>Hero, 3&times; topic cards, 3&times; tool cards, search, FAQ</td><td>hero, cards, icon-cards</td><td>Credit tools, calculators</td></tr>
+        <tr><td>9</td><td><code>credit-goals</code></td><td>21</td><td>wellsfargo.com/goals-credit/</td><td>Hero, 4&times; categorical blocks, financial toolkit, link list</td><td>hero, cards, icon-cards</td><td>FICO score tool</td></tr>
+        <tr><td>10</td><td><code>help-center</code></td><td>51</td><td>wellsfargo.com/help/</td><td>Hero, 8&times; topic accordions, popular FAQs, Fargo promo, contact</td><td>hero, accordion, cards, contact-bar</td><td>Search, virtual assistant</td></tr>
+        <tr><td>11</td><td><code>about</code></td><td>52</td><td>wellsfargo.com/about/</td><td>Hero, 9&times; content cards, feedback CTA</td><td>hero, cards, columns</td><td>Feedback form</td></tr>
+        <tr><td>12</td><td><code>privacy-legal</code></td><td>33</td><td>wellsfargo.com/privacy-security/</td><td>Hero, 3&times; security cards, policy docs, legal terms</td><td>hero, cards, accordion</td><td>Privacy request portal</td></tr>
+        <tr><td>13</td><td><code>investing</code></td><td>21</td><td>wellsfargo.com/investing/wells-fargo-advisors/</td><td>Hero, value proposition cards, credibility stats, ZIP locator, FAQ, regulatory docs</td><td>hero, cards, columns, accordion, contact-bar</td><td>ZIP locator tool</td></tr>
+        <tr><td>14</td><td><code>miscellaneous</code></td><td>40</td><td>wellsfargo.com/mobile-online-banking/</td><td>Varied &mdash; includes online banking, mobile, military, foreign exchange, financial assistance, atm, rewards, tax center, premier, equity</td><td>hero, cards, accordion</td><td>Various</td></tr>
+      </tbody>
+    </table>
+    <h3 style="font-size:1rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid var(--border2)">Full URL Accounting (1,281 sitemap URLs)</h3>
+    <table>
+      <thead><tr><th>Bucket</th><th>Pages</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>English pages in 14 templates (above)</td><td><strong>644</strong></td><td style="color:var(--green);font-weight:600">In Scope</td></tr>
+        <tr><td>Scoped-out English pages (below)</td><td><strong>263</strong></td><td style="color:var(--red);font-weight:600">Out of Scope</td></tr>
+        <tr><td>Spanish /es/ pages</td><td><strong>374</strong></td><td style="color:var(--red);font-weight:600">Out of Scope</td></tr>
+        <tr style="background:var(--bg2)"><td><strong>Total</strong></td><td><strong>1,281</strong></td><td></td></tr>
+      </tbody>
+    </table>
+
+    <h3 style="font-size:1rem;margin:24px 0 8px">Scoped-Out Pages &mdash; Full Breakdown</h3>
+    <p style="font-size:.85rem;color:var(--fg2);margin-bottom:12px">637 URLs are scoped out of Phase 1. Every excluded URL is listed below with its reason.</p>
+    <table id="scopedOutTable">
+      <thead><tr>
+        <th>Category</th>
+        <th>URL Pattern</th>
+        <th>Page Count</th>
+        <th>Reason Scoped Out</th>
+        <th>Recommended Phase</th>
+      </tr></thead>
+      <tbody>
+        <tr><td><strong>Spanish locale</strong></td><td><code>/es/*</code></td><td>374</td><td>Full Spanish mirror of the English site. Requires separate locale strategy, translation workflow, and potentially MSM/language-copy infrastructure in DA. Not included in English-only Phase 1.</td><td>Phase 2 &mdash; after English site is stable. Reuse same templates + transformers with locale-aware URL mapping.</td></tr>
+        <tr><td><strong>Private foundations</strong></td><td><code>/private-foundations/*</code></td><td>255</td><td>255 individual charitable foundation grant pages (e.g., "Adams Charitable Foundation", "Baker Trust"). Each is a repetitive data-driven page with mission statement, eligibility, deadlines, and contact info. Likely generated from a database/CMS feed. The volume and repetitive structure suggest these should be migrated as a <strong>separate template with a spreadsheet-driven data source</strong> rather than individual authored pages.</td><td>Phase 3 &mdash; requires a dedicated <code>foundation-detail</code> template. Consider whether these should be a single searchable/filterable page with a JSON data source rather than 255 individual pages.</td></tr>
+        <tr><td><strong>Navigation links</strong></td><td><code>/_navlinks/*</code></td><td>3</td><td>Internal CMS navigation configuration URLs (financial-assistance-nav-links, fixed-income-nav-links, quarterly-earnings-nav-links). Not content pages &mdash; structural artifacts used by the source CMS for menu generation.</td><td>N/A &mdash; handled by EDS nav document, not page import.</td></tr>
+        <tr><td><strong>Test / staging pages</strong></td><td><code>/test/*</code>, <code>/testBCP1/</code></td><td>3</td><td>Test and staging pages that should not be in a production sitemap. Not real content.</td><td>N/A &mdash; exclude permanently.</td></tr>
+        <tr><td><strong>Jump / redirect pages</strong></td><td><code>/jump/*</code></td><td>2</td><td>Intermediate redirect pages (completion-certificate, student-athlete-education). These are not content destinations &mdash; they redirect users to other URLs.</td><td>N/A &mdash; implement as URL redirects in EDS, not content pages.</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:.82rem;color:var(--fg3);margin-top:10px"><strong>Accounting check:</strong> 644 (in-scope English) + 374 (Spanish) + 255 (private foundations) + 3 (nav links) + 3 (test) + 2 (jump) = <strong>1,281 &#10003;</strong></p>
+  </div>
+</section>
+
+<!-- 3. BLOCK INVENTORY -->
+<section id="block-inventory">
+  <div class="section-header" onclick="toggleSection(this)">
+    <span class="chevron open">&#9654;</span>
+    <h2>3. Block Inventory</h2>
+  </div>
+  <div class="section-body">
+    <h3 style="font-size:1rem;margin:12px 0 8px">Blocks by Source</h3>
+    <table id="blockTable">
+      <thead><tr>
+        <th onclick="sortTable('blockTable',0)">Block <span class="sort-arrow">&#9650;</span></th>
+        <th onclick="sortTable('blockTable',1)">Source <span class="sort-arrow">&#9650;</span></th>
+        <th onclick="sortTable('blockTable',2)">Variants <span class="sort-arrow">&#9650;</span></th>
+        <th onclick="sortTable('blockTable',3)">Templates Using <span class="sort-arrow">&#9650;</span></th>
+        <th onclick="sortTable('blockTable',4)">Content Model <span class="sort-arrow">&#9650;</span></th>
+        <th onclick="sortTable('blockTable',5)">Table Structure <span class="sort-arrow">&#9650;</span></th>
+        <th onclick="sortTable('blockTable',6)">Size <span class="sort-arrow">&#9650;</span></th>
+      </tr></thead>
+      <tbody>
+        <tr><td><code>hero</code></td><td><span class="tag tag-repo">Repo</span></td><td>Default</td><td>All 12</td><td>standalone</td><td>1 col &times; 3 rows: name, bg image, text+CTA</td><td><span class="tag tag-s">S</span></td></tr>
+        <tr><td><code>cards</code></td><td><span class="tag tag-repo">Repo</span></td><td>Default, no-images</td><td>11</td><td>collection</td><td>2 col &times; N rows: image + text per card</td><td><span class="tag tag-s">S</span></td></tr>
+        <tr><td><code>columns</code></td><td><span class="tag tag-repo">Repo</span></td><td>Default (2-col, 3-col)</td><td>6</td><td>standalone</td><td>N col &times; N rows</td><td><span class="tag tag-s">S</span></td></tr>
+        <tr><td><code>fragment</code></td><td><span class="tag tag-repo">Repo</span></td><td>Default</td><td>Cross-template</td><td>configuration</td><td>1 col &times; 1 row: path to fragment</td><td><span class="tag tag-s">S</span></td></tr>
+        <tr><td><code>header</code></td><td><span class="tag tag-repo">Repo</span></td><td>Custom decoration</td><td>All (global)</td><td>auto-blocked</td><td>N/A &mdash; nav document</td><td><span class="tag tag-m">M</span></td></tr>
+        <tr><td><code>footer</code></td><td><span class="tag tag-repo">Repo</span></td><td>Custom decoration</td><td>All (global)</td><td>auto-blocked</td><td>N/A &mdash; footer document</td><td><span class="tag tag-s">S</span></td></tr>
+        <tr><td><code>accordion</code></td><td><span class="tag tag-collection">Collection</span></td><td>Default</td><td>product-hub, product-detail, mortgage-hub, help-center, privacy-legal</td><td>collection</td><td>2 col &times; N rows: title + content</td><td><span class="tag tag-s">S</span></td></tr>
+        <tr><td><code>tabs</code></td><td><span class="tag tag-collection">Collection</span></td><td>Default</td><td>product-hub</td><td>collection</td><td>2 col &times; N rows: tab label + tab content</td><td><span class="tag tag-s">S</span></td></tr>
+        <tr><td><code>table</code></td><td><span class="tag tag-collection">Collection</span></td><td>Default, striped</td><td>product-detail</td><td>collection</td><td>N col &times; N rows: data cells</td><td><span class="tag tag-s">S</span></td></tr>
+        <tr><td><code>carousel</code></td><td><span class="tag tag-collection">Collection</span></td><td>Default</td><td>cib-hub</td><td>collection</td><td>2 col &times; N rows: image + text per slide</td><td><span class="tag tag-s">S</span></td></tr>
+        <tr><td><code>promo-bar</code></td><td><span class="tag tag-custom">Custom</span></td><td>&mdash;</td><td>homepage</td><td>auto-blocked</td><td>1 col &times; N rows: link text + URL</td><td><span class="tag tag-s">S</span></td></tr>
+        <tr><td><code>rate-checker</code></td><td><span class="tag tag-custom">Custom</span></td><td>&mdash;</td><td>homepage</td><td>standalone</td><td>1 col &times; 2 rows: H2, CTA link</td><td><span class="tag tag-s">S</span></td></tr>
+        <tr><td><code>large-promo</code></td><td><span class="tag tag-custom">Custom</span></td><td>&mdash;</td><td>homepage</td><td>standalone</td><td>2 col &times; 1 row: image, H2+text+CTA</td><td><span class="tag tag-s">S</span></td></tr>
+        <tr><td><code>app-promo</code></td><td><span class="tag tag-custom">Custom</span></td><td>&mdash;</td><td>homepage, product-hub, product-detail, business-hub</td><td>standalone</td><td>2 col &times; 1 row: H2+text, mockup+badges</td><td><span class="tag tag-m">M</span></td></tr>
+        <tr><td><code>contact-bar</code></td><td><span class="tag tag-custom">Custom</span></td><td>&mdash;</td><td>homepage, product-hub, product-detail, mortgage-hub, help-center</td><td>standalone</td><td>1 col &times; 3 rows: icon+H3+link</td><td><span class="tag tag-s">S</span></td></tr>
+        <tr><td><code>product-comparison</code></td><td><span class="tag tag-custom">Custom</span></td><td>&mdash;</td><td>product-hub, product-detail</td><td>collection</td><td>2 col &times; N rows: feature + value</td><td><span class="tag tag-m">M</span></td></tr>
+        <tr><td><code>icon-cards</code></td><td><span class="tag tag-custom">Custom</span></td><td>&mdash;</td><td>product-detail, education-hub, credit-goals</td><td>standalone</td><td>1 col &times; N rows: icon+H3+text</td><td><span class="tag tag-s">S</span></td></tr>
+      </tbody>
+    </table>
+
+    <h3 style="font-size:1rem;margin:20px 0 8px">Auto-blocked vs. Authored vs. Default Content</h3>
+    <table>
+      <thead><tr><th>Pattern</th><th>Type</th><th>Details</th></tr></thead>
+      <tbody>
+        <tr><td>Hero marquee</td><td>Authored block</td><td>All templates &mdash; first section</td></tr>
+        <tr><td>Product nav bar</td><td>Auto-blocked</td><td>Homepage only &mdash; link-list pattern in buildAutoBlocks()</td></tr>
+        <tr><td>Product/feature cards</td><td>Authored block</td><td>Most templates</td></tr>
+        <tr><td>FAQ accordions</td><td>Authored block</td><td>5+ templates</td></tr>
+        <tr><td>Tab product selector</td><td>Authored block</td><td>Product hub pages</td></tr>
+        <tr><td>Headings, paragraphs, lists</td><td>Default content</td><td>All templates &mdash; between blocks</td></tr>
+        <tr><td>Legal disclaimers</td><td>Default content</td><td>Footer document</td></tr>
+        <tr><td>Breadcrumbs</td><td>Default / auto-blocked</td><td>Product detail pages</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 4. DESIGN TOKENS -->
+<section id="design-tokens">
+  <div class="section-header" onclick="toggleSection(this)">
+    <span class="chevron open">&#9654;</span>
+    <h2>4. Design Tokens</h2>
+  </div>
+  <div class="section-body">
+    <h3 style="font-size:1rem;margin:12px 0 8px">Color Palette</h3>
+    <table>
+      <thead><tr><th>Token</th><th>Hex</th><th>Preview</th><th>Usage</th></tr></thead>
+      <tbody>
+        <tr><td><code>--color-brand-red</code></td><td>#D71E28</td><td><span class="swatch" style="background:#D71E28"></span></td><td>Header bg, primary buttons</td></tr>
+        <tr><td><code>--color-brand-yellow</code></td><td>#FCC60A</td><td><span class="swatch" style="background:#FCC60A"></span></td><td>Accent highlights</td></tr>
+        <tr><td><code>--color-text-primary</code></td><td>#141414</td><td><span class="swatch" style="background:#141414"></span></td><td>Headings, body text</td></tr>
+        <tr><td><code>--color-text-secondary</code></td><td>#787070</td><td><span class="swatch" style="background:#787070"></span></td><td>Muted body text</td></tr>
+        <tr><td><code>--color-link</code></td><td>#5A469B</td><td><span class="swatch" style="background:#5A469B"></span></td><td>Text links (purple)</td></tr>
+        <tr><td><code>--color-navy</code></td><td>#27455C</td><td><span class="swatch" style="background:#27455C"></span></td><td>Dark section backgrounds</td></tr>
+        <tr><td><code>--color-green</code></td><td>#468254</td><td><span class="swatch" style="background:#468254"></span></td><td>Success / accent</td></tr>
+        <tr><td><code>--color-blue</code></td><td>#3860BE</td><td><span class="swatch" style="background:#3860BE"></span></td><td>Secondary accent</td></tr>
+        <tr><td><code>--color-bg-warm</code></td><td>#F4F0ED</td><td><span class="swatch" style="background:#F4F0ED"></span></td><td>Light warm section bg</td></tr>
+        <tr><td><code>--color-bg-light</code></td><td>#F9F7F6</td><td><span class="swatch" style="background:#F9F7F6"></span></td><td>Subtle section bg</td></tr>
+        <tr><td><code>--color-border</code></td><td>#E2DEDE</td><td><span class="swatch" style="background:#E2DEDE"></span></td><td>Dividers, card borders</td></tr>
+        <tr><td><code>--color-dark-text</code></td><td>#3B3331</td><td><span class="swatch" style="background:#3B3331"></span></td><td>Button text on colored bg</td></tr>
+      </tbody>
+    </table>
+
+    <h3 style="font-size:1rem;margin:20px 0 8px">Typography</h3>
+    <table>
+      <thead><tr><th>Element</th><th>Font Family</th><th>Size</th><th>Weight</th><th>Line-Height</th><th>Color</th></tr></thead>
+      <tbody>
+        <tr><td>Body</td><td>"Wells Fargo Sans Regular", Arial, Helvetica, sans-serif</td><td>15px</td><td>400</td><td>~22px (1.47)</td><td>#787070</td></tr>
+        <tr><td>H1</td><td>Same</td><td>34px</td><td>400</td><td>&mdash;</td><td>#787070</td></tr>
+        <tr><td>H2</td><td>Same</td><td>24px</td><td>600</td><td>&mdash;</td><td>#141414</td></tr>
+        <tr><td>H3</td><td>Same</td><td>13px</td><td>600</td><td>&mdash;</td><td>#141414</td></tr>
+        <tr><td>Buttons</td><td>Same</td><td>17px</td><td>400</td><td>&mdash;</td><td>#3B3331</td></tr>
+      </tbody>
+    </table>
+
+    <h3 style="font-size:1rem;margin:20px 0 8px">Button Styles</h3>
+    <table>
+      <thead><tr><th>Variant</th><th>Background</th><th>Text</th><th>Border</th><th>Radius</th><th>Padding</th></tr></thead>
+      <tbody>
+        <tr><td>Primary</td><td><span class="swatch" style="background:#D71E28"></span>#D71E28</td><td>#3B3331</td><td>none</td><td>25px</td><td>9px 25px</td></tr>
+        <tr><td>Secondary</td><td><span class="swatch" style="background:#FFF;border:1px solid #999"></span>#FFFFFF</td><td>#3B3331</td><td>1px solid #3B3331</td><td>25px</td><td>9px 25px</td></tr>
+        <tr><td>Text CTA</td><td>transparent</td><td>#5A469B</td><td>none</td><td>0</td><td>0</td></tr>
+      </tbody>
+    </table>
+
+    <h3 style="font-size:1rem;margin:20px 0 8px">Section Background Variants</h3>
+    <table>
+      <thead><tr><th>Style Name</th><th>Background</th><th>Preview</th><th>Usage</th></tr></thead>
+      <tbody>
+        <tr><td><code>light</code></td><td>#FFFFFF</td><td><span class="swatch" style="background:#FFF;border:1px solid #ccc"></span></td><td>Default &mdash; most sections</td></tr>
+        <tr><td><code>warm-gray</code></td><td>#F4F0ED</td><td><span class="swatch" style="background:#F4F0ED"></span></td><td>Large promo section</td></tr>
+        <tr><td><code>subtle-gray</code></td><td>#F9F7F6</td><td><span class="swatch" style="background:#F9F7F6"></span></td><td>Alternate sections</td></tr>
+        <tr><td><code>navy-dark</code></td><td>#27455C</td><td><span class="swatch" style="background:#27455C"></span></td><td>App promo (Ask Fargo)</td></tr>
+        <tr><td><code>off-white</code></td><td>#F8F8F8</td><td><span class="swatch" style="background:#F8F8F8"></span></td><td>Footer area</td></tr>
+      </tbody>
+    </table>
+
+    <h3 style="font-size:1rem;margin:20px 0 8px">Brand Decisions Required</h3>
+    <ul class="plan-list">
+      <li><strong>Font licensing:</strong> "Wells Fargo Sans Regular" is proprietary. Options: (a) license and self-host via <code>fonts/</code> + <code>fonts.css</code>, or (b) fall back to Arial/Helvetica system stack.</li>
+      <li><strong>H3 size (13px):</strong> Appears unusually small &mdash; may be contextual styling rather than global. Verify across templates.</li>
+      <li><strong>Link color (purple #5A469B):</strong> Unusual for a financial brand &mdash; confirm as intentional brand standard.</li>
+      <li><strong>Button text on red:</strong> Dark (#3B3331) rather than white &mdash; WCAG contrast check needed.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 5. NAVIGATION PLAN -->
+<section id="navigation-plan">
+  <div class="section-header" onclick="toggleSection(this)">
+    <span class="chevron open">&#9654;</span>
+    <h2>5. Navigation Plan</h2>
+  </div>
+  <div class="section-body">
+    <h3 style="font-size:1rem;margin:12px 0 8px">EDS Three-Section Mapping</h3>
+    <table>
+      <thead><tr><th>EDS Section</th><th>Source Mapping</th><th>Content</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Brand</strong></td><td>Wells Fargo logo</td><td>Logo image linked to homepage</td></tr>
+        <tr><td><strong>Sections</strong></td><td>Mega-menu groups</td><td>Personal (dropdown: Checking, Savings &amp; CDs, Credit Cards, Home Loans, Personal Loans, Auto Loans, Premier, Education &amp; Tools), Investing &amp; Wealth Mgmt, Business, Commercial Banking, Corporate &amp; Investment Banking, About</td></tr>
+        <tr><td><strong>Tools</strong></td><td>Header utility</td><td>Sign On (external), ATMs/Locations, Help, Espa&ntilde;ol, Search</td></tr>
+      </tbody>
+    </table>
+
+    <h3 style="font-size:1rem;margin:20px 0 8px">Mega-Menu Groups</h3>
+    <table>
+      <thead><tr><th>Group</th><th>Type</th><th>Sub-links</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Personal</strong></td><td>Expandable dropdown</td><td>Checking, Savings &amp; CDs, Credit Cards, Home Loans, Personal Loans, Auto Loans, Premier, Education &amp; Tools</td></tr>
+        <tr><td>Investing &amp; Wealth Mgmt</td><td>Direct link</td><td>/investing-wealth/</td></tr>
+        <tr><td>Business</td><td>Direct link</td><td>/biz/</td></tr>
+        <tr><td>Commercial Banking</td><td>Direct link</td><td>/com/</td></tr>
+        <tr><td>Corporate &amp; Investment Banking</td><td>Direct link</td><td>/cib/</td></tr>
+        <tr><td>About Wells Fargo</td><td>Direct link</td><td>/about/</td></tr>
+      </tbody>
+    </table>
+
+    <h3 style="font-size:1rem;margin:20px 0 8px">Special Handling</h3>
+    <table>
+      <thead><tr><th>Feature</th><th>Complexity</th><th>Approach</th></tr></thead>
+      <tbody>
+        <tr><td>Mega-menu with nested Personal sub-links</td><td><span class="tag tag-m">M</span></td><td>Custom header decoration in <code>scripts.js</code> &mdash; "Personal" expands to show 8 links; others are direct links</td></tr>
+        <tr><td>Hamburger mobile menu</td><td><span class="tag tag-s">S</span></td><td>Standard EDS mobile nav pattern &mdash; hamburger toggles visibility</td></tr>
+        <tr><td>Espa&ntilde;ol locale switcher</td><td><span class="tag tag-s">S</span></td><td>Simple link in tools section; no MSM needed</td></tr>
+        <tr><td>Search</td><td><span class="tag tag-m">M</span></td><td>MVP: link to <code>/help/</code>. Optional: Block Collection Search block later</td></tr>
+        <tr><td>Product sub-nav bar (homepage)</td><td><span class="tag tag-m">M</span></td><td>Auto-block or authored <code>promo-bar</code> &mdash; homepage-specific, not global nav</td></tr>
+      </tbody>
+    </table>
+
+    <h3 style="font-size:1rem;margin:20px 0 8px">Footer Structure</h3>
+    <ul class="plan-list">
+      <li><strong>Legal nav:</strong> Privacy, Do Not Sell, Notice of Data Collection, Terms, Online Access Agreement, Report Fraud, About, Careers, Inclusion, Sitemap</li>
+      <li><strong>Social icons:</strong> Facebook, LinkedIn, Instagram, Pinterest, YouTube, Twitter (SVGs in <code>icons/</code>)</li>
+      <li><strong>Regulatory:</strong> Investment products disclaimer, FDIC notice, footnotes, trademark notices, NMLSR ID, Equal Housing Lender</li>
+      <li><strong>Copyright:</strong> &copy; 1999 &ndash; 2026 Wells Fargo</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 6. BULK IMPORT STRATEGY -->
+<section id="bulk-import">
+  <div class="section-header" onclick="toggleSection(this)">
+    <span class="chevron open">&#9654;</span>
+    <h2>6. Bulk Import Strategy</h2>
+  </div>
+  <div class="section-body">
+    <p style="font-size:.85rem;color:var(--fg2);margin-bottom:12px"><strong>Total pages to migrate: 644</strong> across 14 templates. Each row includes the migration prompt you can copy-paste to start that template's migration.</p>
+    <table id="bulkTable">
+      <thead><tr><th>Template</th><th>Pages</th><th>Representative Page</th><th>Validation Batch (5&ndash;10)</th><th>URL Source</th><th>Flags</th><th style="min-width:260px">Migration Prompt</th></tr></thead>
+      <tbody>
+        <tr><td><code>homepage</code></td><td>1</td><td>wellsfargo.com</td><td>N/A (1 page)</td><td>Manual</td><td>Seasonal promo content</td><td style="font-size:.78rem"><code>migrate https://www.wellsfargo.com home page only to DA https://da.live/#/mkbansal1/wellsfargo</code></td></tr>
+        <tr><td><code>product-hub</code></td><td>6</td><td>wellsfargo.com/checking/</td><td>/savings-cds/, /credit-cards/, /auto-loans/, /personal-loans/, /debit-card/</td><td>Sitemap</td><td>Tab widget complexity varies</td><td style="font-size:.78rem"><code>migrate these 6 product hub pages to DA https://da.live/#/mkbansal1/wellsfargo: https://www.wellsfargo.com/checking/, https://www.wellsfargo.com/savings-cds/, https://www.wellsfargo.com/credit-cards/, https://www.wellsfargo.com/auto-loans/, https://www.wellsfargo.com/personal-loans/, https://www.wellsfargo.com/debit-card/</code></td></tr>
+        <tr><td><code>product-detail</code></td><td>57</td><td>wellsfargo.com/checking/everyday/</td><td>/checking/prime/, /savings-cds/way2save/, /savings-cds/platinum/, /savings-cds/cds/, /checking/clear-access/</td><td>Sitemap crawl</td><td>Fee table structure varies</td><td style="font-size:.78rem"><code>migrate https://www.wellsfargo.com/checking/everyday/ as representative product-detail page to DA https://da.live/#/mkbansal1/wellsfargo, then bulk import remaining 56 product-detail pages from sitemap paths under /checking/*, /savings-cds/*, /credit-cards/*, /auto-loans/*, /personal-loans/*, /debit-card/*</code></td></tr>
+        <tr><td><code>mortgage</code></td><td>87</td><td>wellsfargo.com/mortgage/</td><td>/mortgage/rates/, /mortgage/apply/, /mortgage/loan-programs/, /mortgage/calculators/, /mortgage/faqs/</td><td>Sitemap</td><td>Calculator widgets</td><td style="font-size:.78rem"><code>migrate https://www.wellsfargo.com/mortgage/ as representative mortgage page to DA https://da.live/#/mkbansal1/wellsfargo, then bulk import remaining 86 pages from sitemap paths under /mortgage/*</code></td></tr>
+        <tr><td><code>business</code></td><td>107</td><td>wellsfargo.com/biz/</td><td>/biz/checking/, /biz/online-banking/, /biz/merchant/, /biz/savings/, /biz/business-credit/</td><td>Sitemap</td><td>Sign-on forms</td><td style="font-size:.78rem"><code>migrate https://www.wellsfargo.com/biz/ as representative business page to DA https://da.live/#/mkbansal1/wellsfargo, then bulk import remaining 106 pages from sitemap paths under /biz/*</code></td></tr>
+        <tr><td><code>commercial</code></td><td>90</td><td>wellsfargo.com/com/</td><td>/com/solutions/, /com/industry/, /com/insights/, /com/fraud/</td><td>Sitemap</td><td>Login portal</td><td style="font-size:.78rem"><code>migrate https://www.wellsfargo.com/com/ as representative commercial banking page to DA https://da.live/#/mkbansal1/wellsfargo, then bulk import remaining 89 pages from sitemap paths under /com/*</code></td></tr>
+        <tr><td><code>cib</code></td><td>60</td><td>wellsfargo.com/cib/</td><td>/cib/investment-banking/, /cib/global-markets/, /cib/insights/, /cib/commercial-real-estate/</td><td>Sitemap</td><td>Video embeds</td><td style="font-size:.78rem"><code>migrate https://www.wellsfargo.com/cib/ as representative CIB page to DA https://da.live/#/mkbansal1/wellsfargo, then bulk import remaining 59 pages from sitemap paths under /cib/*</code></td></tr>
+        <tr><td><code>education-hub</code></td><td>18</td><td>wellsfargo.com/financial-education/</td><td>/financial-health/, /financial-goals/save/, /financial-goals/protect/</td><td>Sitemap</td><td>Interactive tools</td><td style="font-size:.78rem"><code>migrate these 18 education pages to DA https://da.live/#/mkbansal1/wellsfargo from sitemap paths: /financial-education/*, /financial-health/*, /financial-goals/*, /goals-banking-made-easy/, /goals-investing/</code></td></tr>
+        <tr><td><code>credit-goals</code></td><td>21</td><td>wellsfargo.com/goals-credit/</td><td>/goals-credit/build-credit/, /goals-credit/manage-debt/, /goals-credit/credit-101/</td><td>Sitemap</td><td>FICO widget</td><td style="font-size:.78rem"><code>migrate https://www.wellsfargo.com/goals-credit/ as representative credit-goals page to DA https://da.live/#/mkbansal1/wellsfargo, then bulk import remaining 20 pages from sitemap paths under /goals-credit/*</code></td></tr>
+        <tr><td><code>help-center</code></td><td>51</td><td>wellsfargo.com/help/</td><td>/help/checking/, /help/online-banking/, /help/mobile/, /help/security/</td><td>Sitemap</td><td>Dynamic FAQ loading</td><td style="font-size:.78rem"><code>migrate https://www.wellsfargo.com/help/ as representative help-center page to DA https://da.live/#/mkbansal1/wellsfargo, then bulk import remaining 50 pages from sitemap paths under /help/*</code></td></tr>
+        <tr><td><code>about</code></td><td>52</td><td>wellsfargo.com/about/</td><td>/about/careers/, /about/inclusion/, /about/investor-relations/, /about/corporate/</td><td>Sitemap</td><td>News feed widgets</td><td style="font-size:.78rem"><code>migrate https://www.wellsfargo.com/about/ as representative about page to DA https://da.live/#/mkbansal1/wellsfargo, then bulk import remaining 51 pages from sitemap paths under /about/*</code></td></tr>
+        <tr><td><code>privacy-legal</code></td><td>33</td><td>wellsfargo.com/privacy-security/</td><td>/privacy-security/terms/, /privacy-security/fraud/report/, /privacy-security/notice-of-data-collection/</td><td>Sitemap</td><td>Privacy portal</td><td style="font-size:.78rem"><code>migrate https://www.wellsfargo.com/privacy-security/ as representative privacy page to DA https://da.live/#/mkbansal1/wellsfargo, then bulk import remaining 32 pages from sitemap paths under /privacy-security/*</code></td></tr>
+        <tr><td><code>investing</code></td><td>21</td><td>wellsfargo.com/investing/wells-fargo-advisors/</td><td>/investing/retirement/, /investing/education/, /investing/mutual-funds/</td><td>Sitemap</td><td>ZIP locator tool</td><td style="font-size:.78rem"><code>migrate https://www.wellsfargo.com/investing/wells-fargo-advisors/ as representative investing page to DA https://da.live/#/mkbansal1/wellsfargo, then bulk import remaining 20 pages from sitemap paths under /investing/* and /investing-wealth/*</code></td></tr>
+        <tr><td><code>miscellaneous</code></td><td>40</td><td>wellsfargo.com/mobile-online-banking/</td><td>/online-banking/, /military/, /foreign-exchange/, /financial-assistance/, /international-remittances/</td><td>Sitemap</td><td>Varied page structures</td><td style="font-size:.78rem"><code>migrate https://www.wellsfargo.com/mobile-online-banking/ as representative page to DA https://da.live/#/mkbansal1/wellsfargo, then bulk import remaining 39 pages from: /mobile-online-banking/*, /online-banking/*, /premier/, /equity/, /rewards/, /tax-center/, /military/*, /foreign-exchange/*, /international-remittances/, /financial-assistance/*, /atm/, /mobile/*</code></td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:.82rem;color:var(--fg3);margin-top:8px"><strong>Total: 644 pages</strong> (1 + 6 + 57 + 87 + 107 + 90 + 60 + 18 + 21 + 51 + 52 + 33 + 21 + 40)</p>
+  </div>
+</section>
+
+<!-- 7. OUT OF SCOPE -->
+<section id="out-of-scope">
+  <div class="section-header" onclick="toggleSection(this)">
+    <span class="chevron open">&#9654;</span>
+    <h2>7. Out-of-Scope / Manual Effort</h2>
+  </div>
+  <div class="section-body">
+    <h3 style="font-size:1rem;margin:0 0 8px">Scoped-Out Pages (637 URLs)</h3>
+    <table>
+      <thead><tr><th>Item</th><th>Category</th><th>Pages</th><th>Example URL(s)</th><th>Details</th></tr></thead>
+      <tbody>
+        <tr><td>Spanish pages</td><td>Locale</td><td>374</td><td><a href="https://www.wellsfargo.com/es/" target="_blank">wellsfargo.com/es/</a><br><a href="https://www.wellsfargo.com/es/about/" target="_blank">wellsfargo.com/es/about/</a><br><a href="https://www.wellsfargo.com/es/atm/" target="_blank">wellsfargo.com/es/atm/</a></td><td>Full Spanish mirror. Phase 2 &mdash; reuse same templates + transformers with locale-aware URL mapping.</td></tr>
+        <tr><td>Private foundations</td><td>Data-driven content</td><td>255</td><td><a href="https://www.wellsfargo.com/private-foundations/adams-charitable-foundation/" target="_blank">wellsfargo.com/private-foundations/adams-charitable-foundation/</a><br><a href="https://www.wellsfargo.com/private-foundations/baker-trust/" target="_blank">wellsfargo.com/private-foundations/baker-trust/</a><br><a href="https://www.wellsfargo.com/private-foundations/younts-trust/" target="_blank">wellsfargo.com/private-foundations/younts-trust/</a></td><td>255 repetitive grant pages (mission, eligibility, deadlines). Phase 3 &mdash; dedicated template with spreadsheet data source.</td></tr>
+        <tr><td>Navigation links</td><td>CMS artifact</td><td>3</td><td><a href="https://www.wellsfargo.com/_navlinks/financial-assistance-nav-links/" target="_blank">wellsfargo.com/_navlinks/financial-assistance-nav-links/</a><br><a href="https://www.wellsfargo.com/_navlinks/fixed-income-nav-links/" target="_blank">wellsfargo.com/_navlinks/fixed-income-nav-links/</a><br><a href="https://www.wellsfargo.com/_navlinks/quarterly-earnings-nav-links/" target="_blank">wellsfargo.com/_navlinks/quarterly-earnings-nav-links/</a></td><td>Internal CMS nav config, not content pages. Handled by EDS nav document.</td></tr>
+        <tr><td>Test / staging pages</td><td>Test artifact</td><td>3</td><td><a href="https://www.wellsfargo.com/testBCP1/" target="_blank">wellsfargo.com/testBCP1/</a><br><a href="https://www.wellsfargo.com/test/testpagefooter/" target="_blank">wellsfargo.com/test/testpagefooter/</a><br><a href="https://www.wellsfargo.com/test/testpageprimarywithCPs/" target="_blank">wellsfargo.com/test/testpageprimarywithCPs/</a></td><td>Staging/test pages. Exclude permanently.</td></tr>
+        <tr><td>Jump / redirect pages</td><td>Redirect</td><td>2</td><td><a href="https://www.wellsfargo.com/jump/other/completion-certificate/" target="_blank">wellsfargo.com/jump/other/completion-certificate/</a><br><a href="https://www.wellsfargo.com/jump/other/student-athlete-education/" target="_blank">wellsfargo.com/jump/other/student-athlete-education/</a></td><td>Intermediate redirects. Implement as URL redirects in EDS, not content pages.</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:.82rem;color:var(--fg3);margin-top:8px"><strong>Total scoped out: 637</strong> (374 + 255 + 3 + 3 + 2)</p>
+
+    <h3 style="font-size:1rem;margin:24px 0 8px">Scoped-Out Features (elements on in-scope pages that require separate engineering)</h3>
+    <table>
+      <thead><tr><th>Item</th><th>Category</th><th>Example URL</th><th>Details</th></tr></thead>
+      <tbody>
+        <tr><td>Sign On / Online Banking</td><td>Auth / VPN</td><td><a href="https://connect.secure.wellsfargo.com/auth/login/present?origin=cob&amp;LOB=CONS" target="_blank">connect.secure.wellsfargo.com/auth/login/</a></td><td>External auth flow &mdash; remains as external link</td></tr>
+        <tr><td>Rate checker live widget</td><td>Interactive widget</td><td><a href="https://www.wellsfargo.com/" target="_blank">wellsfargo.com/</a> (Section 4)</td><td>JS-driven live rate dropdown &mdash; replace with static CTA to rates page</td></tr>
+        <tr><td>Location finder modal</td><td>Interactive widget</td><td><a href="https://www.wellsfargo.com/locator/" target="_blank">wellsfargo.com/locator/</a></td><td>Overlay modal &mdash; replace with link to /locator/</td></tr>
+        <tr><td>Quick help / chatbot</td><td>Third-party AI</td><td><a href="https://www.wellsfargo.com/help/" target="_blank">wellsfargo.com/help/</a></td><td>Dialog interface &mdash; replace with link to /help/</td></tr>
+        <tr><td>Mortgage calculators</td><td>Calculator / form</td><td><a href="https://www.wellsfargo.com/mortgage/calculators/" target="_blank">wellsfargo.com/mortgage/calculators/</a></td><td>Pre-qualification, affordability, payment calculators &mdash; content migrated, interactive tools out of scope</td></tr>
+        <tr><td>FICO score tools</td><td>Third-party integration</td><td><a href="https://www.wellsfargo.com/goals-credit/" target="_blank">wellsfargo.com/goals-credit/</a></td><td>Credit Close-Up&reg; &mdash; external service widget</td></tr>
+        <tr><td>Commercial banking login</td><td>Auth</td><td><a href="https://www.wellsfargo.com/com/vantage/" target="_blank">wellsfargo.com/com/vantage/</a></td><td>Wells Fargo Vantage portal &mdash; remains external link</td></tr>
+        <tr><td>Product comparison tools</td><td>Interactive widget</td><td><a href="https://www.wellsfargo.com/checking/compare-checking-accounts/" target="_blank">wellsfargo.com/checking/compare-checking-accounts/</a></td><td>Client-side JS comparison &mdash; simplify to static table</td></tr>
+        <tr><td>App Store deep links</td><td>Mobile commerce</td><td><a href="https://www.wellsfargo.com/mobile-online-banking/" target="_blank">wellsfargo.com/mobile-online-banking/</a></td><td>App store badges migrated as static image-links</td></tr>
+        <tr><td>MarTech / Analytics</td><td>Data layer</td><td><em>Site-wide</em></td><td>Adobe Analytics, DoubleClick, Bing pixels &mdash; configure in delayed.js post-migration</td></tr>
+        <tr><td>Targeting / personalization</td><td>Experimentation</td><td><a href="https://www.wellsfargo.com/" target="_blank">wellsfargo.com/</a> (promos)</td><td>Promo offers may be personalized &mdash; import captures one variant only</td></tr>
+        <tr><td>Search functionality</td><td>Search</td><td><em>Header site-wide</em></td><td>Requires query-index infrastructure &mdash; not included in content migration</td></tr>
+        <tr><td>Cookie consent / privacy</td><td>Compliance</td><td><a href="https://www.wellsfargo.com/privacy-security/" target="_blank">wellsfargo.com/privacy-security/</a></td><td>Separate compliance framework (OneTrust, etc.) needed</td></tr>
+        <tr><td>Appointment booking</td><td>External SaaS</td><td><a href="https://appointments.wellsfargo.com/maa/appointment/" target="_blank">appointments.wellsfargo.com/</a></td><td>External booking system &mdash; remains as external link</td></tr>
+        <tr><td>Zelle integration</td><td>Third-party payment</td><td><a href="https://www.wellsfargo.com/biz/" target="_blank">wellsfargo.com/biz/</a> (Zelle promo)</td><td>Promo content migrated, payment flow out of scope</td></tr>
+        <tr><td>Video embeds (CIB)</td><td>Media</td><td><a href="https://www.wellsfargo.com/cib/" target="_blank">wellsfargo.com/cib/</a></td><td>Use EDS Embed block for external video sources</td></tr>
+        <tr><td>Pixel-perfect fidelity</td><td>Design</td><td><em>All pages</em></td><td>Target ~85% visual similarity, not pixel-perfect reproduction</td></tr>
+        <tr><td>MSM / content inheritance</td><td>AEM feature</td><td><em>N/A</em></td><td>Not applicable to EDS Document Authoring</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 8. SEQUENCED WORKLIST -->
+<section id="worklist">
+  <div class="section-header" onclick="toggleSection(this)">
+    <span class="chevron open">&#9654;</span>
+    <h2>8. Sequenced Worklist</h2>
+  </div>
+  <div class="section-body">
+    <div class="worklist">
+      <div class="step"><div class="step-num">1</div><div class="step-content"><h4>A1: Single-page migration &mdash; homepage</h4><p>Creates page template, transformers, parsers, import script for <code>homepage</code> template</p><span class="dep">Depends on: &mdash;</span> &nbsp;<span class="tag tag-m">M</span></div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-content"><h4>A2: Single-page migration &mdash; product-hub</h4><p>Representative: wellsfargo.com/checking/</p><span class="dep">Depends on: &mdash;</span> &nbsp;<span class="tag tag-m">M</span></div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-content"><h4>A3: Single-page migration &mdash; product-detail</h4><p>Representative: wellsfargo.com/checking/everyday/</p><span class="dep">Depends on: &mdash;</span> &nbsp;<span class="tag tag-m">M</span></div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-content"><h4>A4: Single-page migration &mdash; remaining 9 templates</h4><p>One representative page per template (mortgage-hub, business-hub, commercial-hub, cib-hub, education-hub, credit-goals, help-center, about-landing, privacy-legal)</p><span class="dep">Depends on: &mdash;</span> &nbsp;<span class="tag tag-l">L</span></div></div>
+      <div class="step"><div class="step-num">5</div><div class="step-content"><h4>B1: Site-wide design Phase 1</h4><p>Extract design tokens into <code>styles/styles.css</code>: colors, typography, spacing, buttons, section background variants</p><span class="dep">Depends on: A1</span> &nbsp;<span class="tag tag-m">M</span></div></div>
+      <div class="step"><div class="step-num">6</div><div class="step-content"><h4>C1: Navigation setup</h4><p>Create <code>nav</code> document in DA, implement header mega-menu decoration + footer with legal/social/disclaimers</p><span class="dep">Depends on: B1</span> &nbsp;<span class="tag tag-m">M</span></div></div>
+      <div class="step"><div class="step-num">7</div><div class="step-content"><h4>D1&ndash;D6: Block Collection CSS</h4><p>Style Hero, Cards, Columns, Accordion, Tabs, Table blocks to match Wells Fargo design</p><span class="dep">Depends on: B1</span> &nbsp;<span class="tag tag-m">M</span></div></div>
+      <div class="step"><div class="step-num">8</div><div class="step-content"><h4>D7&ndash;D13: Custom block development</h4><p>Develop JS + CSS for promo-bar, rate-checker, large-promo, app-promo, contact-bar, product-comparison, icon-cards</p><span class="dep">Depends on: B1</span> &nbsp;<span class="tag tag-l">L</span></div></div>
+      <div class="step"><div class="step-num">9</div><div class="step-content"><h4>E1&ndash;E2: Block critiques</h4><p>Visual comparison of all blocks against source (target &ge;85% similarity). Iterate CSS fixes.</p><span class="dep">Depends on: D1&ndash;D13</span> &nbsp;<span class="tag tag-m">M</span></div></div>
+      <div class="step"><div class="step-num">10</div><div class="step-content"><h4>F1&ndash;F4: Bulk import validation batches</h4><p>5&ndash;10 pages per template. Verify parsers/transformers produce correct EDS markup.</p><span class="dep">Depends on: A1&ndash;A4, D1&ndash;D13</span> &nbsp;<span class="tag tag-l">L</span></div></div>
+      <div class="step"><div class="step-num">11</div><div class="step-content"><h4>G1&ndash;G2: Page critiques + CSS fixes</h4><p>Full-page visual comparison on validation batches. Fix CSS regressions.</p><span class="dep">Depends on: F1&ndash;F4</span> &nbsp;<span class="tag tag-m">M</span></div></div>
+      <div class="step"><div class="step-num">12</div><div class="step-content"><h4>H1: Full bulk import</h4><p>Import all 644 in-scope English pages across 14 templates.</p><span class="dep">Depends on: G2</span> &nbsp;<span class="tag tag-l">L</span></div></div>
+      <div class="step"><div class="step-num">13</div><div class="step-content"><h4>I1: Spot-check page critiques</h4><p>Random 10% sample visual QA after bulk import.</p><span class="dep">Depends on: H1</span> &nbsp;<span class="tag tag-m">M</span></div></div>
+      <div class="step"><div class="step-num">14</div><div class="step-content"><h4>J1: Project documentation</h4><p>Generate handover docs: authoring guide, developer guide, admin guide.</p><span class="dep">Depends on: I1</span> &nbsp;<span class="tag tag-s">S</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 9. RISKS -->
+<section id="risks">
+  <div class="section-header" onclick="toggleSection(this)">
+    <span class="chevron open">&#9654;</span>
+    <h2>9. Risks &amp; Mitigations</h2>
+  </div>
+  <div class="section-body">
+    <table>
+      <thead><tr><th>#</th><th>Risk</th><th>Likelihood</th><th>Impact</th><th>Mitigation</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td><strong>Proprietary font unavailable</strong> &mdash; "Wells Fargo Sans Regular" cannot be licensed for EDS</td><td><span class="risk-high">High</span></td><td><span class="risk-high">High</span></td><td>Prepare Arial/Helvetica fallback. Test fidelity before Phase 1. Escalate to project team day 1.</td></tr>
+        <tr><td>2</td><td><strong>Template misclassification</strong> &mdash; pages don't fit 12 identified patterns</td><td><span class="risk-med">Medium</span></td><td><span class="risk-med">Medium</span></td><td>Hand-review flagged pages in validation batch. Allow template refinement after first bulk pass.</td></tr>
+        <tr><td>3</td><td><strong>Mega-menu complexity</strong> &mdash; desktop mega-nav with product cards inside dropdowns</td><td><span class="risk-med">Medium</span></td><td><span class="risk-high">High</span></td><td>Simplify to link-based nav for MVP. Product-detail cards in dropdown deferred to post-MVP.</td></tr>
+        <tr><td>4</td><td><strong>Seasonal content drift</strong> &mdash; promotional offers rotate frequently</td><td><span class="risk-med">Medium</span></td><td><span class="risk-med">Medium</span></td><td>Document authoring workflow for promo blocks. Flag imported content as point-in-time snapshot.</td></tr>
+        <tr><td>5</td><td><strong>Interactive widget fidelity</strong> &mdash; rate checkers, calculators lose functionality</td><td><span class="risk-high">High</span></td><td><span class="risk-med">Medium</span></td><td>Replace with static CTAs to existing WF pages. Document as known limitation.</td></tr>
+        <tr><td>6</td><td><strong>Business/Commercial/CIB complexity</strong> &mdash; login portals, video embeds, case studies</td><td><span class="risk-med">Medium</span></td><td><span class="risk-med">Medium</span></td><td>Separate migration phases. CIB video via Embed block. Login portal out of scope.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 10. OPEN QUESTIONS -->
+<section id="open-questions">
+  <div class="section-header" onclick="toggleSection(this)">
+    <span class="chevron open">&#9654;</span>
+    <h2>10. Open Questions</h2>
+  </div>
+  <div class="section-body questions">
+    <ol>
+      <li><strong>Font licensing:</strong> Can "Wells Fargo Sans Regular" be self-hosted on the EDS domain? If not, should we use Arial or another approved fallback?</li>
+      <li><strong>Scope confirmation:</strong> Are Business (<code>/biz/</code>), Commercial (<code>/com/</code>), and CIB (<code>/cib/</code>) pages in scope, or consumer-only?</li>
+      <li><strong>Promotional content cadence:</strong> How often do hero and promo card offers rotate? Should sections be templatized for easier author updates?</li>
+      <li><strong>Rate checker:</strong> Should the EDS version be (a) a static link to the rates page, (b) a custom block fetching from an API, or (c) removed entirely?</li>
+      <li><strong>Locale:</strong> Is Spanish (<code>/es/</code>) a future phase? Timeline expectations?</li>
+      <li><strong>Analytics / MarTech:</strong> Which tracking scripts need to go in <code>delayed.js</code>? Can the team provide tag manager configuration?</li>
+      <li><strong>Search:</strong> Should we implement the EDS Search block or redirect to existing WF search infrastructure?</li>
+      <li><strong>Cookie consent / privacy:</strong> Which compliance framework (OneTrust, etc.) should be integrated?</li>
+      <li><strong>Sign On:</strong> Keep as external link to <code>connect.secure.wellsfargo.com</code>, or is there a plan to integrate authentication?</li>
+      <li><strong>Video content (CIB):</strong> Host videos on EDS media or embed from external source (YouTube, Brightcove, etc.)?</li>
+    </ol>
+  </div>
+</section>
+
+</div><!-- /.main -->
+
+<script>
+// Section toggle
+function toggleSection(header){
+  const body=header.nextElementSibling;
+  const chevron=header.querySelector('.chevron');
+  body.classList.toggle('collapsed');
+  chevron.classList.toggle('open');
+}
+function expandAll(){
+  document.querySelectorAll('.section-body').forEach(b=>b.classList.remove('collapsed'));
+  document.querySelectorAll('.chevron').forEach(c=>c.classList.add('open'));
+}
+function collapseAll(){
+  document.querySelectorAll('.section-body').forEach(b=>b.classList.add('collapsed'));
+  document.querySelectorAll('.chevron').forEach(c=>c.classList.remove('open'));
+}
+
+// Theme toggle
+function toggleTheme(){
+  const html=document.documentElement;
+  const isDark=document.getElementById('themeSwitch').checked;
+  html.setAttribute('data-theme',isDark?'dark':'light');
+}
+
+// Table search
+function filterTables(query){
+  const q=query.toLowerCase().trim();
+  ['templateTable','blockTable','bulkTable'].forEach(id=>{
+    const table=document.getElementById(id);
+    if(!table)return;
+    table.querySelectorAll('tbody tr').forEach(row=>{
+      const text=row.textContent.toLowerCase();
+      row.classList.toggle('hidden-row',q&&!text.includes(q));
+    });
+  });
+}
+
+// Table sort
+const sortState={};
+function sortTable(tableId,colIdx){
+  const table=document.getElementById(tableId);
+  if(!table)return;
+  const tbody=table.querySelector('tbody');
+  const rows=Array.from(tbody.querySelectorAll('tr'));
+  const key=tableId+'_'+colIdx;
+  sortState[key]=!sortState[key];
+  const asc=sortState[key];
+  rows.sort((a,b)=>{
+    let aVal=a.cells[colIdx]?.textContent.trim()||'';
+    let bVal=b.cells[colIdx]?.textContent.trim()||'';
+    const aNum=parseFloat(aVal.replace(/[^0-9.]/g,''));
+    const bNum=parseFloat(bVal.replace(/[^0-9.]/g,''));
+    if(!isNaN(aNum)&&!isNaN(bNum))return asc?aNum-bNum:bNum-aNum;
+    return asc?aVal.localeCompare(bVal):bVal.localeCompare(aVal);
+  });
+  rows.forEach(r=>tbody.appendChild(r));
+  // Update arrows
+  table.querySelectorAll('th .sort-arrow').forEach((a,i)=>{
+    a.classList.toggle('active',i===colIdx);
+    a.textContent=i===colIdx?(asc?'▲':'▼'):'▲';
+  });
+}
+
+// TOC active state on scroll
+const tocLinks=document.querySelectorAll('#toc a');
+const sections=document.querySelectorAll('section[id]');
+function updateToc(){
+  let current='';
+  sections.forEach(s=>{
+    if(s.getBoundingClientRect().top<120)current=s.id;
+  });
+  tocLinks.forEach(a=>{
+    a.classList.toggle('active',a.getAttribute('href')==='#'+current);
+  });
+}
+window.addEventListener('scroll',updateToc,{passive:true});
+updateToc();
+</script>
+
+</body>
+</html>
