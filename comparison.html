@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wells Fargo Migration — CSV vs HTML Inventory Comparison</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-alt: #f7f8fa;
+    --bg-card: #ffffff;
+    --text: #1a1a1a;
+    --text-muted: #5a5a5a;
+    --border: #e0e0e0;
+    --accent: #b71234;
+    --accent-light: #fce8eb;
+    --green: #1a7f37;
+    --green-light: #dafbe1;
+    --orange: #bf6a02;
+    --orange-light: #fff4e6;
+    --blue: #0969da;
+    --blue-light: #ddf4ff;
+    --red: #cf222e;
+    --red-light: #ffebe9;
+    --sidebar-w: 260px;
+    --nav-h: 56px;
+  }
+  .dark {
+    --bg: #0d1117;
+    --bg-alt: #161b22;
+    --bg-card: #161b22;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --border: #30363d;
+    --accent: #f47174;
+    --accent-light: #3d1418;
+    --green: #3fb950;
+    --green-light: #0d2818;
+    --orange: #d29922;
+    --orange-light: #2d1f00;
+    --blue: #58a6ff;
+    --blue-light: #0c2d6b;
+    --red: #f85149;
+    --red-light: #3d1418;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    font-size: 15px;
+  }
+
+  /* Top bar */
+  .topbar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    height: var(--nav-h);
+    background: var(--accent);
+    color: #fff;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.2);
+  }
+  .topbar h1 { font-size: 16px; font-weight: 600; }
+  .topbar-actions { display: flex; gap: 8px; }
+  .topbar-actions button {
+    background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.3);
+    color: #fff; padding: 6px 12px; border-radius: 6px; cursor: pointer;
+    font-size: 13px; font-family: inherit;
+  }
+  .topbar-actions button:hover { background: rgba(255,255,255,.25); }
+
+  /* Sidebar */
+  .sidebar {
+    position: fixed; top: var(--nav-h); left: 0; bottom: 0;
+    width: var(--sidebar-w);
+    background: var(--bg-alt);
+    border-right: 1px solid var(--border);
+    overflow-y: auto; padding: 16px 0;
+    z-index: 50;
+  }
+  .sidebar a {
+    display: block; padding: 8px 20px; color: var(--text-muted);
+    text-decoration: none; font-size: 13px; border-left: 3px solid transparent;
+    transition: all .15s;
+  }
+  .sidebar a:hover { color: var(--accent); background: var(--accent-light); border-left-color: var(--accent); }
+  .sidebar .sep { height: 1px; background: var(--border); margin: 8px 16px; }
+
+  /* Main */
+  .main {
+    margin-left: var(--sidebar-w);
+    margin-top: var(--nav-h);
+    padding: 32px 40px 80px;
+    max-width: 1100px;
+  }
+
+  /* Sections */
+  section { margin-bottom: 48px; }
+  section h2 {
+    font-size: 22px; font-weight: 700; margin-bottom: 16px;
+    padding-bottom: 8px; border-bottom: 2px solid var(--accent);
+    color: var(--accent);
+  }
+  section h3 { font-size: 17px; font-weight: 600; margin: 24px 0 12px; color: var(--text); }
+  p, ul { margin-bottom: 12px; }
+  ul { padding-left: 24px; }
+  li { margin-bottom: 4px; }
+
+  /* Stat cards */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .stat-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 20px; text-align: center;
+  }
+  .stat-card .num { font-size: 36px; font-weight: 800; line-height: 1.1; }
+  .stat-card .label { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); margin-top: 4px; }
+  .stat-card.match .num { color: var(--green); }
+  .stat-card.warn .num { color: var(--orange); }
+  .stat-card.error .num { color: var(--red); }
+  .stat-card.info .num { color: var(--blue); }
+
+  /* Tables */
+  .table-wrap { overflow-x: auto; margin-bottom: 20px; border-radius: 8px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { background: var(--bg-alt); font-weight: 600; text-align: left; padding: 10px 12px; border-bottom: 2px solid var(--border); position: sticky; top: 0; white-space: nowrap; }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:hover td { background: var(--accent-light); }
+
+  /* Badges */
+  .badge {
+    display: inline-block; padding: 2px 8px; border-radius: 12px;
+    font-size: 11px; font-weight: 600; white-space: nowrap;
+  }
+  .badge-match { background: var(--green-light); color: var(--green); }
+  .badge-diff { background: var(--orange-light); color: var(--orange); }
+  .badge-major { background: var(--red-light); color: var(--red); }
+  .badge-info { background: var(--blue-light); color: var(--blue); }
+  .badge-miss { background: var(--red-light); color: var(--red); }
+
+  /* Collapsible */
+  details { margin-bottom: 16px; }
+  summary {
+    cursor: pointer; font-weight: 600; font-size: 15px;
+    padding: 12px 16px;
+    background: var(--bg-alt); border: 1px solid var(--border);
+    border-radius: 8px; list-style: none;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary::before { content: "▶ "; font-size: 11px; color: var(--text-muted); }
+  details[open] summary::before { content: "▼ "; }
+  details[open] summary { border-radius: 8px 8px 0 0; }
+  .details-body { padding: 16px; border: 1px solid var(--border); border-top: 0; border-radius: 0 0 8px 8px; }
+
+  /* Search */
+  .search-box {
+    width: 100%; padding: 10px 14px; border: 1px solid var(--border);
+    border-radius: 8px; font-size: 14px; background: var(--bg-card);
+    color: var(--text); margin-bottom: 16px; font-family: inherit;
+  }
+  .search-box:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); }
+
+  /* Print */
+  @media print {
+    .topbar, .sidebar, .topbar-actions, .search-box { display: none !important; }
+    .main { margin-left: 0 !important; margin-top: 0 !important; padding: 0 !important; max-width: 100% !important; }
+    section { break-inside: avoid; }
+    details { open: true; }
+    details[open] summary { background: none; border: none; }
+    body { font-size: 11px; }
+    table { font-size: 10px; }
+    .stat-card .num { font-size: 24px; }
+  }
+
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .main { margin-left: 0; padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>CSV vs HTML Inventory — Discrepancy Report</h1>
+  <div class="topbar-actions">
+    <button onclick="toggleAll(true)">Expand All</button>
+    <button onclick="toggleAll(false)">Collapse All</button>
+    <button onclick="document.body.classList.toggle('dark')">Light / Dark</button>
+    <button onclick="window.print()">Print / PDF</button>
+  </div>
+</div>
+
+<nav class="sidebar">
+  <a href="#overview">Overview</a>
+  <a href="#total-counts">1. Total URL Counts</a>
+  <a href="#template-counts">2. Template Count Discrepancies</a>
+  <a href="#major-discrepancies">3. Major Discrepancies</a>
+  <div class="sep"></div>
+  <a href="#d3a">&nbsp;&nbsp;3A. Private Foundations</a>
+  <a href="#d3b">&nbsp;&nbsp;3B. Template Granularity</a>
+  <a href="#d3c">&nbsp;&nbsp;3C. "Mortgage" = 89 Pages</a>
+  <a href="#d3d">&nbsp;&nbsp;3D. "Investing" = 21 Pages</a>
+  <a href="#d3e">&nbsp;&nbsp;3E. Missing "Miscellaneous"</a>
+  <a href="#d3f">&nbsp;&nbsp;3F. Spanish URL Handling</a>
+  <a href="#d3g">&nbsp;&nbsp;3G. Excluded Count Gap</a>
+  <div class="sep"></div>
+  <a href="#schema-diff">4. Column / Schema Differences</a>
+  <a href="#block-diff">5. Block Assignment Differences</a>
+  <a href="#fixes">6. Required Fixes</a>
+  <a href="#checklist">7. Action Checklist</a>
+</nav>
+
+<div class="main">
+
+  <!-- OVERVIEW -->
+  <section id="overview">
+    <h2>Overview</h2>
+    <p>Comparison between <strong>our generated CSV</strong> (<code>wellsfargo-migration-urls.csv</code> — 1,281 rows, 14 columns)
+      and the <strong>HTML inventory</strong> (<code>migration-url-inventory.html</code> on AEM Page — 890 migrating URLs, 7 columns, 14 templates).</p>
+    <div class="stats">
+      <div class="stat-card match"><div class="num">1,281</div><div class="label">Sitemap URLs (Both)</div></div>
+      <div class="stat-card warn"><div class="num">903 vs 890</div><div class="label">Migrating URLs</div></div>
+      <div class="stat-card error"><div class="num">22 vs 366</div><div class="label">Excluded URLs</div></div>
+      <div class="stat-card info"><div class="num">8</div><div class="label">Discrepancies Found</div></div>
+    </div>
+  </section>
+
+  <!-- 1. TOTAL COUNTS -->
+  <section id="total-counts">
+    <h2>1. Total URL Counts</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Metric</th><th>Our CSV</th><th>HTML Inventory</th><th>Delta</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Total sitemap URLs</td><td>1,281</td><td>1,281</td><td>0</td><td><span class="badge badge-match">Match</span></td></tr>
+          <tr><td>Migrating URLs</td><td>903 (887 Yes + 16 Stub)</td><td>890</td><td>+13</td><td><span class="badge badge-diff">Difference</span></td></tr>
+          <tr><td>Excluded URLs</td><td>22</td><td>366 (+28 dupes)</td><td>−344</td><td><span class="badge badge-major">Major Gap</span></td></tr>
+          <tr><td>Deferred (Spanish)</td><td>356</td><td>0 (all ES excluded)</td><td>+356</td><td><span class="badge badge-diff">Different Strategy</span></td></tr>
+          <tr><td>Duplicate entries preserved</td><td>28</td><td>28 (noted separately)</td><td>0</td><td><span class="badge badge-match">Match</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <details>
+      <summary>Root Cause Explanation</summary>
+      <div class="details-body">
+        <p>The HTML inventory <strong>excludes all ~356 Spanish URLs</strong> from the migrating count (placing them in the 366 excluded bucket),
+          while our CSV marks them as <code>No (Deferred) / Future</code> — a separate status rather than "excluded."</p>
+        <p><strong>Reconciliation:</strong> Our 22 excluded + 356 deferred ES + 28 dupes = 406 ≈ HTML's 366 + 28 dupes + ~12 edge cases.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- 2. TEMPLATE COUNTS -->
+  <section id="template-counts">
+    <h2>2. Template Count Discrepancies</h2>
+    <input type="text" class="search-box" id="templateSearch" placeholder="Search templates..." oninput="filterTable('templateTable', this.value)">
+    <div class="table-wrap">
+      <table id="templateTable">
+        <thead>
+          <tr>
+            <th>HTML Template</th>
+            <th>HTML Count</th>
+            <th>Our CSV Template(s)</th>
+            <th>Our EN Migrating</th>
+            <th>Delta</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>about</strong></td><td>304</td>
+            <td>T14 About Landing + T13 Leadership Bio + T5 Education Article + <em>T12 (private-foundations)</em></td>
+            <td>~49 <code>/about/*</code> + 255 <code>/private-foundations/*</code> = ~304</td>
+            <td>0</td>
+            <td><span class="badge badge-major">Misclassified</span></td>
+          </tr>
+          <tr>
+            <td><strong>business</strong></td><td>102</td>
+            <td>T8a Biz Landing + T8b Biz Sub-page</td>
+            <td>~102</td>
+            <td>0</td>
+            <td><span class="badge badge-match">Match</span></td>
+          </tr>
+          <tr>
+            <td><strong>commercial</strong></td><td>90</td>
+            <td>T10 CIB/Commercial Sub-page (<code>/com/*</code>)</td>
+            <td>~90</td>
+            <td>0</td>
+            <td><span class="badge badge-match">Match</span></td>
+          </tr>
+          <tr>
+            <td><strong>mortgage</strong></td><td>89</td>
+            <td>T3 Product Detail (subset)</td>
+            <td>~13 <code>/mortgage/*</code></td>
+            <td>−76</td>
+            <td><span class="badge badge-major">Major Gap</span></td>
+          </tr>
+          <tr>
+            <td><strong>product-detail</strong></td><td>80</td>
+            <td>T3 Product Detail</td>
+            <td>~80 (checking/savings/cards etc.)</td>
+            <td>0</td>
+            <td><span class="badge badge-diff">Needs Investigation</span></td>
+          </tr>
+          <tr>
+            <td><strong>cib</strong></td><td>57</td>
+            <td>T9 CIB Landing + T10 CIB Sub-page</td>
+            <td>~58 <code>/cib/*</code></td>
+            <td>+1</td>
+            <td><span class="badge badge-match">Match</span></td>
+          </tr>
+          <tr>
+            <td><strong>help-center</strong></td><td>57</td>
+            <td>T6 Help/FAQ</td>
+            <td>~45 <code>/help/*</code> + ~12 <code>/biz/help/*</code></td>
+            <td>0</td>
+            <td><span class="badge badge-diff">Scope Difference</span></td>
+          </tr>
+          <tr>
+            <td><strong>privacy-legal</strong></td><td>33</td>
+            <td>T12 Privacy/Legal/Utility (subset)</td>
+            <td>~33 privacy non-fraud</td>
+            <td>0</td>
+            <td><span class="badge badge-match">Match</span></td>
+          </tr>
+          <tr>
+            <td><strong>investing</strong></td><td>21</td>
+            <td>T11 Wealth/Investing</td>
+            <td>1–2</td>
+            <td>−19</td>
+            <td><span class="badge badge-major">Major Gap</span></td>
+          </tr>
+          <tr>
+            <td><strong>credit-goals</strong></td><td>21</td>
+            <td>T5 Education Article (subset)</td>
+            <td>~21 <code>/goals-credit/*</code></td>
+            <td>0</td>
+            <td><span class="badge badge-diff">Different Name</span></td>
+          </tr>
+          <tr>
+            <td><strong>education</strong></td><td>18</td>
+            <td>T5 Education Article (subset)</td>
+            <td>~18</td>
+            <td>0</td>
+            <td><span class="badge badge-diff">Different Name</span></td>
+          </tr>
+          <tr>
+            <td><strong>miscellaneous</strong></td><td>9</td>
+            <td><em>Not mapped</em></td>
+            <td>0</td>
+            <td>−9</td>
+            <td><span class="badge badge-miss">Missing</span></td>
+          </tr>
+          <tr>
+            <td><strong>product-hub</strong></td><td>5</td>
+            <td>T2 L1 Product Landing</td>
+            <td>~5–7</td>
+            <td>0</td>
+            <td><span class="badge badge-match">Match</span></td>
+          </tr>
+          <tr>
+            <td><strong>homepage</strong></td><td>1</td>
+            <td>T1 Homepage</td>
+            <td>1</td>
+            <td>0</td>
+            <td><span class="badge badge-match">Match</span></td>
+          </tr>
+          <tr>
+            <td><strong>es-homepage</strong></td><td>1</td>
+            <td>T1 Homepage (ES variant)</td>
+            <td>1</td>
+            <td>0</td>
+            <td><span class="badge badge-diff">Merged in CSV</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 3. MAJOR DISCREPANCIES -->
+  <section id="major-discrepancies">
+    <h2>3. Major Discrepancies (Detail)</h2>
+
+    <details open id="d3a">
+      <summary>3A. <code>/private-foundations/</code> — 255 URLs Misclassified</summary>
+      <div class="details-body">
+        <div class="stats">
+          <div class="stat-card error"><div class="num">255</div><div class="label">Rows Affected</div></div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Source</th><th>Template Assigned</th><th>Count</th></tr></thead>
+            <tbody>
+              <tr><td>HTML Inventory</td><td><code>about</code> (grouped with /about/*)</td><td>255 (of 304 total)</td></tr>
+              <tr><td>Our CSV</td><td><code>T12 Privacy/Legal/Utility</code> (fallback)</td><td>255</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p><strong>Issue:</strong> Our CSV used the fallback template for <code>/private-foundations/*</code> URLs because they don't match any defined prefix pattern. The HTML inventory groups them under <code>about</code>.</p>
+        <p><strong>Fix:</strong> Reclassify 255 <code>/private-foundations/*</code> URLs → <code>about</code> template (or create a dedicated template).</p>
+      </div>
+    </details>
+
+    <details id="d3b">
+      <summary>3B. Template Granularity Mismatch</summary>
+      <div class="details-body">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>HTML Template (Flat)</th><th>Our CSV Templates (Hierarchical)</th><th>Mapping</th></tr></thead>
+            <tbody>
+              <tr><td>about</td><td>T14 About Landing + T13 Leadership Bio + T5 Education Article</td><td>3 → 1</td></tr>
+              <tr><td>business</td><td>T8a Biz Landing + T8b Biz Sub-page</td><td>2 → 1</td></tr>
+              <tr><td>cib</td><td>T9 CIB/Commercial Landing + T10 CIB/Commercial Sub-page</td><td>2 → 1</td></tr>
+              <tr><td>credit-goals</td><td>T5 Education Article (subset)</td><td>Subset of shared template</td></tr>
+              <tr><td>education</td><td>T5 Education Article (subset)</td><td>Subset of shared template</td></tr>
+              <tr><td>homepage + es-homepage</td><td>T1 Homepage (EN) + T1 Homepage (ES)</td><td>1 template, 2 rows</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p><strong>Issue:</strong> HTML uses 14 flat names; our CSV uses 16 hierarchical IDs (T1–T14 with sub-types). The HTML merges landing + sub-page into one template; our CSV splits them.</p>
+        <p><strong>Impact:</strong> Medium — counts align when merged, but naming convention differs.</p>
+      </div>
+    </details>
+
+    <details id="d3c">
+      <summary>3C. "mortgage" Template Has 89 Pages (Only 13 <code>/mortgage/*</code> URLs Exist)</summary>
+      <div class="details-body">
+        <div class="stats">
+          <div class="stat-card error"><div class="num">89 vs 13</div><div class="label">Mortgage Page Count</div></div>
+        </div>
+        <p><strong>Issue:</strong> The HTML inventory assigns 89 pages to the <code>mortgage</code> template, but the sitemap only has 13 URLs under <code>/mortgage/*</code>.</p>
+        <p><strong>Hypothesis:</strong> The HTML likely groups additional product pages (some <code>/checking/*</code>, <code>/auto-loans/*</code>, <code>/savings-cds/*</code> sub-pages) under a broader "mortgage" template name — possibly all pages that share a product-detail layout with rate tables and fee disclosures.</p>
+        <p><strong>Fix needed:</strong> Clarify which 89 URLs map to the HTML's "mortgage" template. This may require a different template assignment strategy in our CSV.</p>
+      </div>
+    </details>
+
+    <details id="d3d">
+      <summary>3D. "investing" Template Has 21 Pages (Only 1 <code>/investing-wealth/</code> URL Exists)</summary>
+      <div class="details-body">
+        <div class="stats">
+          <div class="stat-card error"><div class="num">21 vs 1</div><div class="label">Investing Page Count</div></div>
+        </div>
+        <p><strong>Issue:</strong> The HTML inventory assigns 21 pages to <code>investing</code>, but the sitemap has only 1 URL at <code>/investing-wealth/</code>.</p>
+        <p><strong>Hypothesis:</strong> The HTML likely includes <code>/goals-investing/*</code>, <code>/premier/</code>, and possibly some <code>/about/investor-relations/*</code> pages under this template.</p>
+        <p><strong>Our CSV:</strong> Maps those URLs to T5 Education Article, T3 Product Detail, and T5 Education Article respectively.</p>
+        <p><strong>Fix needed:</strong> Identify the full URL list for HTML's "investing" template scope.</p>
+      </div>
+    </details>
+
+    <details id="d3e">
+      <summary>3E. Missing "miscellaneous" Template (9 Pages)</summary>
+      <div class="details-body">
+        <div class="stats">
+          <div class="stat-card error"><div class="num">9</div><div class="label">Pages with No Template Match</div></div>
+        </div>
+        <p><strong>Issue:</strong> The HTML inventory has a <code>miscellaneous</code> template with 9 pages. Our CSV has no equivalent — these 9 pages are absorbed into <code>T12 Privacy/Legal/Utility</code>.</p>
+        <p><strong>Fix needed:</strong> Identify which 9 URLs belong to "miscellaneous" and decide if they warrant a separate template or should remain in T12.</p>
+      </div>
+    </details>
+
+    <details id="d3f">
+      <summary>3F. Spanish URL Handling — Different Philosophy</summary>
+      <div class="details-body">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Approach</th><th>Our CSV</th><th>HTML Inventory</th></tr></thead>
+            <tbody>
+              <tr><td>Spanish <code>/es/</code> home</td><td><span class="badge badge-match">Yes — Phase 1</span></td><td><span class="badge badge-match">es-homepage — Migrating</span></td></tr>
+              <tr><td>All other <code>/es/*</code> URLs (~355)</td><td><span class="badge badge-info">No (Deferred) / Future</span></td><td><span class="badge badge-major">Excluded (in 366 count)</span></td></tr>
+              <tr><td>Shown in migration count?</td><td>No (separate "Deferred" status)</td><td>No (grouped with excluded)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p><strong>Result:</strong> Same outcome (Spanish pages not migrated in Phase 1), but different classification. Our CSV preserves Spanish URLs for future tracking; HTML treats them as excluded.</p>
+      </div>
+    </details>
+
+    <details id="d3g">
+      <summary>3G. Excluded Count Gap: 22 vs 366</summary>
+      <div class="details-body">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Category</th><th>Our CSV</th><th>HTML Inventory</th></tr></thead>
+            <tbody>
+              <tr><td>Test/dev pages</td><td>11</td><td>~11</td></tr>
+              <tr><td>CMS fragments (_navlinks, _reusable)</td><td>9</td><td>~9</td></tr>
+              <tr><td>Utility (sitemap, exit, locator)</td><td>2</td><td>~2</td></tr>
+              <tr><td>Spanish /es/* (non-home)</td><td>356 (as "Deferred")</td><td>~344 (as "Excluded")</td></tr>
+              <tr><td>Sitemap duplicates</td><td>28 (preserved in rows)</td><td>28 (noted separately)</td></tr>
+              <tr><td><strong>Total</strong></td><td><strong>22 excluded + 356 deferred</strong></td><td><strong>366 excluded + 28 dupes</strong></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p><strong>Reconciliation:</strong> 22 + 356 = 378 ours vs 366 + 28 = 394 theirs. The ~16 gap likely comes from edge cases like <code>/personal-loans/*</code> calculator stubs (our CSV marks as "Stub" rather than excluded).</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- 4. SCHEMA DIFF -->
+  <section id="schema-diff">
+    <h2>4. Column / Schema Differences</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Column</th><th>Our CSV</th><th>HTML Inventory</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>URL / Path</td><td>Full URL + relative path</td><td>Relative path only</td><td><span class="badge badge-diff">Format differs</span></td></tr>
+          <tr><td>Template</td><td>Hierarchical IDs (T1–T14)</td><td>Flat names (about, business…)</td><td><span class="badge badge-diff">Naming convention</span></td></tr>
+          <tr><td>Theme</td><td>Default / Wealth</td><td><em>Not present</em></td><td><span class="badge badge-info">CSV only</span></td></tr>
+          <tr><td>Header / Footer</td><td>Default / Biz / CIB / Wealth + ES</td><td><em>Not present</em></td><td><span class="badge badge-info">CSV only</span></td></tr>
+          <tr><td>Language</td><td>EN / ES</td><td><em>Not present</em></td><td><span class="badge badge-info">CSV only</span></td></tr>
+          <tr><td>Migration status</td><td>Yes / No / Stub / Deferred</td><td><em>Implied by inclusion</em></td><td><span class="badge badge-info">CSV only</span></td></tr>
+          <tr><td>Phase</td><td>Phase 1 / Future / Excluded</td><td><em>Not present</em></td><td><span class="badge badge-info">CSV only</span></td></tr>
+          <tr><td>Priority</td><td>1–14</td><td><em>Not present</em></td><td><span class="badge badge-info">CSV only</span></td></tr>
+          <tr><td>Gate</td><td>Gate 1/2/3</td><td><em>Not present</em></td><td><span class="badge badge-info">CSV only</span></td></tr>
+          <tr><td>Actions</td><td>Import/Style/Validate</td><td><em>Not present</em></td><td><span class="badge badge-info">CSV only</span></td></tr>
+          <tr><td>Block Names</td><td>Comma-separated, mixed case</td><td>Space-separated, lowercase</td><td><span class="badge badge-diff">Format differs</span></td></tr>
+          <tr><td>Block Counts (total/repo/collection/custom)</td><td><em>Not present</em></td><td>4 numeric columns</td><td><span class="badge badge-info">HTML only</span></td></tr>
+          <tr><td>Notes</td><td>Special annotations</td><td><em>Not present</em></td><td><span class="badge badge-info">CSV only</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><strong>Summary:</strong> Our CSV has 14 columns vs HTML's 7 columns. CSV has richer metadata (migration status, phases, gates, notes); HTML has block count breakdowns (repo/collection/custom) we lack.</p>
+  </section>
+
+  <!-- 5. BLOCK DIFF -->
+  <section id="block-diff">
+    <h2>5. Block Assignment Differences</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Template</th><th>HTML Block Names</th><th>Our CSV Key Blocks</th><th>Differences</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>about</strong></td>
+            <td>hero cards columns header footer accordion</td>
+            <td>Hero, Cards, Fragment, Columns, Disclaimers (T14)<br>Columns, Cards, Default content, Disclaimers (T13)</td>
+            <td><span class="badge badge-diff">HTML includes header+footer; has accordion. We have Fragment + Disclaimers instead.</span></td>
+          </tr>
+          <tr>
+            <td><strong>business</strong></td>
+            <td>hero cards columns header footer app-promo</td>
+            <td>Hero, Cards, product-comparison, Table, Disclaimers</td>
+            <td><span class="badge badge-diff">HTML has app-promo; we have product-comparison + Table</span></td>
+          </tr>
+          <tr>
+            <td><strong>homepage</strong></td>
+            <td>hero cards columns promo-bar rate-checker large-promo app-promo contact-bar sign-on more-from-wf</td>
+            <td>Hero, Carousel, Cards, Tabs, Sign-On Tile, App Promo, help-cta, Disclaimers</td>
+            <td><span class="badge badge-diff">Different names for similar concepts; HTML has 10 blocks, we list 8</span></td>
+          </tr>
+          <tr>
+            <td><strong>cib</strong></td>
+            <td>hero cards columns header footer carousel</td>
+            <td>Hero, Carousel, Deal Card, Cards, Disclaimers (T9)<br>Default content, Cards, Quote, Embed, Disclaimers (T10)</td>
+            <td><span class="badge badge-diff">HTML merges T9+T10; we split and have Deal Card, Quote, Embed</span></td>
+          </tr>
+          <tr>
+            <td><strong>help-center</strong></td>
+            <td>hero cards columns header footer accordion</td>
+            <td>Tabs, Accordion, contact-info, Cards, Disclaimers</td>
+            <td><span class="badge badge-diff">HTML has hero+columns; we have Tabs + contact-info</span></td>
+          </tr>
+          <tr>
+            <td><strong>privacy-legal</strong></td>
+            <td>hero cards columns header footer</td>
+            <td>Default content, Table, Columns, Disclaimers</td>
+            <td><span class="badge badge-diff">HTML has hero; we use Default content + Table</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p><strong>Note:</strong> The HTML inventory counts <code>header</code> and <code>footer</code> as blocks in every template. Our CSV omits them since they are auto-loaded globally and not specific to a template's content blocks.</p>
+  </section>
+
+  <!-- 6. REQUIRED FIXES -->
+  <section id="fixes">
+    <h2>6. Required Fixes to Our CSV</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Fix</th><th>Rows Affected</th><th>Priority</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td><strong>Reclassify 255 <code>/private-foundations/</code> URLs</strong> from T12 → <code>about</code> template</td><td>255</td><td><span class="badge badge-major">High</span></td></tr>
+          <tr><td>2</td><td><strong>Investigate "mortgage" = 89 pages</strong> — clarify which URLs beyond <code>/mortgage/*</code> are included</td><td>~76</td><td><span class="badge badge-major">High</span></td></tr>
+          <tr><td>3</td><td><strong>Investigate "investing" = 21 pages</strong> — clarify scope beyond <code>/investing-wealth/</code></td><td>~19</td><td><span class="badge badge-major">High</span></td></tr>
+          <tr><td>4</td><td><strong>Add "miscellaneous" template</strong> or identify the 9 URLs</td><td>9</td><td><span class="badge badge-diff">Medium</span></td></tr>
+          <tr><td>5</td><td><strong>Align template naming</strong> — create mapping table between T1–T14 IDs and HTML flat names</td><td>All rows</td><td><span class="badge badge-diff">Medium</span></td></tr>
+          <tr><td>6</td><td><strong>Add block count columns</strong> (Total, Repo, Collection, Custom) to match HTML schema</td><td>All rows</td><td><span class="badge badge-info">Low</span></td></tr>
+          <tr><td>7</td><td><strong>Align block name format</strong> — HTML uses space-separated lowercase; we use comma-separated mixed case</td><td>All rows</td><td><span class="badge badge-info">Low</span></td></tr>
+          <tr><td>8</td><td><strong>Reconcile Spanish exclusion</strong> — decide if ES URLs are "Excluded" or "Deferred"</td><td>356</td><td><span class="badge badge-info">Low (policy)</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 7. CHECKLIST -->
+  <section id="checklist">
+    <h2>7. Action Checklist</h2>
+    <div style="background:var(--bg-alt);border:1px solid var(--border);border-radius:10px;padding:20px;">
+      <label style="display:block;padding:8px 0;font-size:14px;cursor:pointer;border-bottom:1px solid var(--border);">
+        <input type="checkbox"> Investigate HTML's "mortgage" template scope (89 pages) — which URLs beyond <code>/mortgage/*</code>?
+      </label>
+      <label style="display:block;padding:8px 0;font-size:14px;cursor:pointer;border-bottom:1px solid var(--border);">
+        <input type="checkbox"> Investigate HTML's "investing" template scope (21 pages) — which URLs beyond <code>/investing-wealth/</code>?
+      </label>
+      <label style="display:block;padding:8px 0;font-size:14px;cursor:pointer;border-bottom:1px solid var(--border);">
+        <input type="checkbox"> Identify the 9 "miscellaneous" URLs from HTML inventory
+      </label>
+      <label style="display:block;padding:8px 0;font-size:14px;cursor:pointer;border-bottom:1px solid var(--border);">
+        <input type="checkbox"> Reclassify 255 <code>/private-foundations/*</code> URLs from T12 → about template
+      </label>
+      <label style="display:block;padding:8px 0;font-size:14px;cursor:pointer;border-bottom:1px solid var(--border);">
+        <input type="checkbox"> Decide on template naming convention: T1–T14 IDs vs flat names
+      </label>
+      <label style="display:block;padding:8px 0;font-size:14px;cursor:pointer;border-bottom:1px solid var(--border);">
+        <input type="checkbox"> Decide Spanish URL handling: "Deferred" (our approach) vs "Excluded" (HTML approach)
+      </label>
+      <label style="display:block;padding:8px 0;font-size:14px;cursor:pointer;border-bottom:1px solid var(--border);">
+        <input type="checkbox"> Add block count columns (Repo, Collection, Custom) if needed
+      </label>
+      <label style="display:block;padding:8px 0;font-size:14px;cursor:pointer;border-bottom:1px solid var(--border);">
+        <input type="checkbox"> Align block name format between CSV and HTML
+      </label>
+      <label style="display:block;padding:8px 0;font-size:14px;cursor:pointer;">
+        <input type="checkbox"> Update CSV with all agreed fixes
+      </label>
+    </div>
+  </section>
+
+</div>
+
+<script>
+function toggleAll(open) {
+  document.querySelectorAll('details').forEach(d => d.open = open);
+}
+function filterTable(id, q) {
+  const tbl = document.getElementById(id);
+  if (!tbl) return;
+  const rows = tbl.querySelectorAll('tbody tr');
+  const term = q.toLowerCase();
+  rows.forEach(r => {
+    r.style.display = r.textContent.toLowerCase().includes(term) ? '' : 'none';
+  });
+}
+</script>
+</body>
+</html>
