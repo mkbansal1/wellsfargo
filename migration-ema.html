@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wells Fargo EDS Migration Plan</title>
+<style>
+:root {
+  --bg: #ffffff;
+  --bg-alt: #f6f8fa;
+  --bg-sidebar: #f0f2f5;
+  --bg-card: #ffffff;
+  --text: #1a1a2e;
+  --text-muted: #555;
+  --border: #d0d7de;
+  --accent: #D71E28;
+  --accent-light: #fdeaea;
+  --accent2: #FCC60A;
+  --link: #5A469B;
+  --success: #468254;
+  --table-header: #f6f8fa;
+  --table-stripe: #fafbfc;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08);
+  --radius: 6px;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+}
+[data-theme="dark"] {
+  --bg: #0d1117;
+  --bg-alt: #161b22;
+  --bg-sidebar: #161b22;
+  --bg-card: #1c2128;
+  --text: #e6edf3;
+  --text-muted: #8b949e;
+  --border: #30363d;
+  --accent: #f85149;
+  --accent-light: #2d1618;
+  --link: #bc8cff;
+  --success: #3fb950;
+  --table-header: #161b22;
+  --table-stripe: #1c2128;
+  --shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  display: flex;
+  min-height: 100vh;
+}
+/* Sidebar */
+.sidebar {
+  position: sticky;
+  top: 0;
+  left: 0;
+  width: 280px;
+  min-width: 280px;
+  height: 100vh;
+  overflow-y: auto;
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border);
+  padding: 20px 16px;
+  z-index: 100;
+}
+.sidebar-logo {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+.sidebar-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  line-height: 1.3;
+}
+.sidebar nav a {
+  display: block;
+  padding: 6px 10px;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 13px;
+  border-radius: 4px;
+  transition: background 0.15s, color 0.15s;
+  line-height: 1.4;
+}
+.sidebar nav a:hover, .sidebar nav a.active {
+  background: var(--accent-light);
+  color: var(--accent);
+}
+.sidebar nav a .num {
+  display: inline-block;
+  width: 22px;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+/* Main */
+.main {
+  flex: 1;
+  min-width: 0;
+  padding: 32px 48px 80px;
+  max-width: 1200px;
+}
+/* Top bar */
+.top-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+.top-bar .search-wrap {
+  flex: 1;
+  min-width: 200px;
+  max-width: 400px;
+  position: relative;
+}
+.top-bar input[type="search"] {
+  width: 100%;
+  padding: 8px 12px 8px 34px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 14px;
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+}
+.top-bar input[type="search"]:focus { border-color: var(--accent); }
+.search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 14px;
+  pointer-events: none;
+}
+.btn {
+  padding: 7px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+.btn:hover { background: var(--bg-alt); }
+.btn-accent { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-accent:hover { opacity: 0.9; background: var(--accent); }
+/* Sections */
+section { margin-bottom: 36px; }
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  padding: 12px 0;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 16px;
+  user-select: none;
+}
+.section-header h2 {
+  font-size: 22px;
+  font-weight: 700;
+  flex: 1;
+}
+.section-header .chevron {
+  font-size: 18px;
+  transition: transform 0.2s;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+.section-header .chevron.collapsed { transform: rotate(-90deg); }
+.section-body { display: block; }
+.section-body.hidden { display: none; }
+/* Summary table */
+.summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.summary-item {
+  display: flex;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--bg-alt);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  font-size: 14px;
+}
+.summary-item .label {
+  font-weight: 600;
+  white-space: nowrap;
+  min-width: 160px;
+}
+.summary-item .value { color: var(--text-muted); }
+/* Decisions */
+.decisions {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+.decision {
+  padding: 12px 16px;
+  background: var(--bg-alt);
+  border-left: 3px solid var(--success);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  font-size: 14px;
+}
+.decision strong { color: var(--success); }
+/* Tables */
+.table-wrap { overflow-x: auto; margin-bottom: 16px; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  line-height: 1.5;
+}
+th, td {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  background: var(--table-header);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  position: relative;
+  user-select: none;
+}
+th:hover { background: var(--accent-light); }
+th .sort-arrow { font-size: 10px; margin-left: 4px; opacity: 0.5; }
+th.sorted .sort-arrow { opacity: 1; }
+tr:nth-child(even) td { background: var(--table-stripe); }
+tr.hidden-row { display: none; }
+td code {
+  background: var(--bg-alt);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.tag-collection { background: #ddf4ff; color: #0969da; }
+.tag-custom { background: #fff8c5; color: #9a6700; }
+.tag-new { background: #dafbe1; color: #1a7f37; }
+.tag-legacy { background: #ffebe9; color: #cf222e; }
+.tag-fragment { background: #fbefff; color: #8250df; }
+[data-theme="dark"] .tag-collection { background: #0c2d6b; color: #79c0ff; }
+[data-theme="dark"] .tag-custom { background: #3d2e00; color: #e3b341; }
+[data-theme="dark"] .tag-new { background: #0d3117; color: #56d364; }
+[data-theme="dark"] .tag-legacy { background: #3c1418; color: #ff7b72; }
+[data-theme="dark"] .tag-fragment { background: #271052; color: #d2a8ff; }
+/* Tokens */
+.color-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+  margin: 12px 0;
+}
+.color-swatch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 13px;
+  background: var(--bg-card);
+}
+.color-swatch .swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.color-swatch .info { line-height: 1.3; }
+.color-swatch .name { font-weight: 600; font-size: 12px; }
+.color-swatch .hex { color: var(--text-muted); font-family: var(--mono); font-size: 11px; }
+/* Worklist */
+.worklist-phase {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--accent);
+  padding-top: 8px;
+}
+/* Risks */
+.risk-high { color: #cf222e; font-weight: 600; }
+.risk-medium { color: #9a6700; font-weight: 600; }
+.risk-low { color: #1a7f37; font-weight: 600; }
+/* Info boxes */
+.info-box {
+  padding: 14px 18px;
+  border-radius: var(--radius);
+  margin: 14px 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.info-box.note { background: #ddf4ff; border-left: 3px solid #0969da; }
+.info-box.warn { background: #fff8c5; border-left: 3px solid #9a6700; }
+.info-box.success { background: #dafbe1; border-left: 3px solid #1a7f37; }
+[data-theme="dark"] .info-box.note { background: #0c2d6b; }
+[data-theme="dark"] .info-box.warn { background: #3d2e00; }
+[data-theme="dark"] .info-box.success { background: #0d3117; }
+/* Stats */
+.stats {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin: 16px 0;
+}
+.stat {
+  padding: 16px 24px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  text-align: center;
+  min-width: 120px;
+}
+.stat .num { font-size: 32px; font-weight: 800; color: var(--accent); line-height: 1; }
+.stat .lbl { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+/* Footer area */
+.doc-footer {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+}
+/* Print */
+@media print {
+  body { display: block; }
+  .sidebar, .top-bar, .btn, .theme-toggle { display: none !important; }
+  .main { padding: 0; max-width: 100%; }
+  .section-body.hidden { display: block !important; }
+  .section-header { border-bottom: 1px solid #ccc; }
+  section { break-inside: avoid; }
+  table { font-size: 11px; }
+  th, td { padding: 4px 8px; }
+  .color-swatch .swatch { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .tag { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .info-box { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  tr.hidden-row { display: none; }
+}
+/* Responsive */
+@media (max-width: 900px) {
+  .sidebar { display: none; }
+  .main { padding: 20px; }
+  .summary-grid { grid-template-columns: 1fr; }
+}
+h3 { font-size: 16px; margin: 18px 0 8px; }
+p { margin: 6px 0; font-size: 14px; }
+ul, ol { margin: 6px 0 6px 24px; font-size: 14px; }
+li { margin: 3px 0; }
+</style>
+</head>
+<body>
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-logo">EDS Migration</div>
+  <div class="sidebar-title">Wells Fargo</div>
+  <nav>
+    <a href="#executive-summary"><span class="num">1.</span> Executive Summary</a>
+    <a href="#template-inventory"><span class="num">2.</span> Template Inventory</a>
+    <a href="#block-inventory"><span class="num">3.</span> Block Inventory</a>
+    <a href="#design-tokens"><span class="num">4.</span> Design Tokens</a>
+    <a href="#navigation-plan"><span class="num">5.</span> Navigation Plan</a>
+    <a href="#bulk-import"><span class="num">6.</span> Bulk Import Strategy</a>
+    <a href="#out-of-scope"><span class="num">7.</span> Out of Scope</a>
+    <a href="#worklist"><span class="num">8.</span> Sequenced Worklist</a>
+    <a href="#risks"><span class="num">9.</span> Risks &amp; Mitigations</a>
+    <a href="#open-questions"><span class="num">10.</span> Open Questions</a>
+  </nav>
+</aside>
+
+<!-- Main Content -->
+<div class="main">
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="search-wrap">
+      <span class="search-icon">&#128269;</span>
+      <input type="search" id="globalSearch" placeholder="Search tables..." autocomplete="off">
+    </div>
+    <button class="btn" id="expandAll">Expand All</button>
+    <button class="btn" id="collapseAll">Collapse All</button>
+    <button class="btn btn-accent" id="themeToggle">Dark Mode</button>
+  </div>
+
+  <!-- 1. Executive Summary -->
+  <section id="executive-summary">
+    <div class="section-header" data-section="executive-summary-body">
+      <h2>1. Executive Summary</h2>
+      <span class="chevron">&#9660;</span>
+    </div>
+    <div class="section-body" id="executive-summary-body">
+      <div class="stats">
+        <div class="stat"><div class="num">1,067</div><div class="lbl">Total URLs</div></div>
+        <div class="stat"><div class="num">680</div><div class="lbl">English Pages</div></div>
+        <div class="stat"><div class="num">387</div><div class="lbl">Spanish Pages</div></div>
+        <div class="stat"><div class="num">12</div><div class="lbl">Templates</div></div>
+        <div class="stat"><div class="num">16</div><div class="lbl">Total Blocks</div></div>
+        <div class="stat"><div class="num">~23d</div><div class="lbl">Est. Effort</div></div>
+      </div>
+      <div class="summary-grid">
+        <div class="summary-item"><span class="label">Source site</span><span class="value">https://www.wellsfargo.com/</span></div>
+        <div class="summary-item"><span class="label">Target</span><span class="value">AEM Edge Delivery Services &mdash; Document Authoring (DA)</span></div>
+        <div class="summary-item"><span class="label">Project type</span><span class="value">DA &mdash; Single project</span></div>
+        <div class="summary-item"><span class="label">DA content host</span><span class="value">content.da.live/mkbansal1/wellsfargo/</span></div>
+        <div class="summary-item"><span class="label">Design source</span><span class="value">Live site (no Figma)</span></div>
+        <div class="summary-item"><span class="label">Font strategy</span><span class="value">Self-hosted "Wells Fargo Sans" on EDS</span></div>
+        <div class="summary-item"><span class="label">Blocks (Collection)</span><span class="value">8 to adopt &amp; style</span></div>
+        <div class="summary-item"><span class="label">Blocks (Custom)</span><span class="value">8 to build from scratch</span></div>
+        <div class="summary-item"><span class="label">Page framework</span><span class="value">Unified new framework for all pages</span></div>
+        <div class="summary-item"><span class="label">Spanish mirror</span><span class="value">/es/ subfolder in DA (~387 pages)</span></div>
+        <div class="summary-item"><span class="label">Promo content</span><span class="value">DA fragments &mdash; author-managed</span></div>
+        <div class="summary-item"><span class="label">Calculators/Tools</span><span class="value">Phase 2 &mdash; stub pages link to live site</span></div>
+      </div>
+      <h3>Key Decisions (Confirmed)</h3>
+      <div class="decisions">
+        <div class="decision"><strong>D1 Font:</strong> Download "Wells Fargo Sans" woff2 files and self-host on EDS.</div>
+        <div class="decision"><strong>D2 Spanish:</strong> /es/ subfolder in DA content tree. Same templates, same parsers.</div>
+        <div class="decision"><strong>D3 Legacy pages:</strong> Redesign to new framework. No legacy header/footer variants needed.</div>
+        <div class="decision"><strong>D4 Promos:</strong> Use DA fragments for promo banners. Authors manage updates independently.</div>
+        <div class="decision"><strong>D5 Calculators:</strong> Phase 2 scope. Stub pages link to live site for now.</div>
+        <div class="decision"><strong>D6 Structure:</strong> Single EDS project. DA folders mirror site IA.</div>
+        <div class="decision"><strong>D7 Rate data:</strong> Manually authored block. Authors update directly.</div>
+        <div class="decision"><strong>D8 External:</strong> No migration of external domains. Preserve all links as-is.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Template Inventory -->
+  <section id="template-inventory">
+    <div class="section-header" data-section="template-inventory-body">
+      <h2>2. Template Inventory</h2>
+      <span class="chevron">&#9660;</span>
+    </div>
+    <div class="section-body" id="template-inventory-body">
+      <div class="info-box note">All pages use the unified new framework (Decision D3). Former-legacy pages (/help/*, /about/governance/*, /privacy-security/*) are redesigned into the new layout.</div>
+      <div class="table-wrap">
+        <table class="sortable searchable" id="template-table">
+          <thead>
+            <tr>
+              <th data-type="text"># <span class="sort-arrow">&#9650;&#9660;</span></th>
+              <th data-type="text">Template <span class="sort-arrow">&#9650;&#9660;</span></th>
+              <th data-type="text">Representative URL <span class="sort-arrow">&#9650;&#9660;</span></th>
+              <th data-type="num">Pages (EN) <span class="sort-arrow">&#9650;&#9660;</span></th>
+              <th data-type="num">Pages (ES) <span class="sort-arrow">&#9650;&#9660;</span></th>
+              <th data-type="text">Key Sections <span class="sort-arrow">&#9650;&#9660;</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>T1</td><td>Homepage</td><td><code>/</code></td><td>1</td><td>1</td><td>Hero promo (fragment), product nav, promo tile carousel (fragments), feature highlights, app promo, community columns, help-cta, disclaimers</td></tr>
+            <tr><td>T2</td><td>Product Landing</td><td><code>/checking/</code></td><td>~25</td><td>~18</td><td>H1, product-comparison, product-card (&times;4), image+text columns, app-download, feature cards (4-up), FAQ accordion, help-cta, resource-links, disclaimers</td></tr>
+            <tr><td>T3</td><td>Product Detail</td><td><code>/checking/everyday/</code></td><td>~50</td><td>~40</td><td>H1 intro, feature highlights, columns, accordion FAQ, help-cta, disclaimers</td></tr>
+            <tr><td>T4</td><td>Business Landing</td><td><code>/biz/</code></td><td>1</td><td>1</td><td>H1, biz nav, value-prop cards (3-up), app section (Zelle), resource columns, article cards, help-cta, disclaimers</td></tr>
+            <tr><td>T5</td><td>Business Sub-page</td><td><code>/biz/checking/initiate/</code></td><td>~100</td><td>~62</td><td>Product info, feature list, comparison, CTA, disclaimers</td></tr>
+            <tr><td>T6</td><td>CIB/Commercial Landing</td><td><code>/cib/</code>, <code>/com/</code></td><td>~22</td><td>~8</td><td>H1, hero text+CTA, insights/deal cards (4-up), solutions cards (3+3), team/culture cards, disclaimers</td></tr>
+            <tr><td>T7</td><td>CIB/Commercial Sub-page</td><td><code>/cib/insights/*</code></td><td>~100</td><td>~19</td><td>Article body, related links, disclaimers</td></tr>
+            <tr><td>T8</td><td>About Landing</td><td><code>/about/</code></td><td>1</td><td>1</td><td>H1, info cards (3-up), promo-banner (fragment), info cards (3-up), history section, resource cards</td></tr>
+            <tr><td>T9</td><td>Leadership Bio</td><td><code>/about/corporate/governance/scharf/</code></td><td>~25</td><td>~25</td><td>H1, title/org heading, bio paragraphs, sidebar resources (columns)</td></tr>
+            <tr><td>T10</td><td>Help / FAQ</td><td><code>/help/checking-savings/</code></td><td>~45</td><td>~43</td><td>H1, tabs with FAQ accordion, resources section, contact-info, disclaimers</td></tr>
+            <tr><td>T11</td><td>Financial Education / Article</td><td><code>/financial-education/*</code></td><td>~70</td><td>~60</td><td>Article body, related content, resource links</td></tr>
+            <tr><td>T12</td><td>Privacy / Legal</td><td><code>/privacy-security/fraud/</code></td><td>~32</td><td>~32</td><td>Legal content, nested lists, policy text</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="info-box warn">~6 test/dev pages excluded. ~5 calculator pages are Phase 2 stubs linking to live site.</div>
+    </div>
+  </section>
+
+  <!-- 3. Block Inventory -->
+  <section id="block-inventory">
+    <div class="section-header" data-section="block-inventory-body">
+      <h2>3. Block Inventory</h2>
+      <span class="chevron">&#9660;</span>
+    </div>
+    <div class="section-body" id="block-inventory-body">
+      <h3>3A. Blocks from Block Collection (8)</h3>
+      <p>These blocks exist in the Block Collection and will be adopted and styled to match Wells Fargo brand.</p>
+      <div class="table-wrap">
+        <table class="sortable searchable" id="collection-blocks-table">
+          <thead>
+            <tr>
+              <th data-type="text">Block <span class="sort-arrow">&#9650;&#9660;</span></th>
+              <th data-type="text">Source <span class="sort-arrow">&#9650;&#9660;</span></th>
+              <th data-type="text">Variants <span class="sort-arrow">&#9650;&#9660;</span></th>
+              <th data-type="text">Wells Fargo Usage <span class="sort-arrow">&#9650;&#9660;</span></th>
+              <th data-type="text">Templates <span class="sort-arrow">&#9650;&#9660;</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Hero</strong></td><td><span class="tag tag-collection">Collection</span></td><td>hero</td><td>Full-width banner with bg image + heading + CTA</td><td>T1, T2, T6</td></tr>
+            <tr><td><strong>Cards</strong></td><td><span class="tag tag-collection">Collection</span></td><td>cards, cards (no-images)</td><td>3-up and 4-up grids: insights, deals, value props</td><td>T1, T2, T4, T5, T6, T7, T8</td></tr>
+            <tr><td><strong>Columns</strong></td><td><span class="tag tag-collection">Collection</span></td><td>columns</td><td>Two-column layouts: image+text, community, bio sidebar</td><td>T1, T3, T5, T7, T8, T9, T11</td></tr>
+            <tr><td><strong>Accordion</strong></td><td><span class="tag tag-collection">Collection</span></td><td>accordion</td><td>FAQ sections. Collapsible Q&amp;A pairs</td><td>T2, T3, T5, T10</td></tr>
+            <tr><td><strong>Tabs</strong></td><td><span class="tag tag-collection">Collection</span></td><td>tabs</td><td>Help pages tabbed interface (Accounts/Deposits/Fees/Debit Cards)</td><td>T10</td></tr>
+            <tr><td><strong>Table</strong></td><td><span class="tag tag-collection">Collection</span></td><td>table, striped, bordered</td><td>Tabular data on comparison and legal/terms pages</td><td>T3, T5, T12</td></tr>
+            <tr><td><strong>Carousel</strong></td><td><span class="tag tag-collection">Collection</span></td><td>carousel</td><td>Homepage promo tile rotator, CIB insights slider</td><td>T1, T6</td></tr>
+            <tr><td><strong>Embed</strong></td><td><span class="tag tag-collection">Collection</span></td><td>embed (video)</td><td>CIB video embeds (Perspectives, The Next Horizon)</td><td>T6, T7</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>3B. Custom Blocks to Build (8)</h3>
+      <p>No match in Block Collection. Must be built from scratch.</p>
+      <div class="table-wrap">
+        <table class="sortable searchable" id="custom-blocks-table">
+          <thead>
+            <tr>
+              <th data-type="text">Block <span class="sort-arrow">&#9650;&#9660;</span></th>
+              <th data-type="text">Model <span class="sort-arrow">&#9650;&#9660;</span></th>
+              <th data-type="text">Table Structure <span class="sort-arrow">&#9650;&#9660;</span></th>
+              <th data-type="text">Templates <span class="sort-arrow">&#9650;&#9660;</span></th>
+              <th data-type="text">Rationale <span class="sort-arrow">&#9650;&#9660;</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>product-comparison</strong></td><td><span class="tag tag-custom">Custom</span></td><td>Row 1: block name. Cols = product variants. Rows: names, taglines, fees, "Avoid fee" links, "Open now" CTAs, "Compare all" link.</td><td>T2</td><td>4-column comparison grid. Richer than Table block. Needs responsive collapse JS.</td></tr>
+            <tr><td><strong>product-card</strong></td><td><span class="tag tag-custom">Custom</span></td><td>Row 1: block name. Each row = one product: Col 1 = name. Col 2 = label/value pairs + CTA links.</td><td>T2, T3</td><td>Rich product detail cards. Multiple label/value pairs. Not mappable to Cards.</td></tr>
+            <tr><td><strong>promo-banner</strong></td><td><span class="tag tag-fragment">Fragment</span></td><td>Row 1: block name + variant (yellow/red/dark/green/image). Row 2: optional bg image. Row 3: heading + text + CTA.</td><td>T1, T4, T6, T8</td><td>Full-width promo banners. Authored as DA fragments (Decision D4).</td></tr>
+            <tr><td><strong>help-cta</strong></td><td><span class="tag tag-custom">Custom</span></td><td>Row 1: block name. Row 2: heading. Row 3+: action items (icon + label + link).</td><td>T1-T5, T10</td><td>"How can we help?" section. ~600+ pages use this pattern.</td></tr>
+            <tr><td><strong>app-download</strong></td><td><span class="tag tag-custom">Custom</span></td><td>Row 2: heading + device image. Row 3: feature list. Row 4: store links. Row 5: fine print.</td><td>T1, T2, T4</td><td>Mobile app promo with device screenshot and store badges.</td></tr>
+            <tr><td><strong>resource-links</strong></td><td><span class="tag tag-custom">Custom</span></td><td>Each row: Col 1 = category heading. Col 2 = link list. Multi-column grid.</td><td>T2, T10, T12</td><td>Multi-column categorized link grids near page bottom.</td></tr>
+            <tr><td><strong>disclaimers</strong></td><td><span class="tag tag-custom">Custom</span></td><td>Each row: Col 1 = footnote number. Col 2 = disclaimer text with links.</td><td>T1&ndash;T12</td><td>Numbered legal footnotes. Single most repeated content pattern on the site.</td></tr>
+            <tr><td><strong>contact-info</strong></td><td><span class="tag tag-custom">Custom</span></td><td>Row 2: heading. Row 3+: dept name + phone + hours.</td><td>T9, T10, T12</td><td>Contact panel with department phone numbers.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. Design Tokens -->
+  <section id="design-tokens">
+    <div class="section-header" data-section="design-tokens-body">
+      <h2>4. Design Tokens</h2>
+      <span class="chevron">&#9660;</span>
+    </div>
+    <div class="section-body" id="design-tokens-body">
+      <h3>4.1 Typography</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Token</th><th>Value</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>Primary font</td><td><code>"Wells Fargo Sans"</code></td><td>Self-hosted on EDS (Decision D1). Download woff2, place in /fonts/.</td></tr>
+            <tr><td>Fallback</td><td><code>Arial, Helvetica, sans-serif</code></td><td>Browser fallback only</td></tr>
+            <tr><td>Body size</td><td>17px</td><td></td></tr>
+            <tr><td>Body weight</td><td>400</td><td></td></tr>
+            <tr><td>H1</td><td>34px, weight 400</td><td></td></tr>
+            <tr><td>H2</td><td>~28px, weight 400</td><td></td></tr>
+            <tr><td>H3</td><td>~22px, weight 400&ndash;600</td><td></td></tr>
+            <tr><td>Line height</td><td>~1.5 (body), ~1.25 (headings)</td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>4.2 Colors</h3>
+      <div class="color-grid">
+        <div class="color-swatch"><div class="swatch" style="background:#D71E28"></div><div class="info"><div class="name">--wf-red</div><div class="hex">#D71E28</div></div></div>
+        <div class="color-swatch"><div class="swatch" style="background:#FCC60A"></div><div class="info"><div class="name">--wf-yellow</div><div class="hex">#FCC60A</div></div></div>
+        <div class="color-swatch"><div class="swatch" style="background:#141414"></div><div class="info"><div class="name">--wf-dark</div><div class="hex">#141414</div></div></div>
+        <div class="color-swatch"><div class="swatch" style="background:#3B3331"></div><div class="info"><div class="name">--wf-text-primary</div><div class="hex">#3B3331</div></div></div>
+        <div class="color-swatch"><div class="swatch" style="background:#787070"></div><div class="info"><div class="name">--wf-text-secondary</div><div class="hex">#787070</div></div></div>
+        <div class="color-swatch"><div class="swatch" style="background:#433A38"></div><div class="info"><div class="name">--wf-text-dark</div><div class="hex">#433A38</div></div></div>
+        <div class="color-swatch"><div class="swatch" style="background:#5A469B"></div><div class="info"><div class="name">--wf-link</div><div class="hex">#5A469B</div></div></div>
+        <div class="color-swatch"><div class="swatch" style="background:#6048AD"></div><div class="info"><div class="name">--wf-link-hover</div><div class="hex">#6048AD</div></div></div>
+        <div class="color-swatch"><div class="swatch" style="background:#F4F0ED"></div><div class="info"><div class="name">--wf-bg-warm</div><div class="hex">#F4F0ED</div></div></div>
+        <div class="color-swatch"><div class="swatch" style="background:#F9F7F6"></div><div class="info"><div class="name">--wf-bg-light</div><div class="hex">#F9F7F6</div></div></div>
+        <div class="color-swatch"><div class="swatch" style="background:#E2DEDE"></div><div class="info"><div class="name">--wf-bg-gray</div><div class="hex">#E2DEDE</div></div></div>
+        <div class="color-swatch"><div class="swatch" style="background:#F8F8F8"></div><div class="info"><div class="name">--wf-bg-offwhite</div><div class="hex">#F8F8F8</div></div></div>
+        <div class="color-swatch"><div class="swatch" style="background:#468254"></div><div class="info"><div class="name">--wf-green</div><div class="hex">#468254</div></div></div>
+        <div class="color-swatch"><div class="swatch" style="background:#FFF7E2"></div><div class="info"><div class="name">--wf-cream</div><div class="hex">#FFF7E2</div></div></div>
+      </div>
+      <h3>4.3 Section-Metadata Styles</h3>
+      <p>Single unified palette. Use <code>section-metadata</code> style variants instead of per-LOB themes:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Style</th><th>Background</th><th>Text</th><th>Usage</th></tr></thead>
+          <tbody>
+            <tr><td><code>warm</code></td><td>--wf-bg-warm (#F4F0ED)</td><td>--wf-text-primary</td><td>Warm-toned content sections</td></tr>
+            <tr><td><code>dark</code></td><td>--wf-dark (#141414)</td><td>#FFFFFF</td><td>Dark hero/promo sections, footer</td></tr>
+            <tr><td><code>highlight</code></td><td>--wf-bg-light (#F9F7F6)</td><td>--wf-text-primary</td><td>Subtle emphasis sections</td></tr>
+            <tr><td><code>cream</code></td><td>--wf-cream (#FFF7E2)</td><td>--wf-text-primary</td><td>Yellow-tinted promo sections</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>4.4 Spacing &amp; Layout</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Token</th><th>Value</th><th>Source</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Max content width</strong></td><td><strong>1400px</strong></td><td>Confirmed: <code>.ps-body-wrapper</code>, <code>.ps-footer-wrapper</code></td></tr>
+            <tr><td>Content margin</td><td>0 auto (centered)</td><td></td></tr>
+            <tr><td>Section vertical padding</td><td>40&ndash;60px</td><td></td></tr>
+            <tr><td>Card gap</td><td>24&ndash;32px</td><td></td></tr>
+            <tr><td>Border radius (buttons)</td><td>24px (pill-shaped)</td><td></td></tr>
+            <tr><td>Border radius (cards)</td><td>8&ndash;12px</td><td></td></tr>
+            <tr><td>Nav height</td><td>~64px</td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. Navigation Plan -->
+  <section id="navigation-plan">
+    <div class="section-header" data-section="navigation-plan-body">
+      <h2>5. Navigation Plan</h2>
+      <span class="chevron">&#9660;</span>
+    </div>
+    <div class="section-body" id="navigation-plan-body">
+      <div class="info-box success">Unified new framework for all pages (Decision D3) &mdash; only one header and one footer variant needed.</div>
+      <h3>5.1 Header</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Component</th><th>Structure</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Header</strong></td><td>WF logo (left) + Sign On link + hamburger MENU button (right). Sign On uses LOB-specific URL param (LOB=CONS, LOB=BIZ). LOB determined by page path prefix.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>5.2 Footer</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Component</th><th>Structure</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Footer</strong></td><td>Legal nav links + social media icons (Facebook, LinkedIn, Instagram, Pinterest, YouTube, Twitter) + investment disclaimer + copyright</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>5.3 Other Navigation</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Component</th><th>Approach</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Product nav bar</strong></td><td>Default content &mdash; unordered list in first section, styled via section-metadata as horizontal link bar. Not a block.</td></tr>
+            <tr><td><strong>LOB context</strong></td><td>Determined by URL path (/biz/ &rarr; Business, /cib/ &rarr; CIB). No authored metadata needed.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>5.4 Fragment Strategy (Decision D4)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Fragment</th><th>DA Location</th><th>Used By</th></tr></thead>
+          <tbody>
+            <tr><td>Homepage hero promo</td><td><code>/fragments/promos/homepage-hero</code></td><td>T1</td></tr>
+            <tr><td>Homepage promo tiles</td><td><code>/fragments/promos/homepage-tiles</code></td><td>T1</td></tr>
+            <tr><td>Credit card offer banner</td><td><code>/fragments/promos/credit-card-offer</code></td><td>T1, T2</td></tr>
+            <tr><td>Careers promo</td><td><code>/fragments/promos/careers</code></td><td>T8</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. Bulk Import Strategy -->
+  <section id="bulk-import">
+    <div class="section-header" data-section="bulk-import-body">
+      <h2>6. Bulk Import Strategy</h2>
+      <span class="chevron">&#9660;</span>
+    </div>
+    <div class="section-body" id="bulk-import-body">
+      <h3>6.1 Phased Approach</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Phase</th><th>Action</th><th>Pages</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Phase 1</strong></td><td>Import 1 representative URL per template</td><td>12</td><td>Validate parser + transformer per template</td></tr>
+            <tr><td><strong>Phase 2</strong></td><td>Import 5&ndash;10 additional pages per template</td><td>60&ndash;120</td><td>Edge cases, block variants, design fidelity</td></tr>
+            <tr><td><strong>Phase 3</strong></td><td>Bulk import all remaining EN pages</td><td>~680</td><td>Complete English content</td></tr>
+            <tr><td><strong>Phase 4</strong></td><td>Bulk import all /es/ pages to DA /es/ subfolder</td><td>~387</td><td>Same parsers, locale prefix only</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>6.2 Import Priority Order</h3>
+      <div class="table-wrap">
+        <table class="sortable searchable" id="priority-table">
+          <thead><tr>
+            <th data-type="num">Priority <span class="sort-arrow">&#9650;&#9660;</span></th>
+            <th data-type="text">Template(s) <span class="sort-arrow">&#9650;&#9660;</span></th>
+            <th data-type="text">Rationale <span class="sort-arrow">&#9650;&#9660;</span></th>
+          </tr></thead>
+          <tbody>
+            <tr><td>1</td><td>T1: Homepage</td><td>Flagship &mdash; validates most block types + fragment pattern</td></tr>
+            <tr><td>2</td><td>T2: Product Landing</td><td>Highest block complexity &mdash; product-comparison, product-card, app-download</td></tr>
+            <tr><td>3</td><td>T3: Product Detail</td><td>High page count, reuses T2 blocks</td></tr>
+            <tr><td>4</td><td>T10: Help/FAQ</td><td>Validates tabs, accordion, contact-info in new framework</td></tr>
+            <tr><td>5</td><td>T9: Leadership Bio</td><td>Validates bio layout in new framework</td></tr>
+            <tr><td>6</td><td>T4+T5: Business</td><td>High volume (~100 EN pages)</td></tr>
+            <tr><td>7</td><td>T6+T7: CIB/Commercial</td><td>Corporate, embed, deal-card patterns</td></tr>
+            <tr><td>8</td><td>T8: About Landing</td><td>Promo-banner fragments, info cards</td></tr>
+            <tr><td>9</td><td>T11: Financial Education</td><td>Article template across multiple URL paths</td></tr>
+            <tr><td>10</td><td>T12: Privacy/Legal</td><td>Text-heavy, simplest structure</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="info-box warn"><strong>Calculator stubs (Decision D5):</strong> ~5 pages imported as stub with description + CTA linking to live site URL. Metadata <code>phase: 2</code> for future tracking.</div>
+    </div>
+  </section>
+
+  <!-- 7. Out of Scope -->
+  <section id="out-of-scope">
+    <div class="section-header" data-section="out-of-scope-body">
+      <h2>7. Out of Scope</h2>
+      <span class="chevron">&#9660;</span>
+    </div>
+    <div class="section-body" id="out-of-scope-body">
+      <div class="table-wrap">
+        <table class="searchable" id="scope-table">
+          <thead><tr><th>Item</th><th>Reason</th></tr></thead>
+          <tbody>
+            <tr><td>Auth-gated content (Sign On, dashboards)</td><td>Requires secure session</td></tr>
+            <tr><td>Application flows (<code>/wf/product/apply?...</code>)</td><td>Dynamic forms on separate domain</td></tr>
+            <tr><td>Interactive calculators (~5 pages)</td><td>Phase 2 &mdash; stub pages link to live site (D5)</td></tr>
+            <tr><td>Location finder / ATM locator</td><td>Third-party API, real-time geolocation</td></tr>
+            <tr><td>Appointment scheduling (appointments.wellsfargo.com)</td><td>External &mdash; links preserved (D8)</td></tr>
+            <tr><td>Credit card site (creditcards.wellsfargo.com)</td><td>External &mdash; links preserved (D8)</td></tr>
+            <tr><td>Wells Fargo Stories (stories.wf.com)</td><td>External &mdash; links preserved (D8)</td></tr>
+            <tr><td>Site search</td><td>Requires query-index post-migration</td></tr>
+            <tr><td>MarTech / Analytics</td><td>Handled via delayed.js separately</td></tr>
+            <tr><td>Modal dialogs (footnotes, SIPC/NYSE)</td><td>Simplified to anchor links or inline text</td></tr>
+            <tr><td>Pixel-perfect visual parity</td><td>Brand-faithful, not pixel-identical</td></tr>
+            <tr><td>Commerce / Rewards transactional features</td><td>Requires backend integration</td></tr>
+            <tr><td>Test/Dev pages (~6 pages)</td><td>Excluded from migration</td></tr>
+            <tr><td>_navlinks / _reusable CMS fragments (~6 pages)</td><td>Internal CMS, not public content</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. Sequenced Worklist -->
+  <section id="worklist">
+    <div class="section-header" data-section="worklist-body">
+      <h2>8. Sequenced Worklist</h2>
+      <span class="chevron">&#9660;</span>
+    </div>
+    <div class="section-body" id="worklist-body">
+      <div class="info-box note"><strong>Total estimated effort: ~23 days.</strong> Reduced from 25.5 days &mdash; no legacy framework variants needed (Decision D3).</div>
+      <div class="table-wrap">
+        <table class="sortable searchable" id="worklist-table">
+          <thead><tr>
+            <th data-type="num"># <span class="sort-arrow">&#9650;&#9660;</span></th>
+            <th data-type="text">Phase <span class="sort-arrow">&#9650;&#9660;</span></th>
+            <th data-type="text">Task <span class="sort-arrow">&#9650;&#9660;</span></th>
+            <th data-type="text">Dependencies <span class="sort-arrow">&#9650;&#9660;</span></th>
+            <th data-type="text">Effort <span class="sort-arrow">&#9650;&#9660;</span></th>
+          </tr></thead>
+          <tbody>
+            <tr><td>1</td><td><span class="worklist-phase">Single-Page Migration</span></td><td>Analyze + migrate Homepage (<code>/</code>)</td><td>None</td><td>1 day</td></tr>
+            <tr><td>2</td><td><span class="worklist-phase">Single-Page Migration</span></td><td>Analyze + migrate Product Landing (<code>/checking/</code>)</td><td>None</td><td>1 day</td></tr>
+            <tr><td>3</td><td><span class="worklist-phase">Single-Page Migration</span></td><td>Analyze + migrate Help/FAQ (<code>/help/checking-savings/</code>)</td><td>None</td><td>1 day</td></tr>
+            <tr><td>4</td><td><span class="worklist-phase">Single-Page Migration</span></td><td>Analyze + migrate Bio (<code>/about/corporate/governance/scharf/</code>)</td><td>None</td><td>0.5 day</td></tr>
+            <tr><td>5</td><td><span class="worklist-phase">Single-Page Migration</span></td><td>Analyze + migrate remaining 8 representative pages</td><td>None</td><td>2 days</td></tr>
+            <tr><td>6</td><td><span class="worklist-phase">Design Phase 1</span></td><td>Set up styles.css: self-host WF Sans, brand tokens, max-width: 1400px, typography, colors, buttons</td><td>Steps 1&ndash;5</td><td>1 day</td></tr>
+            <tr><td>7</td><td><span class="worklist-phase">Design Phase 1</span></td><td>Style Block Collection blocks: Hero, Cards, Columns, Accordion, Tabs, Table, Carousel, Embed</td><td>Step 6</td><td>2.5 days</td></tr>
+            <tr><td>8</td><td><span class="worklist-phase">Design Phase 1</span></td><td>Build + style custom blocks: product-comparison, product-card, promo-banner, help-cta, app-download</td><td>Step 6</td><td>3 days</td></tr>
+            <tr><td>9</td><td><span class="worklist-phase">Navigation</span></td><td>Build header block (single variant, LOB-aware Sign On)</td><td>Step 6</td><td>0.5 day</td></tr>
+            <tr><td>10</td><td><span class="worklist-phase">Navigation</span></td><td>Build footer block (single variant)</td><td>Step 6</td><td>0.5 day</td></tr>
+            <tr><td>11</td><td><span class="worklist-phase">Navigation</span></td><td>Set up nav.html, footer.html, fragment references for promo content</td><td>Steps 9&ndash;10</td><td>0.5 day</td></tr>
+            <tr><td>12</td><td><span class="worklist-phase">Design Phase 2</span></td><td>Build + style: resource-links, disclaimers, contact-info</td><td>Steps 8, 11</td><td>1.5 days</td></tr>
+            <tr><td>13</td><td><span class="worklist-phase">Design Phase 2</span></td><td>Section-metadata styles: warm, dark, highlight, cream</td><td>Step 12</td><td>0.5 day</td></tr>
+            <tr><td>14</td><td><span class="worklist-phase">Block Critique</span></td><td>Visual comparison: all 16 blocks vs. source site</td><td>Steps 8, 12</td><td>1 day</td></tr>
+            <tr><td>15</td><td><span class="worklist-phase">Block Critique</span></td><td>CSS fix iterations (up to 3 rounds per block)</td><td>Step 14</td><td>2 days</td></tr>
+            <tr><td>16</td><td><span class="worklist-phase">Bulk Import Validation</span></td><td>Import 5&ndash;10 pages per template (EN only, ~100 pages)</td><td>Steps 1&ndash;15</td><td>2 days</td></tr>
+            <tr><td>17</td><td><span class="worklist-phase">Bulk Import Validation</span></td><td>Review imported pages, fix parser/transformer edge cases</td><td>Step 16</td><td>1 day</td></tr>
+            <tr><td>18</td><td><span class="worklist-phase">Page Critique</span></td><td>Full-page visual comparison for validation batch</td><td>Step 17</td><td>1 day</td></tr>
+            <tr><td>19</td><td><span class="worklist-phase">Page Critique</span></td><td>CSS fixes for page-level layout issues</td><td>Step 18</td><td>1 day</td></tr>
+            <tr><td>20</td><td><span class="worklist-phase">Full Bulk Import (EN)</span></td><td>Import all ~680 English pages (incl. calculator stubs)</td><td>Steps 16&ndash;19</td><td>1 day</td></tr>
+            <tr><td>21</td><td><span class="worklist-phase">Full Bulk Import (ES)</span></td><td>Import all ~387 Spanish pages to /es/ DA subfolder</td><td>Step 20</td><td>0.5 day</td></tr>
+            <tr><td>22</td><td><span class="worklist-phase">QA Pass</span></td><td>Spot-check ~10% of pages across all templates</td><td>Steps 20&ndash;21</td><td>1 day</td></tr>
+            <tr><td>23</td><td><span class="worklist-phase">Documentation</span></td><td>Generate handover docs (authoring, developer, admin guides)</td><td>Step 22</td><td>1 day</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9. Risks & Mitigations -->
+  <section id="risks">
+    <div class="section-header" data-section="risks-body">
+      <h2>9. Risks &amp; Mitigations</h2>
+      <span class="chevron">&#9660;</span>
+    </div>
+    <div class="section-body" id="risks-body">
+      <div class="table-wrap">
+        <table class="sortable searchable" id="risks-table">
+          <thead><tr>
+            <th data-type="text"># <span class="sort-arrow">&#9650;&#9660;</span></th>
+            <th data-type="text">Risk <span class="sort-arrow">&#9650;&#9660;</span></th>
+            <th data-type="text">Impact <span class="sort-arrow">&#9650;&#9660;</span></th>
+            <th data-type="text">Likelihood <span class="sort-arrow">&#9650;&#9660;</span></th>
+            <th data-type="text">Mitigation <span class="sort-arrow">&#9650;&#9660;</span></th>
+          </tr></thead>
+          <tbody>
+            <tr><td>R1</td><td>Font hosting &mdash; WF Sans woff2 files may be large or require multiple weights</td><td><span class="risk-medium">Medium</span></td><td>Likely</td><td>Audit font variants. Host only Regular + Bold. Use font-display: swap. Subset if possible.</td></tr>
+            <tr><td>R2</td><td>Former-legacy pages in new framework &mdash; /help/*, /about/governance/*, /privacy-security/* need content restructuring</td><td><span class="risk-medium">Medium</span></td><td>Confirmed</td><td>Import content into new-framework sections. Tabs remain. Sidebar becomes inline. Validate early in Steps 3&ndash;4.</td></tr>
+            <tr><td>R3</td><td>Product-comparison block complexity &mdash; dense 4-column interactive grid</td><td><span class="risk-high">High</span></td><td>Confirmed</td><td>Purpose-built block with responsive collapse. Validate in Step 2.</td></tr>
+            <tr><td>R4</td><td>Footnote/disclaimer system &mdash; superscript refs link to modal dialogs (~600+ pages)</td><td><span class="risk-medium">Medium</span></td><td>Confirmed</td><td>Convert to anchor-linked disclaimers block. Lose modal UX, preserve content.</td></tr>
+            <tr><td>R5</td><td>Spanish mirror &mdash; ~387 pages must maintain parity</td><td><span class="risk-medium">Medium</span></td><td>Confirmed</td><td>Same infrastructure + /es/ prefix. Validate 5 pages before bulk.</td></tr>
+            <tr><td>R6</td><td>Bot protection / CSP &mdash; aggressive Content-Security-Policy</td><td><span class="risk-low">Low&ndash;Med</span></td><td>Observed</td><td>Monitor import failures. Headless browser fallback.</td></tr>
+            <tr><td>R7</td><td>Fragment authoring workflow &mdash; new pattern for authors</td><td><span class="risk-low">Low&ndash;Med</span></td><td>Likely</td><td>Document in authoring guide. Create example fragments in Step 11.</td></tr>
+            <tr><td>R8</td><td>Page count discrepancy &mdash; sitemap ~1,067 vs. estimate ~1,300</td><td><span class="risk-low">Low</span></td><td>Possible</td><td>Re-crawl with broader discovery if gaps found.</td></tr>
+            <tr><td>R9</td><td>Calculator stubs &mdash; users may expect working tools</td><td><span class="risk-medium">Medium</span></td><td>Confirmed</td><td>Clear "Visit our calculator" CTA. Phase 2 flag in metadata.</td></tr>
+            <tr><td>R10</td><td>Single-project scale &mdash; ~1,067 pages in one DA project</td><td><span class="risk-low">Low</span></td><td>Possible</td><td>DA handles this scale. Folder structure mirrors site IA.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10. Open Questions -->
+  <section id="open-questions">
+    <div class="section-header" data-section="open-questions-body">
+      <h2>10. Open Questions</h2>
+      <span class="chevron">&#9660;</span>
+    </div>
+    <div class="section-body" id="open-questions-body">
+      <div class="info-box success"><strong>All 8 original questions resolved.</strong> See Key Decisions (D1&ndash;D8) in the Executive Summary. No remaining open questions.</div>
+      <p>If any new questions arise during execution, they will be flagged at the relevant worklist step.</p>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <div class="doc-footer">
+    Wells Fargo EDS Migration Plan &mdash; Generated 2026-05-15 &mdash; AEM Edge Delivery Services &mdash; Document Authoring
+  </div>
+</div>
+
+<script>
+(function() {
+  // Theme toggle
+  const themeBtn = document.getElementById('themeToggle');
+  themeBtn.addEventListener('click', () => {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    themeBtn.textContent = isDark ? 'Dark Mode' : 'Light Mode';
+  });
+
+  // Collapsible sections
+  document.querySelectorAll('.section-header').forEach(header => {
+    header.addEventListener('click', () => {
+      const targetId = header.getAttribute('data-section');
+      const body = document.getElementById(targetId);
+      const chevron = header.querySelector('.chevron');
+      if (body) {
+        body.classList.toggle('hidden');
+        chevron.classList.toggle('collapsed');
+      }
+    });
+  });
+
+  // Expand/Collapse all
+  document.getElementById('expandAll').addEventListener('click', () => {
+    document.querySelectorAll('.section-body').forEach(b => b.classList.remove('hidden'));
+    document.querySelectorAll('.chevron').forEach(c => c.classList.remove('collapsed'));
+  });
+  document.getElementById('collapseAll').addEventListener('click', () => {
+    document.querySelectorAll('.section-body').forEach(b => b.classList.add('hidden'));
+    document.querySelectorAll('.chevron').forEach(c => c.classList.add('collapsed'));
+  });
+
+  // Table sorting
+  document.querySelectorAll('table.sortable thead th').forEach(th => {
+    th.addEventListener('click', () => {
+      const table = th.closest('table');
+      const tbody = table.querySelector('tbody');
+      const idx = Array.from(th.parentNode.children).indexOf(th);
+      const isNum = th.getAttribute('data-type') === 'num';
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+      const dir = th.classList.contains('sorted-asc') ? -1 : 1;
+
+      table.querySelectorAll('th').forEach(h => {
+        h.classList.remove('sorted', 'sorted-asc', 'sorted-desc');
+      });
+      th.classList.add('sorted', dir === 1 ? 'sorted-asc' : 'sorted-desc');
+
+      rows.sort((a, b) => {
+        let aVal = a.children[idx] ? a.children[idx].textContent.trim() : '';
+        let bVal = b.children[idx] ? b.children[idx].textContent.trim() : '';
+        if (isNum) {
+          aVal = parseFloat(aVal.replace(/[^0-9.-]/g, '')) || 0;
+          bVal = parseFloat(bVal.replace(/[^0-9.-]/g, '')) || 0;
+          return (aVal - bVal) * dir;
+        }
+        return aVal.localeCompare(bVal) * dir;
+      });
+      rows.forEach(r => tbody.appendChild(r));
+    });
+  });
+
+  // Global search
+  const searchInput = document.getElementById('globalSearch');
+  searchInput.addEventListener('input', () => {
+    const query = searchInput.value.toLowerCase().trim();
+    document.querySelectorAll('table.searchable tbody tr').forEach(row => {
+      if (!query) {
+        row.classList.remove('hidden-row');
+        return;
+      }
+      const text = row.textContent.toLowerCase();
+      row.classList.toggle('hidden-row', !text.includes(query));
+    });
+  });
+
+  // Sidebar active state
+  const navLinks = document.querySelectorAll('.sidebar nav a');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const link = document.querySelector('.sidebar nav a[href="#' + entry.target.id + '"]');
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  document.querySelectorAll('section[id]').forEach(s => observer.observe(s));
+})();
+</script>
+</body>
+</html>
