@@ -1,0 +1,1914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wells Fargo → EDS Migration Plan v2</title>
+<style>
+/* ---------- Reset / base ---------- */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--text);
+  background: var(--bg);
+  transition: background .2s ease, color .2s ease;
+}
+
+/* ---------- Theme tokens (gap-analysis adopted hexes) ---------- */
+:root {
+  --bg: #f9f7f6;
+  --surface: #ffffff;
+  --surface-2: #f4f0ed;
+  --text: #3b3331;
+  --text-muted: #787070;
+  --border: #e2dede;
+  --accent: #d71e28;     /* WF red — confirmed */
+  --accent-2: #fcc60a;   /* WF yellow — confirmed */
+  --link: #5a469b;       /* WF link — confirmed */
+  --success: #468254;    /* WF green — confirmed */
+  --accent-soft: #fdeaea;
+  --decision-bg: #dafbe1;
+  --decision-border: #468254;
+  --tag-bc: #0969da;
+  --tag-bp: #8250df;
+  --tag-custom: #d71e28;
+  --tag-default: #1a7f37;
+  --code-bg: #f4f0ed;
+  --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 12px rgba(0,0,0,.04);
+  --radius: 6px;
+}
+body.dark {
+  --bg: #14171c;
+  --surface: #1c2128;
+  --surface-2: #1a1f25;
+  --text: #e6edf3;
+  --text-muted: #8b949e;
+  --border: #30363d;
+  --accent: #f85149;
+  --accent-2: #e3b341;
+  --link: #bc8cff;
+  --success: #3fb950;
+  --accent-soft: #3a1f22;
+  --decision-bg: #0d3117;
+  --decision-border: #3fb950;
+  --tag-bc: #79c0ff;
+  --tag-bp: #d2a8ff;
+  --tag-custom: #ff7b72;
+  --tag-default: #56d364;
+  --code-bg: #242a32;
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 4px 12px rgba(0,0,0,.3);
+}
+
+/* ---------- Layout ---------- */
+.app {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  min-height: 100vh;
+}
+aside.toc {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 24px 18px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+}
+main {
+  padding: 28px 40px 80px;
+  max-width: 1240px;
+}
+header.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+}
+header.page-header h1 {
+  margin: 0 0 4px;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -.01em;
+}
+header.page-header .sub {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+button.btn, .toggle {
+  font: inherit;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 7px 12px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 13px;
+  transition: background .15s ease;
+}
+button.btn:hover, .toggle:hover { background: var(--surface-2); border-color: var(--accent); }
+input.search {
+  font: inherit;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 7px 12px;
+  border-radius: var(--radius);
+  min-width: 240px;
+  font-size: 13px;
+}
+input.search:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+
+/* ---------- Sidebar ---------- */
+.toc h2 {
+  font-size: 11px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 0 0 12px;
+  font-weight: 600;
+}
+.toc ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  counter-reset: section;
+}
+.toc li {
+  counter-increment: section;
+  margin-bottom: 2px;
+}
+.toc a {
+  display: block;
+  padding: 7px 10px;
+  border-radius: var(--radius);
+  color: var(--text);
+  text-decoration: none;
+  font-size: 13.5px;
+  border-left: 2px solid transparent;
+}
+.toc a::before {
+  content: counter(section) ". ";
+  color: var(--text-muted);
+  margin-right: 4px;
+}
+.toc a:hover {
+  background: var(--surface-2);
+  border-left-color: var(--accent);
+}
+.toc .brand {
+  font-weight: 700;
+  font-size: 15px;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.toc .brand small { display: block; font-weight: 400; color: var(--text-muted); font-size: 12px; margin-top: 4px; }
+.version-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  background: var(--accent);
+  color: #fff;
+  margin-top: 4px;
+}
+
+/* ---------- Stats dashboard ---------- */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  margin: 14px 0 18px;
+}
+.stat {
+  padding: 12px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  text-align: center;
+}
+.stat .num {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--accent);
+  line-height: 1;
+}
+.stat .lbl {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+/* ---------- Sections ---------- */
+section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 18px;
+  box-shadow: var(--shadow);
+  scroll-margin-top: 20px;
+}
+section > .section-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  cursor: pointer;
+  user-select: none;
+  border-bottom: 1px solid transparent;
+}
+section.open > .section-head { border-bottom-color: var(--border); }
+section > .section-head h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  flex: 1;
+}
+section > .section-head .chev {
+  transition: transform .2s ease;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+section.open > .section-head .chev { transform: rotate(90deg); }
+section > .section-body {
+  display: none;
+  padding: 18px 22px 22px;
+}
+section.open > .section-body { display: block; }
+
+/* ---------- Typography in content ---------- */
+section .section-body h3 {
+  font-size: 15px;
+  margin: 22px 0 8px;
+  font-weight: 700;
+  color: var(--accent);
+}
+section .section-body h3:first-child { margin-top: 0; }
+section .section-body h4 {
+  font-size: 13.5px;
+  margin: 16px 0 6px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+p { margin: 8px 0; }
+ul, ol { padding-left: 22px; margin: 8px 0; }
+li { margin-bottom: 4px; }
+code {
+  background: var(--code-bg);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 12.5px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* ---------- Decision cards ---------- */
+.decisions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 10px;
+  margin: 12px 0 18px;
+}
+.decision {
+  padding: 10px 14px;
+  background: var(--decision-bg);
+  border-left: 3px solid var(--decision-border);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.decision .id {
+  display: inline-block;
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: .04em;
+  background: var(--success);
+  color: #fff;
+  padding: 2px 7px;
+  border-radius: 4px;
+  margin-right: 6px;
+}
+.decision .label {
+  font-weight: 700;
+  display: inline;
+}
+
+/* ---------- Tables ---------- */
+.table-wrap { overflow-x: auto; margin: 10px 0 14px; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  background: var(--surface);
+}
+thead th {
+  text-align: left;
+  background: var(--surface-2);
+  border-bottom: 2px solid var(--border);
+  padding: 9px 10px;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+thead th .sort-ind {
+  color: var(--text-muted);
+  margin-left: 4px;
+  font-size: 10px;
+}
+tbody td {
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+tbody tr:hover { background: var(--surface-2); }
+.hidden { display: none !important; }
+
+/* ---------- Tags / pills ---------- */
+.tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.tag.bc { background: rgba(9,105,218,.12); color: var(--tag-bc); border-color: rgba(9,105,218,.3); }
+.tag.bp { background: rgba(130,80,223,.12); color: var(--tag-bp); border-color: rgba(130,80,223,.3); }
+.tag.custom { background: rgba(215,30,40,.1); color: var(--tag-custom); border-color: rgba(215,30,40,.3); }
+.tag.default { background: rgba(70,130,84,.12); color: var(--tag-default); border-color: rgba(70,130,84,.3); }
+.tag.lib { background: var(--code-bg); color: var(--text-muted); border-color: var(--border); }
+
+/* ---------- Callouts ---------- */
+.callout {
+  border-left: 3px solid var(--accent);
+  background: var(--surface-2);
+  padding: 12px 14px;
+  margin: 12px 0;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  font-size: 13.5px;
+}
+.callout.warn { border-left-color: #d97706; }
+.callout.info { border-left-color: var(--tag-bc); }
+.callout.note { border-left-color: var(--tag-default); }
+.callout.new { border-left-color: var(--accent-2); background: rgba(252,198,10,.08); }
+.callout strong { display: block; margin-bottom: 4px; }
+
+/* ---------- Swatches ---------- */
+.swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+  margin: 12px 0;
+}
+.swatch {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  font-size: 12px;
+  background: var(--surface);
+}
+.swatch .chip {
+  height: 60px;
+  display: flex;
+  align-items: flex-end;
+  padding: 6px 8px;
+  color: #fff;
+  text-shadow: 0 0 4px rgba(0,0,0,.4);
+  font-weight: 600;
+  font-size: 11px;
+}
+.swatch .meta { padding: 6px 8px; }
+.swatch .meta b { display: block; }
+.swatch .meta small { color: var(--text-muted); font-family: ui-monospace, monospace; }
+
+/* ---------- Worklist ---------- */
+.worklist { counter-reset: step; list-style: none; padding: 0; }
+.worklist li {
+  counter-increment: step;
+  position: relative;
+  padding: 12px 14px 12px 56px;
+  margin-bottom: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+.worklist li::before {
+  content: counter(step);
+  position: absolute;
+  left: 14px; top: 12px;
+  width: 30px; height: 30px;
+  display: grid; place-items: center;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 13px;
+}
+.worklist li b { display: block; margin-bottom: 4px; font-size: 14px; }
+.worklist li .dep { display: block; margin-top: 6px; font-size: 12px; color: var(--text-muted); }
+.worklist li .dep::before { content: "↳ depends on: "; font-weight: 600; color: var(--accent); }
+.worklist li .effort {
+  display: inline-block;
+  font-size: 11px;
+  background: var(--accent-2);
+  color: var(--text);
+  padding: 1px 8px;
+  border-radius: 10px;
+  font-weight: 700;
+  margin-left: 6px;
+}
+
+/* ---------- Risk grid ---------- */
+.risk-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+  margin: 12px 0;
+}
+.risk-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  background: var(--surface-2);
+}
+.risk-card h4 { margin: 0 0 6px; font-size: 13px; text-transform: none; letter-spacing: 0; color: var(--text); }
+.risk-card .sev {
+  display: inline-block;
+  font-size: 10px;
+  padding: 1px 7px;
+  border-radius: 8px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.sev.high { background: rgba(215,30,40,.15); color: var(--accent); }
+.sev.med { background: rgba(217,119,6,.15); color: #d97706; }
+.sev.low { background: rgba(70,130,84,.15); color: var(--success); }
+.risk-card .mit { font-size: 12.5px; color: var(--text-muted); }
+.risk-card .mit::before { content: "Mitigation: "; font-weight: 600; color: var(--text); }
+
+/* ---------- Empty state ---------- */
+.empty-row td {
+  text-align: center;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 20px;
+}
+
+/* ---------- Print ---------- */
+@media print {
+  body { background: #fff; color: #000; font-size: 11pt; }
+  aside.toc, .controls, .section-head .chev { display: none !important; }
+  .app { display: block; }
+  main { padding: 0; max-width: none; }
+  section { break-inside: avoid; page-break-inside: avoid; box-shadow: none; border: 1px solid #ccc; margin-bottom: 14px; }
+  section > .section-body { display: block !important; }
+  section > .section-head { cursor: default; background: #f3f3f3; }
+  thead th { position: static; background: #eee !important; color: #000 !important; }
+  tbody tr:hover { background: transparent; }
+  a { color: #000; text-decoration: underline; }
+  .tag { border: 1px solid #999 !important; background: #fff !important; color: #000 !important; }
+  .worklist li::before { background: #333 !important; color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .swatch .chip { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .callout { border-left-width: 4px !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .decision { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 900px) {
+  .app { grid-template-columns: 1fr; }
+  aside.toc { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
+  main { padding: 20px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<aside class="toc">
+  <div class="brand">
+    Wells Fargo → EDS
+    <small>Migration Plan · DA target</small>
+    <span class="version-badge">v2 · DECISIONS LOCKED</span>
+  </div>
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#sec-1">Executive Summary</a></li>
+    <li><a href="#sec-2">Template Inventory</a></li>
+    <li><a href="#sec-3">Block Inventory</a></li>
+    <li><a href="#sec-4">Design Tokens</a></li>
+    <li><a href="#sec-5">Navigation Plan</a></li>
+    <li><a href="#sec-6">Bulk Import Strategy</a></li>
+    <li><a href="#sec-7">Out-of-Scope</a></li>
+    <li><a href="#sec-8">Sequenced Worklist</a></li>
+    <li><a href="#sec-9">Risks &amp; Mitigations</a></li>
+    <li><a href="#sec-10">Open Items</a></li>
+    <li><a href="#sec-11">URL Inventory</a></li>
+  </ol>
+</aside>
+
+<main>
+  <header class="page-header">
+    <div>
+      <h1>Wells Fargo → EDS (Document Authoring) Migration Plan · v2</h1>
+      <div class="sub">
+        Source: <code>https://www.wellsfargo.com/</code> · ~1,067 pages · Design source: live site ·
+        Status: <b>13 key decisions locked, 4 open items deferred</b>
+      </div>
+    </div>
+    <div class="controls">
+      <input class="search" id="search" type="search" placeholder="Filter templates &amp; blocks…" aria-label="Filter tables">
+      <button class="btn" id="expandAll">Expand all</button>
+      <button class="btn" id="collapseAll">Collapse all</button>
+      <button class="toggle" id="themeToggle" aria-label="Toggle light/dark">🌓 Theme</button>
+      <button class="btn" onclick="window.print()">Print / PDF</button>
+    </div>
+  </header>
+
+  <!-- =========================================================== -->
+  <!-- 1. EXECUTIVE SUMMARY                                          -->
+  <!-- =========================================================== -->
+  <section id="sec-1" class="open">
+    <div class="section-head" data-toggle><h2>1. Executive Summary</h2><span class="chev">▶</span></div>
+    <div class="section-body">
+
+      <div class="stats">
+        <div class="stat"><div class="num">~1,067</div><div class="lbl">Total URLs</div></div>
+        <div class="stat"><div class="num">~1,066</div><div class="lbl">English pages</div></div>
+        <div class="stat"><div class="num">1</div><div class="lbl">Spanish (home only)</div></div>
+        <div class="stat"><div class="num">14</div><div class="lbl">Templates</div></div>
+        <div class="stat"><div class="num">~30</div><div class="lbl">Blocks total</div></div>
+        <div class="stat"><div class="num">~28d</div><div class="lbl">Est. effort</div></div>
+        <div class="stat"><div class="num">2</div><div class="lbl">Theme palettes</div></div>
+        <div class="stat"><div class="num">13</div><div class="lbl">Decisions locked</div></div>
+      </div>
+
+      <h3>Two-line summary</h3>
+      <p>
+        Migrate <b>~1,067 pages</b> from <code>wellsfargo.com</code> to Edge Delivery Services with <b>Document Authoring (DA)</b>.
+        The site is organized into 14 page templates. We will prefer <b>default content (David's Model)</b>, then reuse the <b>DA Block
+        Collection</b>, then <b>Block Party</b> aggressively, and build custom blocks only when no equivalent exists. <b>Two palettes</b>
+        (Default + Wealth) drive sectioned theming.
+      </p>
+
+      <h3>Key Decisions (locked by user, v2)</h3>
+      <div class="decisions">
+        <div class="decision"><span class="id">D1</span><span class="label">Wealth theme.</span> <code>/investing-wealth/</code> uses a distinct color palette. Applied via section/page metadata <code>theme: wealth</code>. Default theme everywhere else, including Premier and CIB.</div>
+        <div class="decision"><span class="id">D2</span><span class="label">Block Party.</span> Use Block Party blocks as much as possible. Reusability is the priority.</div>
+        <div class="decision"><span class="id">D3</span><span class="label">Header / Footer variants.</span> Multiple header &amp; footer variants confirmed (Default consumer, Biz, CIB / institutional, Wealth). Each variant authored as a separate <code>/nav</code> and <code>/footer</code> doc, selected by page metadata.</div>
+        <div class="decision"><span class="id">D4</span><span class="label">Spanish parity.</span> Phase 1 ships the Spanish <i>home page only</i>. Other <code>/es/</code> pages are deferred to a later phase.</div>
+        <div class="decision"><span class="id">D5</span><span class="label">Help framework.</span> Help pages use the same theme/framework as the home page (no separate help framework).</div>
+        <div class="decision"><span class="id">D6</span><span class="label">Fonts.</span> Download Wells Fargo Sans (and Serif if present) from the live site and self-host on EDS under <code>/fonts/</code>.</div>
+        <div class="decision"><span class="id">D7</span><span class="label">Image hosting.</span> Migrate all images to DA content pages. No reliance on <code>www17.wellsfargomedia.com</code>.</div>
+        <div class="decision"><span class="id">D8</span><span class="label">Rates source.</span> Manage rates in DA-hosted spreadsheets for now. Rates Table block reads from those sheets.</div>
+        <div class="decision"><span class="id">D9</span><span class="label">Calculators / tools.</span> Phase 2 scope; Phase 1 stubs link to live URLs. <i>(Strategy beyond Phase 1: open.)</i></div>
+        <div class="decision"><span class="id">D10</span><span class="label">Footnote / disclosure IDs.</span> Strategy <i>open</i>; for Phase 1, author IDs verbatim per page (same as legacy).</div>
+        <div class="decision"><span class="id">D11</span><span class="label">Analytics.</span> Out of scope for Phase 1. No tag manager wired.</div>
+        <div class="decision"><span class="id">D12</span><span class="label">Cookie consent.</span> Copy live-site consent configuration as a fragment.</div>
+        <div class="decision"><span class="id">D13</span><span class="label">"How was your experience?" widget.</span> Out of scope for Phase 1.</div>
+        <div class="decision"><span class="id">D14</span><span class="label">Sitemap / redirects ownership.</span> Open. To be revisited before go-live.</div>
+        <div class="decision"><span class="id">D15</span><span class="label">External-domain content.</span> No migration of external domains (creditcards, stories, oam, connect.secure, wellsoffice, www17 media). Links preserved.</div>
+        <div class="decision"><span class="id">D16</span><span class="label">Project structure.</span> Single DA project, folders mirror site IA. <code>/es/</code> subfolder for the Spanish home.</div>
+        <div class="decision"><span class="id">D17</span><span class="label">Placeholders &amp; Configs.</span> Use <code>placeholders.json</code> for phone numbers, sign-on URLs, app store links, FDIC strings. <code>/configs/</code> for theme map, rates source, fragment paths.</div>
+      </div>
+
+      <h3>What changed in v2 (vs. v1)</h3>
+      <ul>
+        <li>Adopted EMA's confirmed hex codes (<code>#D71E28</code>, <code>#FCC60A</code>, <code>#5A469B</code>, <code>#F4F0ED</code>, <code>#3B3331</code>, <code>#787070</code>, <code>#468254</code>) and concrete type sizes (17px body, 34px H1, 1400px max content width, 24px button pill).</li>
+        <li>Added two templates Claude missed: <b>T13 Leadership Bio</b> and <b>T14 About Landing</b>.</li>
+        <li>Split <b>T8 Business</b> into <b>T8a Biz Landing</b> + <b>T8b Biz Sub-page</b> per EMA's stronger carving.</li>
+        <li>Added <b>Carousel</b> and <b>Table</b> to the Block Collection adoption set; added <b>resource-links</b> and <b>contact-info</b> as custom blocks.</li>
+        <li>Doubled down on Block Party tier per <b>D2</b>: anything in Block Party is preferred over a new custom block.</li>
+        <li>Restored the <b>Wealth palette</b> (per <b>D1</b>) scoped to <code>/investing-wealth/</code> only (not Premier or CIB — per user clarification).</li>
+        <li>Adopted EMA's effort-per-step convention (~28 days, padded from EMA's 23d to absorb Wealth theme + Block Party tier + image migration).</li>
+        <li>Added EN→ES sequencing (Phase 4 ES bulk after Phase 3 EN bulk; though now only ES home in Phase 1).</li>
+        <li>Out-of-scope: added test/dev pages and <code>_navlinks</code>/<code>_reusable</code> CMS fragments.</li>
+        <li>Risks: added product-comparison complexity, CSP/bot-protection, fragment authoring training, former-legacy restructuring.</li>
+        <li>Open Questions cut from 12 → 4 (D9 calc strategy beyond stubs, D10 footnote IDs, D14 sitemap ownership, plus a new question on header/footer mapping by page).</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- =========================================================== -->
+  <!-- 2. TEMPLATE INVENTORY                                         -->
+  <!-- =========================================================== -->
+  <section id="sec-2" class="open">
+    <div class="section-head" data-toggle><h2>2. Template Inventory</h2><span class="chev">▶</span></div>
+    <div class="section-body">
+      <p>
+        14 templates clustered from the Top URLs and sitemap IA. Page counts reflect EMA's
+        <b>1,067-page baseline</b> (680 originally EN-counted + 387 ES, now treating only the
+        ES home as in-scope). Sortable; filter via the search box at the top.
+      </p>
+      <div class="callout new">
+        <strong>Changed in v2</strong>
+        Added T13 Leadership Bio and T14 About Landing. Split T8 Business into Landing / Sub-page. Page counts now reconciled with EMA's sitemap baseline (~1,067 EN + 1 ES home).
+      </div>
+      <div class="table-wrap">
+        <table id="templateTable" data-filterable>
+          <thead>
+            <tr>
+              <th data-sort="string">Template <span class="sort-ind">⇅</span></th>
+              <th data-sort="number">Pages <span class="sort-ind">⇅</span></th>
+              <th data-sort="string">Theme <span class="sort-ind">⇅</span></th>
+              <th data-sort="string">Header / Footer variant <span class="sort-ind">⇅</span></th>
+              <th data-sort="string">Representative URL <span class="sort-ind">⇅</span></th>
+              <th data-sort="string">Key Sections <span class="sort-ind">⇅</span></th>
+              <th data-sort="string">Required Blocks <span class="sort-ind">⇅</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>T1 · Homepage</b></td>
+              <td>1</td>
+              <td>Default</td>
+              <td>Default / Default</td>
+              <td><code>/</code></td>
+              <td>Marquee hero, sign-on tile, primary nav grid, small-promo trio, rates strip, large promo, financial-guidance trio, app-promo, community lockup</td>
+              <td>Hero (Marquee), Sign-On Tile, Carousel, Cards, Rates Table, App Promo, Fragment×5</td>
+            </tr>
+            <tr>
+              <td><b>T2 · L1 Product Landing</b></td>
+              <td>~25</td>
+              <td>Default</td>
+              <td>Default / Default</td>
+              <td><code>/checking/</code>, <code>/savings-cds/</code></td>
+              <td>Hero, tabs (product finder), product compare, feature belt, app promo, FAQ, help-cta strip</td>
+              <td>Hero, Tabs, Compare Table, Cards (icon-feature), Accordion, App Promo, help-cta</td>
+            </tr>
+            <tr>
+              <td><b>T3 · Product Detail</b></td>
+              <td>~80</td>
+              <td>Default</td>
+              <td>Default / Default</td>
+              <td><code>/checking/everyday/</code>, <code>/savings-cds/way2save/</code></td>
+              <td>Breadcrumb, product hero, key-benefit cards, fee table, app promo, FAQ, related links, footnotes</td>
+              <td>Hero, Cards (benefit), Table (fee), App Promo, Accordion, Footnotes (Disclaimers)</td>
+            </tr>
+            <tr>
+              <td><b>T4 · L2 Category Hub</b></td>
+              <td>~25</td>
+              <td>Default</td>
+              <td>Default / Default</td>
+              <td><code>/auto-loans/</code>, <code>/mortgage/</code>, <code>/financial-goals/</code></td>
+              <td>Hero, value-prop trio, product cards, education links, CTA banner, FAQ</td>
+              <td>Hero, Cards, Columns, Accordion, resource-links</td>
+            </tr>
+            <tr>
+              <td><b>T5 · Education Article / Hub</b></td>
+              <td>~70</td>
+              <td>Default</td>
+              <td>Default / Default</td>
+              <td><code>/goals-credit/smarter-credit/credit-101/</code>, <code>/financial-education/.../*</code></td>
+              <td>Breadcrumb, article hero/title, body prose, related-article cards, "How do I..." sidebar, footnotes</td>
+              <td>Default content (heavy), Cards (article), Help Sidebar, Disclaimers</td>
+            </tr>
+            <tr>
+              <td><b>T6 · Help / FAQ</b></td>
+              <td>~45</td>
+              <td>Default <i>(per D5)</i></td>
+              <td>Default / Default</td>
+              <td><code>/help/checking-savings/</code>, <code>/help/credit-cards/</code></td>
+              <td>Breadcrumb, topic header, tabs with FAQ accordion lists, contact-info, related help</td>
+              <td>Tabs, Accordion, contact-info, Cards (related-help), Breadcrumb</td>
+            </tr>
+            <tr>
+              <td><b>T7 · Security / Fraud Center</b></td>
+              <td>~32</td>
+              <td>Default</td>
+              <td>Default / Default</td>
+              <td><code>/privacy-security/fraud/</code>, <code>/privacy-security/fraud/bank-scams/</code></td>
+              <td>Alert banner, trending-scams list, tabbed scam categories, illustration callouts, report-fraud CTA</td>
+              <td>Callout (alert), Cards (icon-list), Tabs, Fragment</td>
+            </tr>
+            <tr>
+              <td><b>T8a · Biz Landing</b></td>
+              <td>1</td>
+              <td>Default</td>
+              <td><b>Biz / Biz</b></td>
+              <td><code>/biz/</code></td>
+              <td>Biz hero, biz nav, value-prop cards (3-up), Zelle section, resource columns, article cards, help-cta</td>
+              <td>Hero, Cards, Columns, App Promo, help-cta, resource-links</td>
+            </tr>
+            <tr>
+              <td><b>T8b · Biz Sub-page</b></td>
+              <td>~100</td>
+              <td>Default</td>
+              <td><b>Biz / Biz</b></td>
+              <td><code>/biz/checking/</code>, <code>/biz/merchant/</code>, <code>/biz/online-banking/</code></td>
+              <td>Product info, feature list, comparison, CTA, disclaimers</td>
+              <td>Hero, Cards, Compare Table, Disclaimers</td>
+            </tr>
+            <tr>
+              <td><b>T9 · CIB / Commercial Landing</b></td>
+              <td>~22</td>
+              <td>Default</td>
+              <td><b>CIB / CIB</b></td>
+              <td><code>/cib/</code>, <code>/com/</code></td>
+              <td>Branded hero, insights/deal cards (4-up), solutions cards (3+3), team/culture cards, Vantage sign-on</td>
+              <td>Hero, Carousel (insights), Deal Card, Cards, Quote, Embed (video)</td>
+            </tr>
+            <tr>
+              <td><b>T10 · CIB / Commercial Sub-page</b></td>
+              <td>~100</td>
+              <td>Default</td>
+              <td><b>CIB / CIB</b></td>
+              <td><code>/cib/insights/*</code>, <code>/cib/investment-banking/*</code></td>
+              <td>Article body, related links, disclaimers</td>
+              <td>Default content, Cards, Quote, Embed, Disclaimers</td>
+            </tr>
+            <tr>
+              <td><b>T11 · Wealth / Investing</b></td>
+              <td>~25</td>
+              <td><b>Wealth</b> <i>(per D1)</i></td>
+              <td><b>Wealth / Wealth</b></td>
+              <td><code>/investing-wealth/</code></td>
+              <td>Premium hero, benefit belt (icon grid), feature cards, side-image lockups, FAQ, advisor disclosures</td>
+              <td>Hero, Cards (icon-belt), Columns (image-text), Accordion, Disclaimers (auto-injected)</td>
+            </tr>
+            <tr>
+              <td><b>T12 · Privacy / Legal / Standalone Utility</b></td>
+              <td>~42</td>
+              <td>Default</td>
+              <td>Default / Default</td>
+              <td><code>/privacy-security/</code>, <code>/atm/</code>, <code>/foreign-exchange/*</code></td>
+              <td>Legal content, nested lists, policy text, simple hero + content sections</td>
+              <td>Default content (heavy), Table, Columns, Disclaimers</td>
+            </tr>
+            <tr>
+              <td><b>T13 · Leadership Bio</b></td>
+              <td>~25</td>
+              <td>Default</td>
+              <td>Default / Default</td>
+              <td><code>/about/corporate/governance/scharf/</code></td>
+              <td>Bio header (name + title + org), bio paragraphs, sidebar resources (Columns), portrait image</td>
+              <td>Columns (bio + sidebar), Cards (resources), Default content</td>
+            </tr>
+            <tr>
+              <td><b>T14 · About Landing</b></td>
+              <td>1</td>
+              <td>Default</td>
+              <td>Default / Default</td>
+              <td><code>/about/</code></td>
+              <td>Hero, info cards (3-up), promo-banner (fragment), info cards (3-up), history section, resource cards</td>
+              <td>Hero, Cards, Fragment (careers promo), Columns</td>
+            </tr>
+            <tr>
+              <td><b>+ Spanish home</b></td>
+              <td>1</td>
+              <td>Default</td>
+              <td>Default ES / Default ES</td>
+              <td><code>/es/</code></td>
+              <td>Mirrors T1 layout</td>
+              <td>Same as T1</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout info">
+        <strong>Page-count reconciliation</strong>
+        Counts (~1,067) come from EMA's sitemap-derived baseline. Long-tail templates (Education, Help, Fraud) were over-estimated in v1; v2 trusts EMA's count and earmarks "re-baseline against sitemap" as a Step-1 pre-flight task.
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================== -->
+  <!-- 3. BLOCK INVENTORY                                            -->
+  <!-- =========================================================== -->
+  <section id="sec-3" class="open">
+    <div class="section-head" data-toggle><h2>3. Block Inventory</h2><span class="chev">▶</span></div>
+    <div class="section-body">
+      <p>
+        Source tiers — strict reuse order per <b>D2</b>:
+        <span class="tag default">Default Content</span> →
+        <span class="tag bc">Block Collection</span> →
+        <span class="tag bp">Block Party</span> →
+        <span class="tag custom">Custom</span>.
+        Block variations (per the 70% similarity rule) are added via the <code>classes</code> block-options pattern, not as new blocks.
+      </p>
+
+      <h3>3.1 Block Collection (reuse as-is, style to brand)</h3>
+      <div class="callout new">
+        <strong>v2 additions</strong>
+        Added <b>Carousel</b> and <b>Table</b> per EMA. These were patterns Claude v1 had folded into custom blocks; they belong in Block Collection.
+      </div>
+      <div class="table-wrap">
+        <table id="blockTableCollection" data-filterable>
+          <thead>
+            <tr>
+              <th data-sort="string">Block <span class="sort-ind">⇅</span></th>
+              <th data-sort="string">Source <span class="sort-ind">⇅</span></th>
+              <th data-sort="string">Content Model <span class="sort-ind">⇅</span></th>
+              <th data-sort="string">DA Table Structure <span class="sort-ind">⇅</span></th>
+              <th data-sort="string">Variations (classes) <span class="sort-ind">⇅</span></th>
+              <th data-sort="string">Used in Templates <span class="sort-ind">⇅</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>Hero</b></td>
+              <td><span class="tag bc">Block Collection</span></td>
+              <td>Standalone</td>
+              <td><code>| Hero |</code><br>row 1: image · row 2: heading + CTA links</td>
+              <td><code>marquee</code>, <code>compact</code>, <code>biz</code>, <code>cib</code>, <code>wealth</code></td>
+              <td>T1, T2, T3, T4, T7, T8a/b, T9, T11, T14</td>
+            </tr>
+            <tr>
+              <td><b>Cards</b></td>
+              <td><span class="tag bc">Block Collection</span></td>
+              <td>Collection</td>
+              <td><code>| Cards |</code><br>rows: image | heading + body + link</td>
+              <td><code>icon</code>, <code>icon-belt</code>, <code>benefit</code>, <code>article</code>, <code>product</code>, <code>icon-list</code>, <code>insight</code>, <code>3-up</code>, <code>4-up</code></td>
+              <td>T1, T2, T3, T4, T5, T7, T8a/b, T9, T10, T11, T13, T14</td>
+            </tr>
+            <tr>
+              <td><b>Columns</b></td>
+              <td><span class="tag bc">Block Collection</span></td>
+              <td>Configuration</td>
+              <td><code>| Columns (n) |</code><br>n columns per row, free content per cell</td>
+              <td><code>image-text</code>, <code>reverse</code>, <code>centered</code>, <code>bio-sidebar</code></td>
+              <td>T4, T8a, T10, T11, T12, T13, T14</td>
+            </tr>
+            <tr>
+              <td><b>Accordion</b></td>
+              <td><span class="tag bc">Block Collection</span></td>
+              <td>Collection</td>
+              <td><code>| Accordion |</code><br>rows: heading | rich-text body</td>
+              <td><code>compact</code>, <code>numbered</code></td>
+              <td>T2, T3, T4, T6, T11</td>
+            </tr>
+            <tr>
+              <td><b>Tabs</b></td>
+              <td><span class="tag bc">Block Collection</span></td>
+              <td>Collection</td>
+              <td><code>| Tabs |</code><br>rows: label | tab content</td>
+              <td><code>product-finder</code>, <code>help-tabs</code>, <code>scam-categories</code></td>
+              <td>T2, T6, T7</td>
+            </tr>
+            <tr>
+              <td><b>Table</b> <span class="tag default" style="margin-left:6px">v2 added</span></td>
+              <td><span class="tag bc">Block Collection</span></td>
+              <td>Collection</td>
+              <td><code>| Table |</code><br>rows: standard table semantics</td>
+              <td><code>striped</code>, <code>bordered</code>, <code>fee</code> (fee-table styling)</td>
+              <td>T3, T8b, T12</td>
+            </tr>
+            <tr>
+              <td><b>Carousel</b> <span class="tag default" style="margin-left:6px">v2 added</span></td>
+              <td><span class="tag bc">Block Collection</span></td>
+              <td>Collection</td>
+              <td><code>| Carousel |</code><br>rows: image | heading + body + link</td>
+              <td><code>promo</code>, <code>insights</code></td>
+              <td>T1, T9</td>
+            </tr>
+            <tr>
+              <td><b>Quote</b></td>
+              <td><span class="tag bc">Block Collection</span></td>
+              <td>Standalone</td>
+              <td><code>| Quote |</code><br>row 1: quote · row 2: attribution</td>
+              <td>—</td>
+              <td>T9, T10</td>
+            </tr>
+            <tr>
+              <td><b>Embed</b></td>
+              <td><span class="tag bc">Block Collection</span></td>
+              <td>Auto-blocked</td>
+              <td>URL on its own line auto-blocks; or <code>| Embed |</code> with URL</td>
+              <td><code>video</code>, <code>podcast</code></td>
+              <td>T9, T10, T12</td>
+            </tr>
+            <tr>
+              <td><b>Fragment</b></td>
+              <td><span class="tag bc">Block Collection</span></td>
+              <td>Auto-blocked</td>
+              <td>Link to <code>/fragments/*</code> doc auto-blocks; or <code>| Fragment | path |</code></td>
+              <td><code>app-promo</code>, <code>fdic-bug</code>, <code>cookie-consent</code>, <code>leaving-site</code>, <code>footer-disclosures</code>, <code>investment-disclosures</code>, <code>careers-promo</code></td>
+              <td>All templates</td>
+            </tr>
+            <tr>
+              <td><b>Header</b></td>
+              <td><span class="tag bc">Block Collection</span></td>
+              <td>Auto-blocked</td>
+              <td>Authored at <code>/nav</code> (Default), <code>/biz/nav</code>, <code>/cib/nav</code>, <code>/investing-wealth/nav</code></td>
+              <td><b>4 variants per D3:</b> <code>default</code>, <code>biz</code>, <code>cib</code>, <code>wealth</code></td>
+              <td>All templates (selected by page metadata)</td>
+            </tr>
+            <tr>
+              <td><b>Footer</b></td>
+              <td><span class="tag bc">Block Collection</span></td>
+              <td>Auto-blocked</td>
+              <td>Authored at <code>/footer</code>, <code>/biz/footer</code>, <code>/cib/footer</code>, <code>/investing-wealth/footer</code></td>
+              <td><b>4 variants per D3</b></td>
+              <td>All templates</td>
+            </tr>
+            <tr>
+              <td><b>Form</b></td>
+              <td><span class="tag bc">Block Collection</span></td>
+              <td>Configuration</td>
+              <td><code>| Form | sheet-url |</code></td>
+              <td>—</td>
+              <td>(none in Phase 1 — feedback widget is OOS per D13)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>3.2 Block Party (community reuse — preferred over custom per D2)</h3>
+      <div class="callout new">
+        <strong>v2 emphasis</strong>
+        Per <b>D2</b>, Block Party is now the second-preference tier. Anything in Block Party is chosen before writing a custom block. We will scan <a><code>aem.live/developer/block-party</code></a> for matches during Step 6 (Design Phase 2) and shift anything currently in §3.3 (Custom) into this tier when a match is found.
+      </div>
+      <div class="table-wrap">
+        <table data-filterable>
+          <thead>
+            <tr>
+              <th>Block</th><th>Source</th><th>Content Model</th><th>DA Table Structure</th><th>Variations</th><th>Used in</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>Breadcrumb</b></td>
+              <td><span class="tag bp">Block Party</span></td>
+              <td>Auto-blocked</td>
+              <td>Auto-generated from page path; suppressible via metadata</td>
+              <td>—</td>
+              <td>T3, T4, T5, T6, T7, T12</td>
+            </tr>
+            <tr>
+              <td><b>Callout / Alert</b></td>
+              <td><span class="tag bp">Block Party</span></td>
+              <td>Standalone</td>
+              <td><code>| Callout |</code><br>row 1: icon · row 2: heading · row 3: body + link</td>
+              <td><code>alert</code>, <code>info</code>, <code>warn</code></td>
+              <td>T3, T7</td>
+            </tr>
+            <tr>
+              <td><b>Modal / Interstitial</b></td>
+              <td><span class="tag bp">Block Party</span></td>
+              <td>Auto-blocked (per-link)</td>
+              <td>External link with <code>data-modal</code>; modal body in fragment</td>
+              <td><code>leaving-site</code>, <code>footnote</code>, <code>spanish-not-available</code></td>
+              <td>All templates</td>
+            </tr>
+            <tr>
+              <td><b>Cookie Consent</b> <span class="tag default" style="margin-left:6px">v2 added</span></td>
+              <td><span class="tag bp">Block Party</span></td>
+              <td>Auto-blocked (site-wide)</td>
+              <td>Configured via <code>/fragments/cookie-consent</code> mirroring live-site config per <b>D12</b></td>
+              <td>—</td>
+              <td>All templates</td>
+            </tr>
+            <tr>
+              <td><b>Search</b> <span class="tag default" style="margin-left:6px">v2 added</span></td>
+              <td><span class="tag bp">Block Party</span></td>
+              <td>Configuration</td>
+              <td><code>| Search | index-url |</code></td>
+              <td>—</td>
+              <td>T6 (in-help filter — if Block Party variant fits)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>3.3 Custom blocks (build new — only where no BC/BP fit)</h3>
+      <div class="callout note">
+        <strong>Reduced scope in v2</strong>
+        Several v1 custom blocks have been merged or reclassified: Compare Table → kept as a custom block (no BC equivalent rich enough);
+        Feature Belt → folded into <b>Cards · icon-belt</b> variant; Side Lockup → folded into <b>Columns · image-text</b>; Fee Table →
+        styled variant of <b>Table</b>; Tabs · Product Finder → variant of <b>Tabs</b>. EMA's product-comparison and product-card stay as
+        custom because their content model is genuinely richer than Cards. <b>resource-links</b> and <b>contact-info</b> adopted from EMA.
+      </div>
+      <div class="table-wrap">
+        <table data-filterable>
+          <thead>
+            <tr>
+              <th>Block</th><th>Source</th><th>Content Model</th><th>DA Table Structure</th><th>Variations</th><th>Used in</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>Sign-On Tile</b></td>
+              <td><span class="tag custom">Custom</span></td>
+              <td>Configuration</td>
+              <td><code>| Sign-On Tile |</code><br>rows: title | enroll-link | passkey-link | forgot-link | legal-link. Login form is link-out.</td>
+              <td><code>cons</code>, <code>biz</code>, <code>vantage</code> (CIB)</td>
+              <td>T1, T9</td>
+            </tr>
+            <tr>
+              <td><b>product-comparison</b></td>
+              <td><span class="tag custom">Custom</span></td>
+              <td>Collection</td>
+              <td><code>| product-comparison |</code><br>row 1: product columns (one per col)<br>rows 2-N: attribute label | values per product. Responsive collapse on mobile.</td>
+              <td><code>checking</code>, <code>savings</code>, <code>cards</code></td>
+              <td>T2, T8b</td>
+            </tr>
+            <tr>
+              <td><b>product-card</b></td>
+              <td><span class="tag custom">Custom</span></td>
+              <td>Collection</td>
+              <td><code>| product-card |</code><br>row 1: block name. Each row = one product: col 1 = name; col 2 = label/value pairs + CTA links.</td>
+              <td><code>compact</code>, <code>detailed</code></td>
+              <td>T2, T3</td>
+            </tr>
+            <tr>
+              <td><b>Rates Table</b></td>
+              <td><span class="tag custom">Custom</span></td>
+              <td>Configuration</td>
+              <td><code>| Rates Table | sheet-path |</code> · reads DA-hosted sheet per <b>D8</b></td>
+              <td><code>cd</code>, <code>savings</code>, <code>mortgage</code></td>
+              <td>T1 (snippet), T12</td>
+            </tr>
+            <tr>
+              <td><b>App Promo</b></td>
+              <td><span class="tag custom">Custom</span> <i>(or Fragment-driven)</i></td>
+              <td>Standalone</td>
+              <td><code>| App Promo |</code><br>rows: image | heading + body + bullet list | App Store link | Google Play link</td>
+              <td><code>compact</code>, <code>side-by-side</code></td>
+              <td>T1, T3, T4, T8a</td>
+            </tr>
+            <tr>
+              <td><b>help-cta</b></td>
+              <td><span class="tag custom">Custom</span> <i>(authored as fragment)</i></td>
+              <td>Standalone (Fragment-driven)</td>
+              <td><code>| help-cta |</code><br>row 1: heading. row 2+: icon + label + link triplets ("Call us", "Find a location", "Make an appointment", "Quick help")</td>
+              <td><code>default</code>, <code>product</code>, <code>biz</code></td>
+              <td>T1, T2, T3, T4, T5, T6</td>
+            </tr>
+            <tr>
+              <td><b>Deal Card</b></td>
+              <td><span class="tag custom">Custom</span></td>
+              <td>Collection</td>
+              <td><code>| Deal Card |</code><br>row: image | category | client | headline | amount | role | date | CTA</td>
+              <td>—</td>
+              <td>T9, T10</td>
+            </tr>
+            <tr>
+              <td><b>Disclaimers</b> <i>(was "Footnotes" in v1)</i></td>
+              <td><span class="tag custom">Custom</span></td>
+              <td>Auto-blocked from heading "Footnotes" / "Disclaimers"</td>
+              <td>Each row: col 1 = footnote number, col 2 = disclaimer rich-text with links. References <code>[1]</code> in body become superscripts.</td>
+              <td>—</td>
+              <td>T1–T14 (every template)</td>
+            </tr>
+            <tr>
+              <td><b>resource-links</b> <span class="tag default" style="margin-left:6px">v2 added</span></td>
+              <td><span class="tag custom">Custom</span></td>
+              <td>Collection</td>
+              <td>Each row: col 1 = category heading. col 2 = link list. Multi-column grid.</td>
+              <td><code>3-col</code>, <code>4-col</code></td>
+              <td>T2, T4, T6, T8a, T12</td>
+            </tr>
+            <tr>
+              <td><b>contact-info</b> <span class="tag default" style="margin-left:6px">v2 added</span></td>
+              <td><span class="tag custom">Custom</span></td>
+              <td>Collection</td>
+              <td>Row 1: heading. Row 2+: dept name | phone | hours</td>
+              <td>—</td>
+              <td>T6, T12, T13</td>
+            </tr>
+            <tr>
+              <td><b>Help Sidebar ("How do I…")</b></td>
+              <td><span class="tag custom">Custom</span> <i>(authored as fragment)</i></td>
+              <td>Collection (Fragment)</td>
+              <td><code>| Help Sidebar |</code><br>row 1: heading · rows 2-N: link</td>
+              <td>—</td>
+              <td>T5</td>
+            </tr>
+            <tr>
+              <td><b>Section Theme</b> <span class="tag default" style="margin-left:6px">configuration, not a block</span></td>
+              <td><span class="tag custom">Custom</span></td>
+              <td>Configuration</td>
+              <td>Section/page metadata <code>theme: wealth</code> swaps CSS variables per <b>D1</b>. Scoped to <code>/investing-wealth/</code> only.</td>
+              <td><code>default</code>, <code>wealth</code></td>
+              <td>T11</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>3.4 Default content (no block — per David's Model)</h3>
+      <p>
+        Authored as plain content (markdown/Word) without wrapping in a block:
+        page title, breadcrumb trail (auto-blocked), body prose, headings, lists, inline links, images with captions,
+        long-form FAQ <i>headings</i> (the accordion <i>structure</i> is a block, but headings/bodies stay semantic),
+        and footnote bodies inside the Disclaimers block.
+      </p>
+    </div>
+  </section>
+
+  <!-- =========================================================== -->
+  <!-- 4. DESIGN TOKENS                                              -->
+  <!-- =========================================================== -->
+  <section id="sec-4" class="open">
+    <div class="section-head" data-toggle><h2>4. Design Tokens</h2><span class="chev">▶</span></div>
+    <div class="section-body">
+      <div class="callout new">
+        <strong>v2 — confirmed hexes adopted from EMA</strong>
+        All hex values now come from the live CSS (<code>.ps-body-wrapper</code> et al.) rather than approximation.
+        Max content width is locked at <b>1400px</b>. Body type at <b>17px</b>, H1 at <b>34px</b>, button radius <b>24px (pill)</b>.
+      </div>
+
+      <h3>4.1 Color — Default theme (confirmed hexes)</h3>
+      <div class="swatches">
+        <div class="swatch"><div class="chip" style="background:#D71E28">WF Red</div><div class="meta"><b>--wf-red</b><small>#D71E28</small></div></div>
+        <div class="swatch"><div class="chip" style="background:#FCC60A;color:#3B3331;text-shadow:none">WF Yellow</div><div class="meta"><b>--wf-yellow</b><small>#FCC60A</small></div></div>
+        <div class="swatch"><div class="chip" style="background:#141414">WF Dark</div><div class="meta"><b>--wf-dark</b><small>#141414</small></div></div>
+        <div class="swatch"><div class="chip" style="background:#3B3331">Body text</div><div class="meta"><b>--wf-text-primary</b><small>#3B3331</small></div></div>
+        <div class="swatch"><div class="chip" style="background:#787070">Muted text</div><div class="meta"><b>--wf-text-secondary</b><small>#787070</small></div></div>
+        <div class="swatch"><div class="chip" style="background:#5A469B">Link</div><div class="meta"><b>--wf-link</b><small>#5A469B</small></div></div>
+        <div class="swatch"><div class="chip" style="background:#6048AD">Link hover</div><div class="meta"><b>--wf-link-hover</b><small>#6048AD</small></div></div>
+        <div class="swatch"><div class="chip" style="background:#F4F0ED;color:#3B3331;text-shadow:none">Warm bg</div><div class="meta"><b>--wf-bg-warm</b><small>#F4F0ED</small></div></div>
+        <div class="swatch"><div class="chip" style="background:#F9F7F6;color:#3B3331;text-shadow:none">Light bg</div><div class="meta"><b>--wf-bg-light</b><small>#F9F7F6</small></div></div>
+        <div class="swatch"><div class="chip" style="background:#E2DEDE;color:#3B3331;text-shadow:none">Gray bg</div><div class="meta"><b>--wf-bg-gray</b><small>#E2DEDE</small></div></div>
+        <div class="swatch"><div class="chip" style="background:#468254">Success</div><div class="meta"><b>--wf-green</b><small>#468254</small></div></div>
+        <div class="swatch"><div class="chip" style="background:#FFF7E2;color:#3B3331;text-shadow:none">Cream</div><div class="meta"><b>--wf-cream</b><small>#FFF7E2</small></div></div>
+      </div>
+
+      <h3>4.2 Color — Wealth theme (Investing &amp; Wealth only, per D1)</h3>
+      <p>
+        Applied <i>only</i> on <code>/investing-wealth/</code> (and any future sub-pages under it). All other LOBs — Personal, Premier,
+        Biz, CIB, Commercial — use the Default palette per user clarification.
+      </p>
+      <div class="swatches">
+        <div class="swatch"><div class="chip" style="background:#0c2340">Wealth navy</div><div class="meta"><b>--wf-wealth-primary</b><small>#0C2340</small></div></div>
+        <div class="swatch"><div class="chip" style="background:#b89060">Wealth gold</div><div class="meta"><b>--wf-wealth-accent</b><small>#B89060</small></div></div>
+        <div class="swatch"><div class="chip" style="background:#8b6f3f">Gold deep</div><div class="meta"><b>--wf-wealth-accent-deep</b><small>#8B6F3F</small></div></div>
+        <div class="swatch"><div class="chip" style="background:#f5efe6;color:#3B3331;text-shadow:none">Cream canvas</div><div class="meta"><b>--wf-wealth-bg</b><small>#F5EFE6</small></div></div>
+        <div class="swatch"><div class="chip" style="background:#1c2533">Wealth text</div><div class="meta"><b>--wf-wealth-text</b><small>#1C2533</small></div></div>
+      </div>
+      <div class="callout info">
+        <strong>Wealth palette will be re-confirmed in Step 5</strong>
+        The Wealth hexes above are interim approximations based on the visible <code>/investing-wealth/</code> design. They will be re-sampled from the actual live CSS in Step 5 (Design Phase 1) and locked. The Default palette hexes are already confirmed.
+      </div>
+
+      <h3>4.3 Typography (confirmed)</h3>
+      <ul>
+        <li><b>Primary font</b>: <code>"Wells Fargo Sans"</code> — downloaded from live site, self-hosted under <code>/fonts/</code> per <b>D6</b>.</li>
+        <li><b>Serif (Wealth display, if licensed)</b>: <code>"Wells Fargo Serif"</code> — same self-host strategy.</li>
+        <li><b>Fallback</b>: <code>Arial, Helvetica, sans-serif</code> (browser fallback only).</li>
+        <li><b>Loading</b>: <code>font-display: swap</code> with system stack as immediate fallback while font streams.</li>
+      </ul>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Token</th><th>Size</th><th>Line-height</th><th>Weight</th><th>Use</th></tr></thead>
+          <tbody>
+            <tr><td><code>--fs-h1</code></td><td>34px</td><td>1.25</td><td>400</td><td>Page title</td></tr>
+            <tr><td><code>--fs-h2</code></td><td>28px</td><td>1.25</td><td>400</td><td>Section heading</td></tr>
+            <tr><td><code>--fs-h3</code></td><td>22px</td><td>1.3</td><td>400–600</td><td>Sub-section</td></tr>
+            <tr><td><code>--fs-h4</code></td><td>18px</td><td>1.35</td><td>600</td><td>Card titles</td></tr>
+            <tr><td><code>--fs-body</code></td><td>17px</td><td>1.5</td><td>400</td><td>Body copy</td></tr>
+            <tr><td><code>--fs-small</code></td><td>14px</td><td>1.45</td><td>400</td><td>Captions, footnotes</td></tr>
+            <tr><td><code>--fs-micro</code></td><td>12px</td><td>1.4</td><td>500</td><td>Disclosures, legal</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>4.4 Spacing &amp; layout (confirmed)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Token</th><th>Value</th><th>Source</th></tr></thead>
+          <tbody>
+            <tr><td><b>Max content width</b></td><td><b>1400px</b></td><td>Confirmed from <code>.ps-body-wrapper</code></td></tr>
+            <tr><td>Content margin</td><td>0 auto (centered)</td><td>—</td></tr>
+            <tr><td>Section vertical padding</td><td>40–60px</td><td>Live site</td></tr>
+            <tr><td>Card gap</td><td>24–32px</td><td>Live site</td></tr>
+            <tr><td>Border radius — buttons</td><td>24px (pill)</td><td>Confirmed</td></tr>
+            <tr><td>Border radius — cards</td><td>8–12px</td><td>Live site</td></tr>
+            <tr><td>Nav height</td><td>~64px</td><td>Live site</td></tr>
+            <tr><td>Focus ring</td><td>2px solid <code>--wf-red</code> with 1px offset</td><td>Accessibility</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>4.5 Section-metadata styles</h3>
+      <p>Reusable section-level style hooks (separate from the Wealth theme, which is a full palette swap):</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Style</th><th>Background</th><th>Text</th><th>Use</th></tr></thead>
+          <tbody>
+            <tr><td><code>warm</code></td><td>--wf-bg-warm (#F4F0ED)</td><td>--wf-text-primary</td><td>Warm-toned content sections</td></tr>
+            <tr><td><code>dark</code></td><td>--wf-dark (#141414)</td><td>#FFFFFF</td><td>Dark hero/promo, dark footer</td></tr>
+            <tr><td><code>highlight</code></td><td>--wf-bg-light (#F9F7F6)</td><td>--wf-text-primary</td><td>Subtle emphasis sections</td></tr>
+            <tr><td><code>cream</code></td><td>--wf-cream (#FFF7E2)</td><td>--wf-text-primary</td><td>Yellow-tinted promo</td></tr>
+            <tr><td><code>wealth</code></td><td>--wf-wealth-bg (#F5EFE6)</td><td>--wf-wealth-text + Wealth palette swap</td><td>Full palette swap for Wealth pages (T11)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================== -->
+  <!-- 5. NAVIGATION PLAN                                            -->
+  <!-- =========================================================== -->
+  <section id="sec-5" class="open">
+    <div class="section-head" data-toggle><h2>5. Navigation Plan</h2><span class="chev">▶</span></div>
+    <div class="section-body">
+      <div class="callout new">
+        <strong>v2 — 4 header/footer variants per D3</strong>
+        Confirmed by user: live site has different header &amp; footer per LOB. Each variant authored at its own DA path and selected by page metadata <code>nav</code> and <code>footer</code>.
+      </div>
+
+      <h3>5.1 Header / Footer variants</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Variant</th><th>Header path</th><th>Footer path</th><th>Used by</th><th>Distinguishing traits</th></tr></thead>
+          <tbody>
+            <tr><td><b>Default</b></td><td><code>/nav</code></td><td><code>/footer</code></td><td>T1, T2, T3, T4, T5, T6, T7, T12, T13, T14</td><td>Consumer mega-menu; Sign On (LOB=CONS); 6-audience switcher; Español link</td></tr>
+            <tr><td><b>Biz</b></td><td><code>/biz/nav</code></td><td><code>/biz/footer</code></td><td>T8a, T8b</td><td>Business mega-menu; Sign On (LOB=BIZ); contact-an-RM CTA</td></tr>
+            <tr><td><b>CIB / Institutional</b></td><td><code>/cib/nav</code></td><td><code>/cib/footer</code></td><td>T9, T10</td><td>Institutional mega-menu; <b>Wells Fargo Vantage</b> sign-on; no consumer CTAs; deeper insights/deals/careers links</td></tr>
+            <tr><td><b>Wealth</b></td><td><code>/investing-wealth/nav</code></td><td><code>/investing-wealth/footer</code></td><td>T11</td><td>Wealth-themed mega-menu; advisor disclosures in footer; investment-products risk callout</td></tr>
+            <tr><td><b>Default ES</b></td><td><code>/es/nav</code></td><td><code>/es/footer</code></td><td>Spanish home only (per D4)</td><td>Spanish strings; same IA as Default</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>5.2 Page-metadata pattern</h3>
+      <p>Each page declares its variant in metadata. Example:</p>
+      <pre style="background:var(--code-bg);padding:10px;border-radius:4px;font-size:12px;overflow:auto;line-height:1.5;"><code>nav: /cib/nav
+footer: /cib/footer
+theme: default          (or theme: wealth for T11)
+locale: en</code></pre>
+
+      <h3>5.3 DA folder structure (single project, per D16)</h3>
+      <ul>
+        <li><code>/</code> — homepage</li>
+        <li><code>/checking/</code>, <code>/savings-cds/</code>, <code>/auto-loans/</code>, <code>/personal-loans/</code>, <code>/mortgage/</code>, <code>/credit-cards/</code>, <code>/debit-card/</code>, <code>/rewards/</code>, <code>/premier/</code>, <code>/atm/</code> — consumer LOBs</li>
+        <li><code>/biz/</code>, <code>/com/</code>, <code>/cib/</code>, <code>/investing-wealth/</code>, <code>/about/</code> — other audiences</li>
+        <li><code>/financial-education/</code>, <code>/financial-goals/</code>, <code>/financial-health/</code>, <code>/financial-assistance/</code>, <code>/goals-credit/</code>, <code>/goals-investing/</code>, <code>/goals-banking-made-easy/</code> — education</li>
+        <li><code>/help/</code>, <code>/privacy-security/</code>, <code>/tax-center/</code>, <code>/foreign-exchange/</code>, <code>/international-remittances/</code>, <code>/online-banking/</code>, <code>/mobile-online-banking/</code></li>
+        <li><code>/es/</code> — Spanish home only in Phase 1 (per D4)</li>
+        <li><code>/fragments/</code> — reusable fragments (app-promo, cookie-consent, disclosures, modals, FDIC bug, leaving-site, careers-promo, help-cta variants)</li>
+        <li><code>/nav</code>, <code>/footer</code>, <code>/biz/nav</code>, <code>/biz/footer</code>, <code>/cib/nav</code>, <code>/cib/footer</code>, <code>/investing-wealth/nav</code>, <code>/investing-wealth/footer</code>, <code>/es/nav</code>, <code>/es/footer</code> — site chrome</li>
+        <li><code>/configs/</code> — <code>placeholders.json</code>, <code>theme-map.json</code>, <code>rates/*</code> sheets (per D8)</li>
+        <li><code>/assets/</code> — migrated images (per D7)</li>
+      </ul>
+
+      <h3>5.4 Cross-links &amp; external domains (per D15)</h3>
+      <ul>
+        <li>External-domain links (<code>creditcards.wellsfargo.com</code>, <code>connect.secure.wellsfargo.com</code>, <code>appointments.wellsfargo.com</code>, <code>stories.wf.com</code>, <code>oam.wellsfargo.com</code>, <code>wellsoffice.ceo.wellsfargo.com</code>, <code>entertainment.wf.com</code>) trigger the <b>leaving-site Modal</b> (Block Party).</li>
+        <li><code>www17.wellsfargomedia.com</code>: no longer referenced — all images migrated to DA per <b>D7</b>.</li>
+        <li>Calculator/tool links (Phase 1) point to live URLs and route through the leaving-site modal (per <b>D9</b>).</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- =========================================================== -->
+  <!-- 6. BULK IMPORT STRATEGY                                       -->
+  <!-- =========================================================== -->
+  <section id="sec-6" class="open">
+    <div class="section-head" data-toggle><h2>6. Bulk Import Strategy</h2><span class="chev">▶</span></div>
+    <div class="section-body">
+      <p>
+        Four phases, with explicit acceptance criteria per gate. Per-template Gate-2 validation batches (Claude depth)
+        combined with cross-template priority order (EMA strength).
+      </p>
+
+      <h3>6.1 Phased approach</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Phase</th><th>Action</th><th>Pages</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><b>Phase 1</b></td><td>Import 1 representative URL per template</td><td>14</td><td>Validate parser + transformer per template</td></tr>
+            <tr><td><b>Phase 2</b></td><td>Import 5–10 additional pages per template</td><td>~70–140</td><td>Edge cases, block variants, design fidelity</td></tr>
+            <tr><td><b>Phase 3</b></td><td>Bulk import all remaining EN pages (waves)</td><td>~1,066</td><td>Complete English content; image migration runs concurrently per D7</td></tr>
+            <tr><td><b>Phase 4</b></td><td>Import Spanish home page only (per D4)</td><td>1</td><td>Validate /es/ pattern for future Spanish phases</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>6.2 Template priority order (cross-template sequencing, EMA-style)</h3>
+      <ol>
+        <li><b>T1 Homepage</b> — flagship; validates most block types + fragment pattern</li>
+        <li><b>T2 Product Landing</b> — highest block complexity (product-comparison, product-card, app-download)</li>
+        <li><b>T3 Product Detail</b> — high page count, reuses T2 blocks</li>
+        <li><b>T6 Help/FAQ</b> — validates tabs, accordion, contact-info, search</li>
+        <li><b>T13 Leadership Bio</b> — validates bio columns layout</li>
+        <li><b>T8a + T8b Business</b> — high volume (~100 pages), needs Biz header/footer</li>
+        <li><b>T9 + T10 CIB / Commercial</b> — Vantage sign-on, Deal Card, video embed</li>
+        <li><b>T11 Wealth</b> — validates Wealth theme palette swap</li>
+        <li><b>T14 About Landing</b> — promo-banner fragments, info cards</li>
+        <li><b>T4 L2 Category Hub</b> — value-prop trios, education links</li>
+        <li><b>T5 Education Article</b> — high page count, mostly default content</li>
+        <li><b>T7 Security/Fraud</b> — alert callout, tabbed scams, modal preservation</li>
+        <li><b>T12 Privacy/Legal/Utility</b> — text-heavy, simplest structure</li>
+        <li><b>+ Spanish home</b> — final validation of /es/ pattern</li>
+      </ol>
+
+      <h3>6.3 Per-template Gate-2 batch lists (Claude depth)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Template</th><th>Gate 1 (rep URL)</th><th>Gate 2 (5–10 pages)</th></tr></thead>
+          <tbody>
+            <tr><td>T1</td><td><code>/</code></td><td>n/a (single page)</td></tr>
+            <tr><td>T2</td><td><code>/checking/</code></td><td>/biz/checking/, /savings-cds/, /credit-cards/, /auto-loans/, /mortgage/</td></tr>
+            <tr><td>T3</td><td><code>/checking/everyday/</code></td><td>/checking/premier/, /checking/clear-access-banking/, /checking/prime/, /savings-cds/way2save/, /savings-cds/platinum/, /savings-cds/certificate-of-deposit/</td></tr>
+            <tr><td>T6</td><td><code>/help/checking-savings/</code></td><td>/help/credit-cards/, /help/mobile-features/, /help/security-and-fraud/, plus 3 deep articles</td></tr>
+            <tr><td>T13</td><td><code>/about/corporate/governance/scharf/</code></td><td>5–7 additional bios under /about/corporate/governance/</td></tr>
+            <tr><td>T8a/T8b</td><td><code>/biz/</code></td><td>/biz/checking/, /biz/merchant/, /biz/online-banking/, plus 5 sub-pages</td></tr>
+            <tr><td>T9/T10</td><td><code>/cib/</code></td><td>/cib/global-markets/, /cib/investment-banking/, /cib/insights/, plus 5 article/deal pages</td></tr>
+            <tr><td>T11</td><td><code>/investing-wealth/</code></td><td>5–7 deeper investing/wealth pages</td></tr>
+            <tr><td>T14</td><td><code>/about/</code></td><td>/about/inclusion/, /about/investor-relations/, /about/responsibility-and-impact/</td></tr>
+            <tr><td>T4</td><td><code>/auto-loans/</code></td><td>/mortgage/buying-a-house/, /financial-goals/save/, /rewards/, /personal-loans/</td></tr>
+            <tr><td>T5</td><td><code>/goals-credit/smarter-credit/credit-101/</code></td><td>5–7 financial-education articles</td></tr>
+            <tr><td>T7</td><td><code>/privacy-security/fraud/bank-scams/</code></td><td>/privacy-security/fraud/, /privacy-security/fraud/report/, plus 5 articles</td></tr>
+            <tr><td>T12</td><td><code>/atm/</code></td><td>/foreign-exchange/, /international-remittances/mexico/, /tax-center/</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>6.4 Acceptance criteria (each gate)</h3>
+      <ul>
+        <li>Visual diff against live site: hero, primary content, CTAs match brand intent (not pixel-for-pixel).</li>
+        <li>All links resolved or marked as external with the leaving-site modal triggered.</li>
+        <li>Placeholder-driven values render from <code>placeholders.json</code> (phone numbers, sign-on URLs, app store links, FDIC strings).</li>
+        <li>Correct <code>nav</code> / <code>footer</code> variant rendering per page metadata (per <b>D3</b>).</li>
+        <li>Wealth theme correctly applied on T11 pages only (per <b>D1</b>).</li>
+        <li>Images served from DA (no <code>www17.wellsfargomedia.com</code> references, per <b>D7</b>).</li>
+        <li>Lighthouse mobile ≥ 90 perf, ≥ 95 a11y, ≥ 95 SEO on the representative page.</li>
+        <li>No broken nav, no broken breadcrumb, no missing fragment.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- =========================================================== -->
+  <!-- 7. OUT OF SCOPE                                               -->
+  <!-- =========================================================== -->
+  <section id="sec-7" class="open">
+    <div class="section-head" data-toggle><h2>7. Out-of-Scope</h2><span class="chev">▶</span></div>
+    <div class="section-body">
+      <ul>
+        <li><b>Authenticated experiences</b> — sign-on, account dashboard, applications, enrollment, transfer/pay flows, MFA. <code>connect.secure.wellsfargo.com</code>, <code>oam.wellsfargo.com</code>, <code>web.secure.wellsfargo.com</code> remain external.</li>
+        <li><b>Commerce / apply flows</b> — credit-card application (<code>creditcards.wellsfargo.com</code>), account-offers, product-apply.</li>
+        <li><b>Site-wide search</b> — Phase 1 keeps existing search infra; per-help in-page filter may use a Block Party search variant.</li>
+        <li><b>Calculators &amp; interactive tools</b> (per <b>D9</b>) — debt-consolidation, mortgage, product-selector quiz, personal-loan calculator, cost-estimator (FX remittance). Phase 1 stubs link to live URLs.</li>
+        <li><b>Locator / Appointments</b> — <code>/locator/</code>, <code>appointments.wellsfargo.com</code> remain external.</li>
+        <li><b>Analytics &amp; MarTech</b> (per <b>D11</b>) — no Adobe Launch, Target, Audience Manager wiring in Phase 1.</li>
+        <li><b>"How was your experience?" feedback widget</b> (per <b>D13</b>) — out of Phase 1.</li>
+        <li><b>MSM / live copy</b> — no AEM Multi-Site Manager translation, rollouts, or LiveCopy. Spanish home is an authored copy, not synced.</li>
+        <li><b>Spanish content beyond home page</b> (per <b>D4</b>) — deferred to a later phase.</li>
+        <li><b>Custom server-side logic</b> — geo-IP rate decisions, server-side segmented A/B rendering.</li>
+        <li><b>Pixel-perfect parity</b> — design faithful to brand, IA, and tokens; not reproducing legacy CSS class-for-class.</li>
+        <li><b>Email / push / SMS templates.</b></li>
+        <li><b>External-domain content</b> (per <b>D15</b>) — <code>stories.wf.com</code>, <code>entertainment.wf.com</code>, <code>creditcards.wellsfargo.com</code>, <code>www17.wellsfargomedia.com</code> (after image migration). Links preserved; content not authored.</li>
+        <li><b>PDFs and downloadable assets</b> — links preserved; PDFs themselves remain at current asset URLs.</li>
+        <li><b>Test/dev pages</b> (~6 pages) — excluded.</li>
+        <li><b>Internal CMS fragments</b> (<code>_navlinks</code>, <code>_reusable</code>; ~6 pages) — not public content, excluded.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- =========================================================== -->
+  <!-- 8. SEQUENCED WORKLIST                                         -->
+  <!-- =========================================================== -->
+  <section id="sec-8" class="open">
+    <div class="section-head" data-toggle><h2>8. Sequenced Worklist</h2><span class="chev">▶</span></div>
+    <div class="section-body">
+      <div class="callout note">
+        <strong>Total estimated effort: ~28 days</strong>
+        EMA's 23-day estimate padded by 30% to absorb the Wealth-theme work (D1), the four-variant header/footer build (D3), the image migration to DA (D7), and the Block Party tier scan (D2).
+      </div>
+      <ol class="worklist">
+        <li>
+          <b>Repo &amp; project bootstrap <span class="effort">1d</span></b>
+          DA project set up against EDS boilerplate; folders created (<code>/fragments</code>, <code>/configs</code>, <code>/nav</code>, <code>/footer</code>, <code>/assets</code>, <code>/es</code>); Sidekick installed; baseline <code>styles.css</code> committed; AEM Code Sync wired. <b>Re-baseline page count against the live sitemap.</b>
+          <span class="dep">none</span>
+        </li>
+        <li>
+          <b>Single-page migration — T1 Homepage <span class="effort">1d</span></b>
+          Hand-author <code>/</code> as the pilot. Block Collection + Fragment + Default content only. Custom-block placeholders where needed. Images downloaded to <code>/assets/</code> per <b>D7</b>.
+          <span class="dep">step 1</span>
+        </li>
+        <li>
+          <b>Single-page migration — T2, T3, T6, T13 pilots <span class="effort">3d</span></b>
+          One representative URL each for T2 (Product Landing), T3 (Product Detail), T6 (Help/FAQ), T13 (Bio). These four cover the widest block-shape variety.
+          <span class="dep">step 1</span>
+        </li>
+        <li>
+          <b>Design Phase 1 — Tokens, type, color (Default palette) <span class="effort">2d</span></b>
+          Implement <code>styles.css</code> with confirmed Default-palette hexes, max-width 1400px, 17px body / 34px H1, pill buttons (24px radius), self-hosted Wells Fargo Sans (per <b>D6</b>), self-hosted Wells Fargo Serif if licensed, focus ring. Print stylesheet baseline.
+          <span class="dep">steps 2–3</span>
+        </li>
+        <li>
+          <b>Design Phase 1 — Wealth palette sampling &amp; tokens <span class="effort">1d</span></b>
+          Sample <code>/investing-wealth/</code> live CSS for the Wealth palette. Implement the <code>theme: wealth</code> section/page metadata swap per <b>D1</b>. Pilot on the T11 representative page.
+          <span class="dep">step 4</span>
+        </li>
+        <li>
+          <b>Navigation — 4 header variants + 4 footer variants <span class="effort">2d</span></b>
+          Author <code>/nav</code>, <code>/biz/nav</code>, <code>/cib/nav</code>, <code>/investing-wealth/nav</code> and their footer counterparts (per <b>D3</b>). Wire page-metadata selection. Leaving-site Modal block from Block Party (per <b>D2</b>). External-domain link decoration.
+          <span class="dep">step 4</span>
+        </li>
+        <li>
+          <b>Design Phase 2 — Block styles &amp; fragments <span class="effort">4d</span></b>
+          CSS for Block Collection adoptions (Hero, Cards, Columns, Accordion, Tabs, Table, Carousel, Quote, Embed). Custom-block builds (product-comparison, product-card, App Promo, help-cta, Deal Card, Disclaimers, resource-links, contact-info, Sign-On Tile, Rates Table). Author shared fragments (cookie-consent per <b>D12</b>, leaving-site, app-promo, FDIC bug, careers-promo, investment-disclosures, footer-disclosures, help-cta variants).
+          <span class="dep">step 5</span>
+        </li>
+        <li>
+          <b>Block Party scan &amp; integration <span class="effort">1d</span></b>
+          Per <b>D2</b>: walk through the Block Party catalog, identify any community block that could replace a custom block planned in step 7, and swap. Anything matching ≥70% similarity to a custom block becomes a Block Party adoption + variation.
+          <span class="dep">step 7</span>
+        </li>
+        <li>
+          <b>Block critique <span class="effort">1.5d</span></b>
+          Internal review of every block (BC + BP + custom) against the live site. Anything ≥70% similar to an existing block gets folded as a class variant. Re-author pilots that lose a block in this pass.
+          <span class="dep">step 8</span>
+        </li>
+        <li>
+          <b>Image migration tooling <span class="effort">1d</span></b>
+          Per <b>D7</b>: script to enumerate all <code>www17.wellsfargomedia.com</code> references across the sitemap, download originals, place under <code>/assets/</code> in DA, and emit a URL-rewrite map for the bulk importer.
+          <span class="dep">step 1</span>
+        </li>
+        <li>
+          <b>Bulk import — Gate 1 (one representative per template) <span class="effort">1.5d</span></b>
+          Import 1 page per template (T1 done; T4, T5, T7, T8a, T8b, T9, T10, T11, T12, T14, plus Spanish home). Visual + a11y check against live.
+          <span class="dep">steps 6–10</span>
+        </li>
+        <li>
+          <b>Bulk import validation — Gate 2 (~70–140 pages) <span class="effort">2d</span></b>
+          Run the per-template Gate-2 batch lists from §6.3. Compare side-by-side with live. Fix block CSS/structure issues at this gate.
+          <span class="dep">step 11</span>
+        </li>
+        <li>
+          <b>Page critique <span class="effort">1d</span></b>
+          Cross-template walk-through with user: sample 15 pages across all templates, confirm acceptance criteria, lock the spec for Phase 3.
+          <span class="dep">step 12</span>
+        </li>
+        <li>
+          <b>Full bulk import — EN (waves) <span class="effort">3d</span></b>
+          Scale to full template counts in waves. T5 + T10 staged in 40-page waves; T3 + T8b in 30-page waves; smaller templates in single waves. Daily sanity check on 20 random imports; broken-link sweep at end of each wave.
+          <span class="dep">step 13</span>
+        </li>
+        <li>
+          <b>Image migration execution <span class="effort">1d</span></b>
+          Run the script from step 10 across all imported pages; rewrite <code>www17</code> URLs; verify no external image refs remain (per <b>D7</b>).
+          <span class="dep">steps 10, 14</span>
+        </li>
+        <li>
+          <b>Spanish home page <span class="effort">0.5d</span></b>
+          Author <code>/es/</code> per <b>D4</b>. Spanish nav at <code>/es/nav</code> with English fallback for not-yet-translated links.
+          <span class="dep">step 14</span>
+        </li>
+        <li>
+          <b>QA pass <span class="effort">1d</span></b>
+          Spot-check ~10% of pages across all templates. Lighthouse mobile checks. Disclosure-fragment diff against live. Image-migration completeness audit.
+          <span class="dep">steps 14–16</span>
+        </li>
+        <li>
+          <b>Project documentation <span class="effort">1d</span></b>
+          Block catalog (one page per block with table structure, classes, screenshots), authoring guide, fragment index, placeholder index, config index, theme guide, runbook for the bulk-importer, change-log, decision log (D1–D17).
+          <span class="dep">step 17</span>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- =========================================================== -->
+  <!-- 9. RISKS & MITIGATIONS                                        -->
+  <!-- =========================================================== -->
+  <section id="sec-9" class="open">
+    <div class="section-head" data-toggle><h2>9. Risks &amp; Mitigations</h2><span class="chev">▶</span></div>
+    <div class="section-body">
+      <div class="risk-grid">
+        <div class="risk-card">
+          <span class="sev high">High</span>
+          <h4>Legal / disclosure drift</h4>
+          <p>Banking disclosures (FDIC, NMLSR ID, footnote IDs like <code>PM-…</code>, <code>DT2-…</code>, <code>LRC-1224</code>) are tightly versioned and audited. Drift during bulk import = compliance risk.</p>
+          <div class="mit">Author every disclosure as a fragment with a single source of truth, dated. Pin the footnote IDs as content per <b>D10</b>. Final pre-publish diff against live for every page.</div>
+        </div>
+        <div class="risk-card">
+          <span class="sev high">High</span>
+          <h4>Image migration to DA at scale</h4>
+          <p>Per <b>D7</b>, all marketing images (thousands across <code>www17.wellsfargomedia.com</code>) must be re-hosted in DA. Risk of broken refs and large asset uploads.</p>
+          <div class="mit">Dedicated tooling step (worklist step 10) with enumeration → download → upload → URL-rewrite map. Verify zero external image refs at QA (step 17). Cap concurrency to avoid DA upload throttling.</div>
+        </div>
+        <div class="risk-card">
+          <span class="sev high">High</span>
+          <h4>product-comparison block complexity</h4>
+          <p>Dense 4-column interactive grid (checking comparison, savings comparison). Has to collapse responsively on mobile.</p>
+          <div class="mit">Purpose-built block with responsive table-to-stacked-card collapse below 768px. Validate in step 3 (T2 pilot). EMA risk R3 adopted.</div>
+        </div>
+        <div class="risk-card">
+          <span class="sev high">High</span>
+          <h4>Trademark / accessibility preservation</h4>
+          <p>Live site has many <code>®</code>, <code>™</code>, skip links, SR-only spans that bulk scrapers can drop.</p>
+          <div class="mit">Import preserves trademark glyphs verbatim; skip-link and SR-only spans re-added at the template level, not per page.</div>
+        </div>
+        <div class="risk-card">
+          <span class="sev med">Med</span>
+          <h4>Font licensing</h4>
+          <p>Wells Fargo Sans / Serif licensing may restrict self-hosting on a new EDS origin.</p>
+          <div class="mit">Per <b>D6</b>, fonts downloaded from live site and self-hosted. Confirm licensing legal review before step 4. Fallback: system stack already wired with <code>font-display: swap</code>.</div>
+        </div>
+        <div class="risk-card">
+          <span class="sev med">Med</span>
+          <h4>Calculator stubs going stale</h4>
+          <p>Phase 1 points tools to live URLs (per <b>D9</b>). If live URLs change before Phase 2, links break.</p>
+          <div class="mit">Route tool links through placeholders (<code>{{tool-url-personal-loan-calc}}</code>) so swapping is a one-line config change at Phase 2.</div>
+        </div>
+        <div class="risk-card">
+          <span class="sev med">Med</span>
+          <h4>"How can we help?" strip variants</h4>
+          <p>The strip varies by section (Call Us vs. Quick Help vs. Find a location).</p>
+          <div class="mit">Three named fragment variants: <code>help-cta-default</code>, <code>help-cta-product</code>, <code>help-cta-biz</code>. Page selects via metadata.</div>
+        </div>
+        <div class="risk-card">
+          <span class="sev med">Med</span>
+          <h4>Sitemap inflation / hidden URLs</h4>
+          <p>Real authorable HTML count may differ from EMA's 1,067 baseline by ±15%.</p>
+          <div class="mit">Step-1 pre-flight: parse the sitemap, drop non-200 / non-HTML / auth/external. Re-baseline before bulk.</div>
+        </div>
+        <div class="risk-card">
+          <span class="sev med">Med</span>
+          <h4>CSP / bot protection on import</h4>
+          <p>Live site has aggressive Content-Security-Policy and bot detection; bulk scraping may be throttled.</p>
+          <div class="mit">Monitor import failures. Headless browser fallback. Throttle requests to ~1/sec with retry/backoff. EMA risk R6 adopted.</div>
+        </div>
+        <div class="risk-card">
+          <span class="sev med">Med</span>
+          <h4>Fragment authoring workflow training</h4>
+          <p>Fragments are a new pattern for authors (cookie-consent, app-promo, help-cta variants, disclosures).</p>
+          <div class="mit">Document the fragment index in the authoring guide (step 18). Create example fragments in step 7. EMA risk R7 adopted.</div>
+        </div>
+        <div class="risk-card">
+          <span class="sev med">Med</span>
+          <h4>Footnote modal preservation</h4>
+          <p>Legacy footnotes use modal dialogs (~600 pages). Downgrading to anchor links loses UX.</p>
+          <div class="mit">Block Party Modal block preserves the modal pattern. Footnote refs in body become <code>data-modal</code> superscripts; bodies live in the Disclaimers block at page bottom.</div>
+        </div>
+        <div class="risk-card">
+          <span class="sev low">Low</span>
+          <h4>SEO regressions during import</h4>
+          <p>Bulk imports can drop canonical, OG fields, structured data.</p>
+          <div class="mit">Preserve metadata block on every imported page; pre-publish metadata diff against live. Lighthouse SEO ≥ 95 gate per wave.</div>
+        </div>
+        <div class="risk-card">
+          <span class="sev low">Low</span>
+          <h4>Wealth theme bleed</h4>
+          <p>Section-level theme could bleed across section boundaries.</p>
+          <div class="mit">CSS-variable swap scoped to the section wrapper, not the document. Default theme always inherited above and below.</div>
+        </div>
+        <div class="risk-card">
+          <span class="sev low">Low</span>
+          <h4>Single-project scale (~1,067 pages)</h4>
+          <p>Authoring tool performance with one large DA project.</p>
+          <div class="mit">DA handles this scale. Folder structure mirrors IA. EMA risk R10 adopted.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================== -->
+  <!-- 10. OPEN ITEMS                                                -->
+  <!-- =========================================================== -->
+  <section id="sec-10" class="open">
+    <div class="section-head" data-toggle><h2>10. Open Items</h2><span class="chev">▶</span></div>
+    <div class="section-body">
+      <div class="callout note">
+        <strong>13 of 17 items locked as Key Decisions (see §1).</strong>
+        Four remain open and are tracked here. Each open item has a recommended Phase-1 default so the worklist isn't blocked.
+      </div>
+      <ol>
+        <li>
+          <b>D9 · Calculators / tools strategy beyond Phase 1.</b>
+          Decision deferred. Phase 1 default: stub pages with CTAs linking to live URLs. Question: in Phase 2, do we rebuild as DA blocks, embed the existing widgets, or migrate the tools to a new origin?
+        </li>
+        <li>
+          <b>D10 · Footnote / disclosure ID strategy.</b>
+          Decision deferred. Phase 1 default: author IDs verbatim per page (<code>PM-…</code>, <code>DT2-…</code>, <code>LRC-1224</code> as legacy). Question: long-term, should these be pulled from a registry or regenerated for the new site?
+        </li>
+        <li>
+          <b>D14 · Sitemap / redirects ownership.</b>
+          Decision deferred. Phase 1 default: EDS site owns <code>/sitemap.xml</code> via DA's generated sitemap; 301-redirects for any retired URLs to be specified before go-live.
+        </li>
+        <li>
+          <b>Header/footer mapping confirmation.</b>
+          Per <b>D3</b> we will build 4 variants (Default, Biz, CIB, Wealth). Confirm: should <code>/about/</code> use the Default header or a fifth "About/Corporate" variant? Phase-1 default: Default header.
+        </li>
+      </ol>
+      <div class="callout warn">
+        <strong>Plan status</strong>
+        13 decisions locked. With the four open items above defaulted to their Phase-1 fallbacks, no decision blocks the worklist. Awaiting your sign-off to proceed to Step 1 (Repo bootstrap).
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================== -->
+  <!-- 11. URL INVENTORY                                             -->
+  <!-- =========================================================== -->
+  <section id="sec-11" class="open">
+    <div class="section-head" data-toggle><h2>11. URL Inventory</h2><span class="chev">▶</span></div>
+    <div class="section-body">
+      <p>
+        Authoritative URL list from <a href="https://github.com/mkbansal1/wellsfargo/blob/main/wellsfargo-url-list.md"><code>wellsfargo-url-list.md</code></a> (dated 2026-05-15, sourced from
+        <code>https://www.wellsfargo.com/seo-sitemap/wellsfargositemap</code>).
+        <b>Grand total: ~1,067 URLs</b> — ~680 English + ~387 Spanish. Use this as the input to Step 1
+        (sitemap re-baseline) and to the bulk importer's URL list.
+      </p>
+
+      <div class="stats">
+        <div class="stat"><div class="num">~1,067</div><div class="lbl">Grand total URLs</div></div>
+        <div class="stat"><div class="num">~680</div><div class="lbl">English</div></div>
+        <div class="stat"><div class="num">~387</div><div class="lbl">Spanish (deferred per D4)</div></div>
+        <div class="stat"><div class="num">30</div><div class="lbl">English sections</div></div>
+        <div class="stat"><div class="num">22</div><div class="lbl">Spanish sections</div></div>
+        <div class="stat"><div class="num">~13</div><div class="lbl">Excluded (test/dev, _navlinks)</div></div>
+      </div>
+
+      <h3>11.1 English sections — sitemap counts mapped to templates</h3>
+      <p>
+        Each section maps to one or more templates from §2. Counts come directly from the sitemap; template assignments come from
+        URL-pattern analysis. Where my v2 template estimate differed from the actual sitemap count, the actual count wins.
+      </p>
+      <div class="table-wrap">
+        <table id="urlEnTable" data-filterable>
+          <thead>
+            <tr>
+              <th data-sort="string">Section <span class="sort-ind">⇅</span></th>
+              <th data-sort="number">URLs <span class="sort-ind">⇅</span></th>
+              <th data-sort="string">Primary template(s) <span class="sort-ind">⇅</span></th>
+              <th data-sort="string">Header / Footer variant <span class="sort-ind">⇅</span></th>
+              <th data-sort="string">Notes <span class="sort-ind">⇅</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><code>/</code></td><td>1</td><td>T1 Homepage</td><td>Default</td><td>—</td></tr>
+            <tr><td><code>/about/</code></td><td>49</td><td>T13 Leadership Bio (25) + T14 About Landing (1) + T5 Education (~23)</td><td>Default</td><td>25 governance bios; sub-pages for inclusion / IR / responsibility-and-impact / supply-chain</td></tr>
+            <tr><td><code>/atm/</code></td><td>1</td><td>T12 Standalone Utility</td><td>Default</td><td>—</td></tr>
+            <tr><td><code>/auto-loans/</code></td><td>4</td><td>T4 L2 Hub (1) + T3 Product Detail (3)</td><td>Default</td><td>Includes /assist/, /make-payments/, /vehicle-financing-101/</td></tr>
+            <tr><td><code>/biz/</code> — Business Banking</td><td>102</td><td>T8a Landing (1) + T8b Sub-page (~101)</td><td><b>Biz</b></td><td>Deepest section after /com/. Includes checking, merchant, online-banking, retirement, savings, verification-deposit subtrees</td></tr>
+            <tr><td><code>/checking/</code></td><td>22</td><td>T2 Landing (1) + T3 Product Detail (21)</td><td>Default</td><td>Includes 5 product pages × multiple sub-pages each (fees-summary, ID-required, account-benefits)</td></tr>
+            <tr><td><code>/cib/</code> — Corporate &amp; Investment Banking</td><td>58</td><td>T9 Landing (1) + T10 Sub-page (~57)</td><td><b>CIB</b></td><td>Vantage sign-on, deal-card patterns, video embeds, deep insights/economics subtrees</td></tr>
+            <tr><td><code>/com/</code> — Commercial Banking</td><td>90</td><td>T9 Landing (1) + T10 Sub-page (~89)</td><td><b>CIB</b></td><td>Largest insights/agri-food subtree (~10 articles); Treasury Takeaways podcast; industry-vertical pages</td></tr>
+            <tr><td><code>/credit-cards/</code></td><td>5</td><td>T3 Product Detail (4) + T12 Utility (1, archived)</td><td>Default</td><td>Includes /archived-product-benefits/. Most CC content lives on external <code>creditcards.wellsfargo.com</code> (per D15)</td></tr>
+            <tr><td><code>/debit-card/</code></td><td>5</td><td>T3 Product Detail (1) + T4 L2 Hub (4)</td><td>Default</td><td>Includes /alerts/, /claims/, /design/, /terms-and-conditions/</td></tr>
+            <tr><td><code>/equity/</code></td><td>1</td><td>T4 L2 Hub</td><td>Default</td><td>Single landing page</td></tr>
+            <tr><td><code>/financial-assistance/</code></td><td>5</td><td>T5 Education (4) + T4 L2 Hub (1)</td><td>Default</td><td>—</td></tr>
+            <tr><td><code>/financial-education/</code></td><td>9</td><td>T5 Education Article</td><td>Default</td><td><b>Deep URL paths</b> — multi-segment paths under basic-finances/manage-money/...</td></tr>
+            <tr><td><code>/financial-goals/</code></td><td>3</td><td>T4 L2 Hub</td><td>Default</td><td>borrow / protect / save</td></tr>
+            <tr><td><code>/financial-health/</code></td><td>3</td><td>T4 L2 Hub</td><td>Default</td><td>credit-and-debt / investing-and-retirement / tools</td></tr>
+            <tr><td><code>/foreign-exchange/</code></td><td>2</td><td>T12 Standalone Utility</td><td>Default</td><td>—</td></tr>
+            <tr><td><code>/goals-banking-made-easy/</code></td><td>1</td><td>T5 Education</td><td>Default</td><td>/travel-tips/ only</td></tr>
+            <tr><td><code>/goals-credit/</code></td><td>22</td><td>T5 Education (21) + T4 L2 Hub (1)</td><td>Default</td><td>Deepest education subtree — smarter-credit/* with 4-level paths</td></tr>
+            <tr><td><code>/goals-investing/</code></td><td>1</td><td>T5 Education</td><td>Default</td><td>/your-investing-style/ only</td></tr>
+            <tr><td><code>/help/</code></td><td>45</td><td>T6 Help/FAQ</td><td>Default <i>(per D5)</i></td><td>Mix of category hubs (T6) and FAQ leaf pages (T6 variant)</td></tr>
+            <tr><td><code>/international-remittances/</code></td><td>7</td><td>T12 Standalone Utility (5) + T4 L2 Hub (2)</td><td>Default</td><td>asia / central-america-caribbean / mexico + utility pages (limits, cost-estimator)</td></tr>
+            <tr><td><code>/investing-wealth/</code></td><td>1</td><td><b>T11 Wealth</b></td><td><b>Wealth</b></td><td>The <i>only</i> page using the Wealth palette per <b>D1</b>. Phase 1 doesn't expand under this section.</td></tr>
+            <tr><td><code>/mobile-online-banking/</code></td><td>11</td><td>T4 L2 Hub (1) + T3 Product Detail (10)</td><td>Default</td><td>App-promo–heavy content</td></tr>
+            <tr><td><code>/mortgage/</code></td><td>13</td><td>T4 L2 Hub (1) + T3 Product Detail (12)</td><td>Default</td><td>Includes /manage-account/payment-help/ subtree</td></tr>
+            <tr><td><code>/online-banking/</code></td><td>10</td><td>T3 Product Detail (8) + T12 Utility (2, agreements)</td><td>Default</td><td>Includes zelle-terms and zelle-terms-upcoming</td></tr>
+            <tr><td><code>/personal-loans/</code></td><td>2</td><td>Calculator stubs <i>(per D9)</i></td><td>Default</td><td><b>Both URLs are calculators</b> — stub in Phase 1, link to live</td></tr>
+            <tr><td><code>/premier/</code></td><td>1</td><td>T3 Product Detail</td><td>Default <i>(per D1: not wealth-themed)</i></td><td>Single landing page</td></tr>
+            <tr><td><code>/privacy-security/</code></td><td>32</td><td>T7 Security/Fraud (~24) + T12 Privacy/Legal (~8)</td><td>Default</td><td>Includes /fraud/articles/, /fraud/bank-scams/, /fraud/report/ subtrees</td></tr>
+            <tr><td><code>/rewards/</code></td><td>1</td><td>T4 L2 Hub</td><td>Default</td><td>—</td></tr>
+            <tr><td><code>/savings-cds/</code></td><td>10</td><td>T2 Landing (1) + T3 Product Detail (7) + T11 Rates (1) + <span style="color:var(--text-muted)"><b>2 test pages excluded</b></span></td><td>Default</td><td><code>/test/Copy_of_index/</code> and <code>/test/Copy_2_of_index/</code> excluded per OOS list</td></tr>
+            <tr><td><code>/tax-center/</code></td><td>1</td><td>T12 Standalone Utility</td><td>Default</td><td>—</td></tr>
+            <tr><td><code>/_navlinks/</code></td><td>3</td><td><b>Excluded</b> (internal CMS fragments)</td><td>—</td><td>Per OOS list — not public content</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout info">
+        <strong>English in-scope count for Phase 1 bulk import</strong>
+        ~680 URLs total minus 3 (<code>_navlinks</code>) minus 2 (<code>savings-cds/test/*</code>) minus 2 (<code>personal-loans/*calculator*</code> stub-only) = <b>~673 fully authored EN pages</b>, plus ~2 calculator stub pages = <b>~675 EN authored pages in Phase 1</b>.
+      </div>
+
+      <h3>11.2 Spanish sections — counts (Phase 1 ships ES home only, per D4)</h3>
+      <div class="table-wrap">
+        <table id="urlEsTable" data-filterable>
+          <thead>
+            <tr>
+              <th data-sort="string">Section <span class="sort-ind">⇅</span></th>
+              <th data-sort="number">URLs <span class="sort-ind">⇅</span></th>
+              <th data-sort="string">Phase 1 status <span class="sort-ind">⇅</span></th>
+              <th data-sort="string">Notes <span class="sort-ind">⇅</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><code>/es/</code> (root)</td><td>24</td><td><b>Home only in Phase 1</b></td><td>Includes root + 18 LOB landing pages + 5 <code>_reusable</code>/<code>_navlinks</code>/<code>testBCP1</code> excluded</td></tr>
+            <tr><td><code>/es/about/</code></td><td>35</td><td>Deferred</td><td>Mirror of EN /about/</td></tr>
+            <tr><td><code>/es/biz/</code></td><td>63</td><td>Deferred</td><td>Subset mirror of EN /biz/</td></tr>
+            <tr><td><code>/es/checking/</code></td><td>21</td><td>Deferred</td><td>Full mirror of EN /checking/</td></tr>
+            <tr><td><code>/es/cib/</code></td><td>19</td><td>Deferred</td><td>Subset mirror of EN /cib/</td></tr>
+            <tr><td><code>/es/com/</code></td><td>8</td><td>Deferred</td><td>Subset mirror of EN /com/</td></tr>
+            <tr><td><code>/es/credit-cards/</code></td><td>4</td><td>Deferred</td><td>Mirror minus archived</td></tr>
+            <tr><td><code>/es/debit-card/</code></td><td>4</td><td>Deferred</td><td>Full mirror</td></tr>
+            <tr><td><code>/es/devtest/</code></td><td>4</td><td><b>Excluded</b></td><td>Test/dev — per OOS list</td></tr>
+            <tr><td><code>/es/financial-assistance/</code></td><td>4</td><td>Deferred</td><td>Full mirror</td></tr>
+            <tr><td><code>/es/financial-education/</code></td><td>8</td><td>Deferred</td><td>Full mirror</td></tr>
+            <tr><td><code>/es/financial-goals/</code></td><td>2</td><td>Deferred</td><td>Mirror minus /protect/</td></tr>
+            <tr><td><code>/es/financial-health/</code></td><td>2</td><td>Deferred</td><td>Subset</td></tr>
+            <tr><td><code>/es/foreign-exchange/</code></td><td>2</td><td>Deferred</td><td>Full mirror</td></tr>
+            <tr><td><code>/es/goals-credit/</code></td><td>21</td><td>Deferred</td><td>Full mirror</td></tr>
+            <tr><td><code>/es/help/</code></td><td>43</td><td>Deferred</td><td>Mirror minus 2 EN-only pages</td></tr>
+            <tr><td><code>/es/international-remittances/</code></td><td>7</td><td>Deferred</td><td>Full mirror</td></tr>
+            <tr><td><code>/es/mobile-online-banking/</code></td><td>11</td><td>Deferred</td><td>Full mirror</td></tr>
+            <tr><td><code>/es/mortgage/</code></td><td>13</td><td>Deferred</td><td>Full mirror</td></tr>
+            <tr><td><code>/es/online-banking/</code></td><td>10</td><td>Deferred</td><td>Full mirror</td></tr>
+            <tr><td><code>/es/personal-loans/</code></td><td>2</td><td>Deferred</td><td>Calculator stubs</td></tr>
+            <tr><td><code>/es/privacy-security/</code></td><td>32</td><td>Deferred</td><td>Full mirror</td></tr>
+            <tr><td><code>/es/savings-cds/</code></td><td>10</td><td>Deferred</td><td>Full mirror</td></tr>
+            <tr><td>Other <code>/es/*</code> (military, mobile, locator, goals-banking-made-easy, goals-investing, exit/hotels)</td><td>8</td><td>Deferred</td><td>Misc — to be assessed in the Spanish phase</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>11.3 Reconciliation against v2 template estimates</h3>
+      <p>Where v2 §2 estimates differed from the sitemap, the sitemap wins. Notable shifts:</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Template</th><th>v2 §2 estimate</th><th>Sitemap-derived</th><th>Reconciliation</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>T2 L1 Product Landing</td><td>~25</td><td>~12–15 (landing pages only across LOBs)</td><td>Earlier count conflated landings with detail pages — sitemap is lower. Re-baseline.</td></tr>
+            <tr><td>T3 Product Detail</td><td>~80</td><td>~70–85 (checking + savings + mobile + mortgage + online-banking + credit-cards + debit-card + auto-loans + premier)</td><td>Close match — keep ~80.</td></tr>
+            <tr><td>T4 L2 Category Hub</td><td>~25</td><td>~15 (financial-* hubs + goals-* + rewards + equity + remittances landing)</td><td>Overestimated — actual is lower.</td></tr>
+            <tr><td>T5 Education Article</td><td>~70</td><td>~55 (goals-credit 21 + financial-education 9 + ~25 articles scattered across /about/, /goals-investing/, /goals-banking-made-easy/)</td><td>Slightly overestimated.</td></tr>
+            <tr><td>T6 Help / FAQ</td><td>~45</td><td><b>45 exactly</b></td><td>✓ Locked.</td></tr>
+            <tr><td>T7 Security / Fraud</td><td>~32</td><td>~24 (subset of /privacy-security/)</td><td>The other ~8 are pure legal/policy pages → T12.</td></tr>
+            <tr><td>T8a + T8b Business</td><td>~101</td><td><b>102 exactly</b> (1 landing + 101 sub-pages)</td><td>✓ Locked.</td></tr>
+            <tr><td>T9 + T10 CIB / Commercial</td><td>~122</td><td><b>148</b> (CIB 58 + Com 90)</td><td>Underestimated — Commercial is bigger than Claude tracked. Worklist Step 14 wave count adjusts accordingly.</td></tr>
+            <tr><td>T11 Wealth</td><td>~25</td><td><b>1</b></td><td><b>Major correction</b>: only <code>/investing-wealth/</code> itself exists. Premier and other "wealth-feeling" pages live elsewhere and use the Default theme per <b>D1</b>.</td></tr>
+            <tr><td>T12 Privacy / Legal / Utility</td><td>~42</td><td>~42 (8 privacy + 1 atm + 2 fx + 5 remittances + 1 tax + 10 online-banking utility + others)</td><td>✓ Locked.</td></tr>
+            <tr><td>T13 Leadership Bio</td><td>~25</td><td><b>25 exactly</b></td><td>✓ Locked.</td></tr>
+            <tr><td>T14 About Landing</td><td>1</td><td><b>1 exactly</b></td><td>✓ Locked.</td></tr>
+            <tr><td>Spanish home</td><td>1</td><td>1 (per D4)</td><td>✓ Locked.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout new">
+        <strong>Biggest reconciliation: T11 Wealth shrinks from ~25 pages to 1</strong>
+        The sitemap shows <code>/investing-wealth/</code> is a single page with no sub-pages. The "~25 wealth pages" estimate from v2 was inflated. <b>This simplifies the migration considerably</b> — Wealth theme work in Step 5 has only one target page. The Wealth header/footer variant is still worth building for Phase-1 readiness (per D3), but the page-level effort is minimal.
+      </div>
+
+      <h3>11.4 Excluded URLs (per OOS §7)</h3>
+      <ul>
+        <li><code>/_navlinks/financial-assistance-nav-links/</code></li>
+        <li><code>/_navlinks/fixed-income-nav-links/</code></li>
+        <li><code>/_navlinks/quarterly-earnings-nav-links/</code></li>
+        <li><code>/savings-cds/test/Copy_of_index/</code></li>
+        <li><code>/savings-cds/test/Copy_2_of_index/</code></li>
+        <li><code>/es/testBCP1/</code> and 4 <code>/es/_reusable/*</code> / <code>/es/_navlinks/*</code> internal CMS fragments</li>
+        <li><code>/es/devtest/</code> (4 URLs)</li>
+        <li>Total excluded: <b>~13 URLs</b> across EN + ES</li>
+      </ul>
+
+      <h3>11.5 Phase 1 import set (locked)</h3>
+      <ul>
+        <li><b>~675 English pages</b> authored (full content) + <b>~2 EN calculator stubs</b> linked to live</li>
+        <li><b>1 Spanish home page</b> (<code>/es/</code>)</li>
+        <li><b>~386 Spanish pages deferred</b> to a later phase per <b>D4</b></li>
+        <li><b>~13 URLs excluded</b> (test/dev, internal CMS fragments)</li>
+        <li><b>Phase 1 Total: ~678 authored pages</b></li>
+      </ul>
+    </div>
+  </section>
+
+</main>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  /* ---------- Theme toggle ---------- */
+  var themeBtn = document.getElementById('themeToggle');
+  function applyTheme(t) {
+    if (t === 'dark') document.body.classList.add('dark');
+    else document.body.classList.remove('dark');
+  }
+  var saved = null;
+  try { saved = localStorage.getItem('wfmig2-theme'); } catch(e) {}
+  if (saved) applyTheme(saved);
+  themeBtn.addEventListener('click', function() {
+    var next = document.body.classList.contains('dark') ? 'light' : 'dark';
+    applyTheme(next);
+    try { localStorage.setItem('wfmig2-theme', next); } catch(e) {}
+  });
+
+  /* ---------- Collapsible sections ---------- */
+  document.querySelectorAll('[data-toggle]').forEach(function(head) {
+    head.addEventListener('click', function() {
+      head.parentElement.classList.toggle('open');
+    });
+  });
+  document.getElementById('expandAll').addEventListener('click', function() {
+    document.querySelectorAll('section').forEach(function(s){ s.classList.add('open'); });
+  });
+  document.getElementById('collapseAll').addEventListener('click', function() {
+    document.querySelectorAll('section').forEach(function(s){ s.classList.remove('open'); });
+  });
+
+  /* ---------- TOC: auto-open target ---------- */
+  document.querySelectorAll('aside.toc a').forEach(function(a) {
+    a.addEventListener('click', function(e) {
+      var id = a.getAttribute('href').slice(1);
+      var sec = document.getElementById(id);
+      if (sec) sec.classList.add('open');
+    });
+  });
+
+  /* ---------- Sortable tables ---------- */
+  document.querySelectorAll('table').forEach(function(table) {
+    var headers = table.querySelectorAll('thead th[data-sort]');
+    headers.forEach(function(th, idx) {
+      var dir = 1;
+      th.addEventListener('click', function() {
+        var type = th.getAttribute('data-sort');
+        var tbody = table.tBodies[0];
+        var rows = Array.prototype.slice.call(tbody.querySelectorAll('tr:not(.empty-row)'));
+        rows.sort(function(a, b) {
+          var av = (a.children[idx] && a.children[idx].textContent || '').trim();
+          var bv = (b.children[idx] && b.children[idx].textContent || '').trim();
+          if (type === 'number') {
+            var an = parseFloat(av.replace(/[^0-9.\-]/g, '')) || 0;
+            var bn = parseFloat(bv.replace(/[^0-9.\-]/g, '')) || 0;
+            return (an - bn) * dir;
+          }
+          return av.localeCompare(bv) * dir;
+        });
+        rows.forEach(function(r){ tbody.appendChild(r); });
+        dir *= -1;
+        headers.forEach(function(h){ var i = h.querySelector('.sort-ind'); if (i) i.textContent = '⇅'; });
+        var ind = th.querySelector('.sort-ind');
+        if (ind) ind.textContent = dir === -1 ? '▲' : '▼';
+      });
+    });
+  });
+
+  /* ---------- Live filter ---------- */
+  var search = document.getElementById('search');
+  function applyFilter() {
+    var q = (search.value || '').trim().toLowerCase();
+    document.querySelectorAll('table[data-filterable]').forEach(function(table) {
+      var tbody = table.tBodies[0];
+      var rows = tbody.querySelectorAll('tr:not(.empty-row)');
+      var anyVisible = false;
+      rows.forEach(function(r) {
+        if (!q) {
+          r.classList.remove('hidden');
+          anyVisible = true;
+          return;
+        }
+        var hit = r.textContent.toLowerCase().indexOf(q) !== -1;
+        if (hit) { r.classList.remove('hidden'); anyVisible = true; }
+        else r.classList.add('hidden');
+      });
+      var er = tbody.querySelector('.empty-row');
+      if (!anyVisible) {
+        if (!er) {
+          er = document.createElement('tr');
+          er.className = 'empty-row';
+          var colCount = table.tHead.rows[0].cells.length;
+          var td = document.createElement('td');
+          td.colSpan = colCount;
+          td.textContent = 'No rows match your filter.';
+          er.appendChild(td);
+          tbody.appendChild(er);
+        }
+        er.classList.remove('hidden');
+      } else if (er) {
+        er.classList.add('hidden');
+      }
+    });
+  }
+  search.addEventListener('input', applyFilter);
+
+  /* ---------- Keyboard: '/' focuses search ---------- */
+  document.addEventListener('keydown', function(e) {
+    if (e.key === '/' && document.activeElement !== search) {
+      e.preventDefault();
+      search.focus();
+      search.select();
+    }
+  });
+})();
+</script>
+</body>
+</html>
