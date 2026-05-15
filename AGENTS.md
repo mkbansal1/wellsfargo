@@ -176,19 +176,8 @@ Footnote IDs are audited. Breaking them is a compliance failure, not a style iss
 - NEVER merge disclaimer text into regular paragraphs. It must stay in the Disclaimers block.
 - Every page that has disclaimer content must have a Disclaimers block at the bottom.
 
-### Rule 9: Out-of-Scope — Do Not Implement Without Explicit User Approval
 
-If asked to build any of the following, stop and tell the user it is out of scope for Phase 1:
-
-- Analytics or tag manager wiring (Adobe Launch, Adobe Analytics, Audience Manager, Adobe Target) — **D11**
-- "How was your experience?" feedback widget — **D13**
-- Calculators or interactive tools — **D9**. Phase 1 uses link stubs via placeholders only.
-- Authenticated flows (sign-on, account dashboard, apply, enroll, transfer) — these remain at external domains.
-- Spanish pages beyond the home page (`/es/`) — **D4**. Only `/es/` is in Phase 1.
-- MSM / LiveCopy / translation rollouts.
-- Pixel-perfect CSS replication of legacy Wells Fargo class names or stylesheet structure.
-
-### Rule 10: Pre-Commit Self-Check
+### Rule 9: Pre-Commit Self-Check
 
 Run through this checklist before completing any task. Fix every failure before pushing.
 
