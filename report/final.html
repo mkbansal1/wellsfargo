@@ -255,8 +255,8 @@ table.collapsed{display:none}
 }
 
 /* Main Tabs */
-.main-tabs{display:flex;gap:0;margin:0 0 0;border-bottom:3px solid var(--wf-yellow);background:var(--surface)}
-.main-tab-btn{padding:13px 28px;font-size:15px;font-weight:700;font-family:var(--font);background:transparent;border:none;border-bottom:3px solid transparent;margin-bottom:-3px;color:var(--fg2);cursor:pointer;transition:color .15s,border-color .15s,background .15s;border-radius:var(--radius) var(--radius) 0 0}
+.main-tabs{display:flex;gap:0;margin:0 0 0;border-bottom:3px solid var(--wf-yellow);background:var(--surface);overflow-x:auto}
+.main-tab-btn{padding:13px 28px;font-size:15px;font-weight:700;font-family:var(--font);background:transparent;border:none;border-bottom:3px solid transparent;margin-bottom:-3px;color:var(--fg2);cursor:pointer;transition:color .15s,border-color .15s,background .15s;border-radius:var(--radius) var(--radius) 0 0;white-space:nowrap}
 .main-tab-btn:hover{color:var(--wf-red);background:var(--surface-soft)}
 .main-tab-btn.active{color:var(--wf-red);border-bottom-color:var(--wf-red);background:var(--surface)}
 .main-tab-panel{display:none}
@@ -328,6 +328,8 @@ table.collapsed{display:none}
   <button class="main-tab-btn active" role="tab" aria-selected="true" aria-controls="tab-panel-all" id="tab-btn-all" onclick="switchMainTab('all')">Executive Summary</button>
   <button class="main-tab-btn" role="tab" aria-selected="false" aria-controls="tab-panel-blocks" id="tab-btn-blocks" onclick="switchMainTab('blocks')">Block Inventory</button>
   <button class="main-tab-btn" role="tab" aria-selected="false" aria-controls="tab-panel-static" id="tab-btn-static" onclick="switchMainTab('static')">Static Page Analysis</button>
+  <button class="main-tab-btn" role="tab" aria-selected="false" aria-controls="tab-panel-static-en" id="tab-btn-static-en" onclick="switchMainTab('static-en')">Static Page Analysis - English</button>
+  <button class="main-tab-btn" role="tab" aria-selected="false" aria-controls="tab-panel-static-es" id="tab-btn-static-es" onclick="switchMainTab('static-es')">Static Page Analysis - Spanish</button>
 </div>
 
 <!-- Tab Panel 1: All Information -->
@@ -15467,6 +15469,12 @@ table.collapsed{display:none}
 
 </div><!-- /.main-tab-panel (static page analysis) -->
 
+<!-- Tab Panel 4: Static Page Analysis - English -->
+<div class="main-tab-panel" id="tab-panel-static-en" role="tabpanel" aria-labelledby="tab-btn-static-en" data-static-analysis-variant="english"></div>
+
+<!-- Tab Panel 5: Static Page Analysis - Spanish -->
+<div class="main-tab-panel" id="tab-panel-static-es" role="tabpanel" aria-labelledby="tab-btn-static-es" data-static-analysis-variant="spanish"></div>
+
 </div><!-- /.main -->
 
 <script>
@@ -15541,7 +15549,7 @@ function clearFilters(){
 
 function updateActiveFilter(value){
   const normalized=value.trim().toLowerCase();
-  document.querySelectorAll('[data-filter]').forEach((button)=>{
+  document.querySelectorAll('.quick-filters [data-filter]').forEach((button)=>{
     const buttonValue=button.dataset.filter.toLowerCase();
     const active=normalized===buttonValue;
     button.classList.toggle('active',active||(!normalized&&!buttonValue));
@@ -15617,7 +15625,7 @@ function switchMainTab(id){
 function initTab(){
   let saved='';
   try{saved=localStorage.getItem('inventory-tab')||'';}catch(e){}
-  if(saved==='blocks'||saved==='static') switchMainTab(saved);
+  if(['blocks','static','static-en','static-es'].includes(saved)) switchMainTab(saved);
 }
 
 initTheme();
@@ -15625,36 +15633,263 @@ initTab();
 updateActiveFilter('');
 initScrollSpy();
 (function(){
-  var rows=[].slice.call(document.querySelectorAll('#spaBody tr'));
-  var counts={all:rows.length,static:0,dynamic:0,mixed:0,excluded:0};
-  rows.forEach(function(r){var c=r.dataset.cls;if(counts[c]!==undefined)counts[c]++;});
-  ['all','static','dynamic','mixed'].forEach(function(k){
-    var el=document.getElementById('spa-count-'+k);
-    if(el)el.textContent='('+counts[k]+')';
-  });
-  var excl=document.getElementById('spa-count-excl');
-  if(excl)excl.textContent='('+counts.excluded+')';
+  var sourcePanel=document.getElementById('tab-panel-static');
+  if(!sourcePanel) return;
 
-  window.spaFilter=function(btn,f){
-    document.querySelectorAll('.spa-filter').forEach(function(b){b.classList.remove('active');});
-    btn.classList.add('active');
-    var q=document.getElementById('spaSearch').value.toLowerCase().trim();
-    var shown=0;
-    rows.forEach(function(r){
-      var clsMatch=f==='all'||r.dataset.cls===f;
-      var txtMatch=!q||r.textContent.toLowerCase().includes(q);
-      var vis=clsMatch&&txtMatch;
-      r.style.display=vis?'':'none';
-      if(vis)shown++;
+  var excludedPrefixes=['test','_navlinks','testbcp1','devtest'];
+  var variantLabels={
+    all:'Static Page Analysis',
+    english:'Static Page Analysis - English',
+    spanish:'Static Page Analysis - Spanish',
+  };
+
+  function formatNumber(value){
+    return value.toLocaleString();
+  }
+
+  function formatPercent(value,total){
+    if(!total) return '0%';
+    return ((value/total)*100).toFixed(1).replace(/\.0$/,'')+'%';
+  }
+
+  function getRowUrl(row){
+    return row.cells&&row.cells[1]?row.cells[1].textContent.trim():'';
+  }
+
+  function getPath(url){
+    try{
+      return new URL(url,window.location.href).pathname;
+    }catch(e){
+      return url.replace(/^https?:\/\/[^/]+/i,'').split(/[?#]/)[0]||'/';
+    }
+  }
+
+  function getComparablePath(url){
+    var path=getPath(url).replace(/^\/+/,'').toLowerCase();
+    return path.indexOf('es/')===0?path.slice(3):path;
+  }
+
+  function isExcludedLanguagePath(url){
+    var path=getComparablePath(url);
+    return excludedPrefixes.some(function(prefix){
+      return path.indexOf(prefix)===0;
     });
-    document.getElementById('spaStatus').textContent='Showing '+shown+' of '+rows.length+' rows';
+  }
+
+  function isSpanishPage(url){
+    var path=getPath(url).toLowerCase();
+    return path==='/es'||path.indexOf('/es/')!==-1;
+  }
+
+  function rowMatchesVariant(row,variant){
+    var url=getRowUrl(row);
+    if(variant==='english') return !isExcludedLanguagePath(url)&&!isSpanishPage(url);
+    if(variant==='spanish') return !isExcludedLanguagePath(url)&&isSpanishPage(url);
+    return true;
+  }
+
+  function uniqueStaticIds(panel,suffix){
+    [].slice.call(panel.querySelectorAll('[id]')).forEach(function(el){
+      el.id=el.id+'-'+suffix;
+    });
+  }
+
+  function cloneStaticPanel(panelId,variant){
+    var panel=document.getElementById('tab-panel-'+panelId);
+    var sourceSection=sourcePanel.querySelector('.section');
+    if(!panel||!sourceSection) return null;
+    panel.dataset.staticAnalysisVariant=variant;
+    panel.appendChild(sourceSection.cloneNode(true));
+    uniqueStaticIds(panel,panelId);
+    return panel;
+  }
+
+  function getCounts(rows){
+    var counts={all:rows.length,static:0,dynamic:0,mixed:0,excluded:0};
+    rows.forEach(function(row){
+      var cls=row.dataset.cls;
+      if(counts[cls]!==undefined) counts[cls]+=1;
+    });
+    return counts;
+  }
+
+  function getSectionLabel(url){
+    var path=getPath(url).replace(/^\/+|\/+$/g,'');
+    var parts=path?path.split('/'):[];
+    if(!parts.length) return '/';
+    if(parts[0].toLowerCase()==='es'&&parts.length>1) return '/es/'+parts[1];
+    return '/'+parts[0];
+  }
+
+  function updateFilterCounts(panel,counts){
+    [].slice.call(panel.querySelectorAll('.spa-filter')).forEach(function(button){
+      var key=button.dataset.filter;
+      var count=key==='all'?counts.all:counts[key]||0;
+      var countEl=button.querySelector('.spa-count');
+      if(countEl) countEl.textContent='('+formatNumber(count)+')';
+    });
+  }
+
+  function updateKpis(panel,counts){
+    var total=counts.all;
+    var cards=[].slice.call(panel.querySelectorAll('.kpi-grid .kpi-card'));
+    var items=[
+      {key:'static',note:' - fully EDS-ready, no wrapper needed'},
+      {key:'mixed',note:' - static shell + dynamic component overlay'},
+      {key:'dynamic',note:' - API-driven, require non-EDS rendering'},
+      {key:'excluded',note:' - test, dev, CMS fragments, redirects'},
+    ];
+    items.forEach(function(item,index){
+      var card=cards[index];
+      if(!card) return;
+      var valueEl=card.querySelector('.metric-value');
+      var noteEl=card.querySelector('.metric-note');
+      var count=counts[item.key]||0;
+      if(valueEl) valueEl.textContent=formatNumber(count);
+      if(noteEl) noteEl.textContent=formatPercent(count,total)+item.note;
+    });
+  }
+
+  function updateDistributionChart(panel,counts){
+    var total=counts.all;
+    var staticEnd=total?(counts.static/total)*100:0;
+    var mixedEnd=staticEnd+(total?(counts.mixed/total)*100:0);
+    var dynamicEnd=mixedEnd+(total?(counts.dynamic/total)*100:0);
+    var donut=panel.querySelector('.chart-card .chart-body > div:first-child');
+    if(donut){
+      donut.style.background='conic-gradient(var(--wf-green) 0 '+staticEnd+'%,var(--wf-yellow) '+staticEnd+'% '+mixedEnd+'%,var(--wf-red) '+mixedEnd+'% '+dynamicEnd+'%,var(--wf-text-secondary) '+dynamicEnd+'% 100%)';
+      var centerValue=donut.querySelector('strong');
+      if(centerValue) centerValue.textContent=Math.round(staticEnd)+'%';
+    }
+    var legendCounts=[counts.static,counts.mixed,counts.dynamic,counts.excluded];
+    [].slice.call(panel.querySelectorAll('.chart-legend .legend-row strong')).forEach(function(strong,index){
+      strong.textContent=formatNumber(legendCounts[index]||0);
+    });
+  }
+
+  function updateTopSections(panel,rows){
+    var sectionCounts={};
+    rows.forEach(function(row){
+      if(row.dataset.cls!=='static') return;
+      var section=getSectionLabel(getRowUrl(row));
+      sectionCounts[section]=(sectionCounts[section]||0)+1;
+    });
+    var sections=Object.keys(sectionCounts).map(function(section){
+      return {section:section,count:sectionCounts[section]};
+    }).sort(function(a,b){
+      return b.count-a.count||a.section.localeCompare(b.section);
+    }).slice(0,10);
+    var max=sections.length?sections[0].count:1;
+    var list=panel.querySelector('.bar-list');
+    if(!list) return;
+    list.textContent='';
+    sections.forEach(function(item){
+      var row=document.createElement('div');
+      var label=document.createElement('span');
+      var track=document.createElement('div');
+      var count=document.createElement('span');
+      row.className='bar-row';
+      row.style.setProperty('--bar',((item.count/max)*100).toFixed(1).replace(/\.0$/,'')+'%');
+      label.className='bar-label';
+      label.textContent=item.section;
+      track.className='bar-track';
+      count.className='bar-count';
+      count.textContent=formatNumber(item.count);
+      row.append(label,track,count);
+      list.append(row);
+    });
+  }
+
+  function updateStaticSummary(panel,rows,variant){
+    var section=panel.querySelector('.section');
+    var counts=getCounts(rows);
+    if(section&&variant!=='all'){
+      section.id='static-analysis-'+variant;
+      var kicker=section.querySelector('.section-kicker');
+      var intro=section.querySelector('p');
+      if(kicker) kicker.textContent=variantLabels[variant];
+      if(intro) intro.textContent='Classification of '+formatNumber(rows.length)+' '+variant+' URLs in the Wells Fargo sitemap by delivery model. Static pages can be fully migrated to EDS; Dynamic pages require API or personalisation wrappers; Mixed pages need partial EDS authoring with dynamic component overlays.';
+    }
+    updateFilterCounts(panel,counts);
+    updateKpis(panel,counts);
+    updateDistributionChart(panel,counts);
+    updateTopSections(panel,rows);
+  }
+
+  function applyStaticPanelFilter(panel,filter){
+    if(!panel) return;
+    var rows=panel._spaRows||[];
+    var activeFilter=filter||'all';
+    if(!filter){
+      var activeButton=panel.querySelector('.spa-filter.active');
+      activeFilter=activeButton?activeButton.dataset.filter:'all';
+    }
+    [].slice.call(panel.querySelectorAll('.spa-filter')).forEach(function(button){
+      var active=button.dataset.filter===activeFilter;
+      button.classList.toggle('active',active);
+      button.setAttribute('aria-pressed',String(active));
+    });
+    var search=panel.querySelector('input[id^="spaSearch"]');
+    var query=search?search.value.toLowerCase().trim():'';
+    var shown=0;
+    rows.forEach(function(row){
+      var clsMatch=activeFilter==='all'||row.dataset.cls===activeFilter;
+      var txtMatch=!query||row.textContent.toLowerCase().includes(query);
+      var visible=clsMatch&&txtMatch;
+      row.style.display=visible?'':'none';
+      if(visible) shown+=1;
+    });
+    var status=panel.querySelector('[id^="spaStatus"]');
+    if(status) status.textContent='Showing '+formatNumber(shown)+' of '+formatNumber(rows.length)+' rows';
+  }
+
+  function wireStaticControls(panel){
+    [].slice.call(panel.querySelectorAll('.spa-filter')).forEach(function(button){
+      button.removeAttribute('onclick');
+      button.addEventListener('click',function(){
+        applyStaticPanelFilter(panel,button.dataset.filter||'all');
+      });
+    });
+    var search=panel.querySelector('input[id^="spaSearch"]');
+    if(search){
+      search.removeAttribute('oninput');
+      search.addEventListener('input',function(){
+        applyStaticPanelFilter(panel);
+      });
+    }
+  }
+
+  function initStaticPanel(panel,variant){
+    if(!panel) return;
+    var rows=[].slice.call(panel.querySelectorAll('tbody tr'));
+    if(variant!=='all'){
+      rows.forEach(function(row){
+        if(!rowMatchesVariant(row,variant)) row.remove();
+      });
+      rows=[].slice.call(panel.querySelectorAll('tbody tr'));
+    }
+    panel._spaRows=rows;
+    updateStaticSummary(panel,rows,variant);
+    wireStaticControls(panel);
+    applyStaticPanelFilter(panel,'all');
+  }
+
+  sourcePanel.dataset.staticAnalysisVariant='all';
+  var englishPanel=cloneStaticPanel('static-en','english');
+  var spanishPanel=cloneStaticPanel('static-es','spanish');
+
+  initStaticPanel(sourcePanel,'all');
+  initStaticPanel(englishPanel,'english');
+  initStaticPanel(spanishPanel,'spanish');
+
+  window.spaFilter=function(button,filter){
+    var panel=(button&&button.closest('.main-tab-panel'))||document.querySelector('.main-tab-panel.active');
+    applyStaticPanelFilter(panel,filter||(button&&button.dataset.filter)||'all');
   };
-  window.spaSearch=function(q){
-    var activeBtn=document.querySelector('.spa-filter.active');
-    var f=activeBtn?activeBtn.dataset.filter:'all';
-    spaFilter(activeBtn||document.querySelector('.spa-filter'),f);
+  window.spaSearch=function(){
+    var panel=(document.activeElement&&document.activeElement.closest('.main-tab-panel'))||document.querySelector('.main-tab-panel.active');
+    applyStaticPanelFilter(panel);
   };
-  spaFilter(document.querySelector('.spa-filter.active'),'all');
 })();
 </script>
 </body>
