@@ -9,8 +9,9 @@
   min-height: 300px;
 }
 
-.hero h1 {
-  max-width: 1200px;
+.hero h1,
+.hero h2 {
+  max-width: var(--content-max-width);
   margin-left: auto;
   margin-right: auto;
   color: var(--background-color);
@@ -33,5 +34,41 @@
 @media (width >= 900px) {
   .hero {
     padding: 40px 32px;
+  }
+}
+
+/* --- Variant: promo --- */
+
+/* Authored as | Hero (promo) | — promotional marquee banners */
+.hero.promo {
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.hero.promo h2 {
+  font-size: var(--heading-font-size-xxl);
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.hero.promo p {
+  max-width: var(--content-max-width);
+  margin-left: auto;
+  margin-right: auto;
+  color: #fff;
+  font-size: var(--body-font-size-m);
+}
+
+.hero.promo a.button {
+  margin-top: 16px;
+}
+
+@media (width >= 900px) {
+  .hero.promo {
+    min-height: 500px;
+    padding: 60px 32px;
   }
 }
