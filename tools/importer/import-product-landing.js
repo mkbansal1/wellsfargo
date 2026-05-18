@@ -75,7 +75,7 @@ const PAGE_TEMPLATE = {
     {
       id: 'section-3-rate-cta',
       name: 'Rate Quote CTA',
-      selector: '.ps-body-wrapper > .enhanced-txt-cm.text-aligned-center:first-of-type',
+      selector: 'main >.enhanced-txt-cm.text-aligned-center:first-of-type',
       style: null,
       blocks: [],
       defaultContent: ['h3', 'p'],
@@ -83,7 +83,7 @@ const PAGE_TEMPLATE = {
     {
       id: 'section-4-homebuying',
       name: 'Homebuying Cards',
-      selector: '.ps-body-wrapper > .small-promo-combined:nth-of-type(1)',
+      selector: 'main >.small-promo-combined:nth-of-type(1)',
       style: null,
       blocks: ['cards-feature'],
       defaultContent: [],
@@ -91,7 +91,7 @@ const PAGE_TEMPLATE = {
     {
       id: 'section-5-refinancing',
       name: 'Refinancing Cards',
-      selector: '.ps-body-wrapper > .small-promo-combined:nth-of-type(2)',
+      selector: 'main >.small-promo-combined:nth-of-type(2)',
       style: null,
       blocks: ['cards-feature'],
       defaultContent: [],
@@ -99,7 +99,7 @@ const PAGE_TEMPLATE = {
     {
       id: 'section-6-benefits',
       name: 'Get More Benefits',
-      selector: '.ps-body-wrapper > .card-background-white:nth-of-type(1)',
+      selector: 'main >.card-background-white:nth-of-type(1)',
       style: null,
       blocks: ['cards-no-images'],
       defaultContent: [],
@@ -107,7 +107,7 @@ const PAGE_TEMPLATE = {
     {
       id: 'section-7-tools',
       name: 'Mortgage Tools',
-      selector: '.ps-body-wrapper > .small-promo-combined:nth-of-type(3)',
+      selector: 'main >.small-promo-combined:nth-of-type(3)',
       style: null,
       blocks: ['cards-feature'],
       defaultContent: [],
@@ -115,7 +115,7 @@ const PAGE_TEMPLATE = {
     {
       id: 'section-8-faq',
       name: 'FAQ Accordion',
-      selector: '.ps-body-wrapper > .card-background-white:nth-of-type(2)',
+      selector: 'main >.card-background-white:nth-of-type(2)',
       style: null,
       blocks: ['accordion'],
       defaultContent: [],
@@ -123,7 +123,7 @@ const PAGE_TEMPLATE = {
     {
       id: 'section-9-testimonials',
       name: 'Customer Testimonials',
-      selector: '.ps-body-wrapper > .card-background-white:nth-of-type(3)',
+      selector: 'main >.card-background-white:nth-of-type(3)',
       style: null,
       blocks: [],
       defaultContent: [],
@@ -131,7 +131,7 @@ const PAGE_TEMPLATE = {
     {
       id: 'section-10-contact',
       name: 'Talk to a Consultant',
-      selector: '.ps-body-wrapper > .card-background-white:nth-of-type(4)',
+      selector: 'main >.card-background-white:nth-of-type(4)',
       style: null,
       blocks: ['contact-info'],
       defaultContent: [],
@@ -139,7 +139,7 @@ const PAGE_TEMPLATE = {
     {
       id: 'section-11-quickhelp',
       name: 'Quick Help',
-      selector: '.ps-body-wrapper > .enhanced-txt-cm.text-aligned-left:nth-of-type(1)',
+      selector: 'main >.enhanced-txt-cm.text-aligned-left:nth-of-type(1)',
       style: null,
       blocks: [],
       defaultContent: ['h3', 'ul'],
