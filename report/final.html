@@ -331,6 +331,7 @@ table.collapsed{display:none}
   <button class="main-tab-btn" role="tab" aria-selected="false" aria-controls="tab-panel-static-en" id="tab-btn-static-en" onclick="switchMainTab('static-en')">Static Page Analysis - English</button>
   <button class="main-tab-btn" role="tab" aria-selected="false" aria-controls="tab-panel-static-es" id="tab-btn-static-es" onclick="switchMainTab('static-es')">Static Page Analysis - Spanish</button>
   <button class="main-tab-btn" role="tab" aria-selected="false" aria-controls="tab-panel-devplan" id="tab-btn-devplan" onclick="switchMainTab('devplan')">Development Plan</button>
+  <button class="main-tab-btn" role="tab" aria-selected="false" aria-controls="tab-panel-mortgage" id="tab-btn-mortgage" onclick="switchMainTab('mortgage')">Mortgage Journey -Dev Plan</button>
 </div>
 
 <!-- Tab Panel 1: All Information -->
@@ -15477,6 +15478,478 @@ table.collapsed{display:none}
 <div class="main-tab-panel" id="tab-panel-static-es" role="tabpanel" aria-labelledby="tab-btn-static-es" data-static-analysis-variant="spanish"></div>
 
 <!-- Tab Panel 6: Development Plan -->
+
+<!-- Tab Panel: Mortgage Journey -->
+<div class="main-tab-panel" id="tab-panel-mortgage" role="tabpanel" aria-labelledby="tab-btn-mortgage">
+
+<div class="section" id="mortgage-overview">
+  <h2>Mortgage Journey — Development Plan (109 Pages)</h2>
+  <p style="max-width:880px;color:var(--fg2);margin-bottom:8px">
+    End-to-end development plan for the Wells Fargo Mortgage line of business.
+    <strong>109 static pages</strong> under wellsfargo.com organized by customer funnel stage,
+    assigned to <strong>7 developers</strong> across a <strong>3-week sprint</strong>.
+    Includes complete block inventory, third-party integration analysis, and weekly deliverables.
+  </p>
+  <p style="max-width:880px;color:var(--fg3);font-size:13px;margin-bottom:22px">
+    <strong>Scope:</strong> Only pages hosted on www.wellsfargo.com. Secure apps (web.secure.wellsfargo.com), external tools (homeloans.wellsfargo.com), and calculators requiring JS/API are excluded from content migration — handled as link-out CTAs.
+  </p>
+
+  <!-- Timeline -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:28px;max-width:860px">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center;border-top:4px solid var(--wf-red)">
+      <div style="font-size:12px;color:var(--fg3);text-transform:uppercase;font-weight:700">Week 1</div>
+      <div style="font-size:11px;color:var(--fg3);margin-bottom:6px">May 19 – May 23</div>
+      <div style="font-size:28px;font-weight:700;font-family:var(--mono)">27</div>
+      <div style="font-size:12px;color:var(--fg3)">pages imported</div>
+      <div style="font-size:11px;color:var(--fg2);margin-top:6px">Setup + Template Validation</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center;border-top:4px solid var(--wf-yellow)">
+      <div style="font-size:12px;color:var(--fg3);text-transform:uppercase;font-weight:700">Week 2</div>
+      <div style="font-size:11px;color:var(--fg3);margin-bottom:6px">May 26 – May 30</div>
+      <div style="font-size:28px;font-weight:700;font-family:var(--mono)">54</div>
+      <div style="font-size:12px;color:var(--fg3)">pages imported</div>
+      <div style="font-size:11px;color:var(--fg2);margin-top:6px">Bulk Import Sprint</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center;border-top:4px solid var(--wf-green)">
+      <div style="font-size:12px;color:var(--fg3);text-transform:uppercase;font-weight:700">Week 3</div>
+      <div style="font-size:11px;color:var(--fg3);margin-bottom:6px">Jun 2 – Jun 6</div>
+      <div style="font-size:28px;font-weight:700;font-family:var(--mono)">28</div>
+      <div style="font-size:12px;color:var(--fg3)">pages imported</div>
+      <div style="font-size:11px;color:var(--fg2);margin-top:6px">Complete + Journey QA</div>
+    </div>
+  </div>
+
+  <!-- Progress bar -->
+  <div style="max-width:860px;margin-bottom:32px">
+    <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--fg3);margin-bottom:4px">
+      <span>Cumulative Progress</span><span>109 pages total</span>
+    </div>
+    <div style="height:28px;background:var(--surface-soft);border-radius:var(--radius);overflow:hidden;display:flex;border:1px solid var(--border)">
+      <div style="width:24.8%;background:var(--wf-red);display:flex;align-items:center;justify-content:center;color:white;font-size:11px;font-weight:700">W1: 27</div>
+      <div style="width:49.5%;background:var(--wf-yellow);display:flex;align-items:center;justify-content:center;color:var(--wf-dark);font-size:11px;font-weight:700">W2: 54</div>
+      <div style="width:25.7%;background:var(--wf-green);display:flex;align-items:center;justify-content:center;color:white;font-size:11px;font-weight:700">W3: 28</div>
+    </div>
+  </div>
+</div>
+
+<!-- Customer Funnel -->
+<div class="section" id="mortgage-funnel">
+  <h2>Customer Funnel</h2>
+  <div style="max-width:860px;margin-bottom:24px">
+    <div style="display:flex;align-items:stretch;gap:2px;height:50px;margin-bottom:8px">
+      <div style="flex:3;background:var(--wf-red);border-radius:var(--radius) 0 0 var(--radius);display:flex;align-items:center;justify-content:center;color:white;font-size:10px;font-weight:700;text-align:center;padding:4px">Awareness<br>3</div>
+      <div style="flex:34;background:#C05A10;display:flex;align-items:center;justify-content:center;color:white;font-size:10px;font-weight:700;text-align:center;padding:4px">Consideration<br>34</div>
+      <div style="flex:46;background:var(--wf-yellow);display:flex;align-items:center;justify-content:center;color:var(--wf-dark);font-size:10px;font-weight:700;text-align:center;padding:4px">Education<br>46</div>
+      <div style="flex:6;background:var(--wf-green);display:flex;align-items:center;justify-content:center;color:white;font-size:10px;font-weight:700;text-align:center;padding:4px">Convert<br>6</div>
+      <div style="flex:13;background:var(--wf-link);display:flex;align-items:center;justify-content:center;color:white;font-size:10px;font-weight:700;text-align:center;padding:4px">Manage<br>13</div>
+      <div style="flex:7;background:var(--fg3);border-radius:0 var(--radius) var(--radius) 0;display:flex;align-items:center;justify-content:center;color:white;font-size:10px;font-weight:700;text-align:center;padding:4px">Support<br>7</div>
+    </div>
+  </div>
+
+  <!-- Funnel flow -->
+  <div style="background:var(--surface-soft);border-radius:var(--radius);padding:16px;margin-bottom:20px;max-width:860px">
+    <div style="font-size:11px;font-weight:700;color:var(--fg3);text-transform:uppercase;margin-bottom:8px">User Journey Flow</div>
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px">
+      <span style="background:var(--surface);border:1px solid var(--border);padding:5px 12px;border-radius:var(--radius);font-weight:600">/mortgage/</span>
+      <span style="color:var(--fg3);font-weight:700">&rarr;</span>
+      <span style="background:var(--surface);border:1px solid var(--border);padding:5px 12px;border-radius:var(--radius);font-weight:600">/mortgage/loan-programs/*</span>
+      <span style="color:var(--fg3);font-weight:700">&rarr;</span>
+      <span style="background:var(--surface);border:1px solid var(--border);padding:5px 12px;border-radius:var(--radius);font-weight:600">/mortgage/learn/*</span>
+      <span style="color:var(--fg3);font-weight:700">&rarr;</span>
+      <span style="background:var(--surface);border:1px solid var(--border);padding:5px 12px;border-radius:var(--radius);font-weight:600">/mortgage/prequalification/</span>
+      <span style="color:var(--fg3);font-weight:700">&rarr;</span>
+      <span style="background:var(--surface);border:1px solid var(--border);padding:5px 12px;border-radius:var(--radius);font-weight:600">/mortgage/apply/</span>
+      <span style="color:var(--fg3);font-weight:700">&rarr;</span>
+      <span style="background:var(--surface);border:1px solid var(--border);padding:5px 12px;border-radius:var(--radius);font-weight:600">/mortgage/manage-account/</span>
+    </div>
+  </div>
+</div>
+
+<!-- Team Assignments -->
+<div class="section" id="mortgage-team">
+  <h2>Team Assignments</h2>
+  <table style="max-width:100%">
+    <thead>
+      <tr><th>Developer</th><th>Journey Stage</th><th style="text-align:right">Pages</th><th>Complexity</th><th>Key Blocks</th><th style="text-align:right">W1</th><th style="text-align:right">W2</th><th style="text-align:right">W3</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#D71E28;margin-right:6px"></span><strong>Dev 1</strong></td><td style="font-size:12px">Awareness + Conversion (Entry & Exit Points)</td><td class="num">9</td><td><span style="color:var(--wf-red);font-weight:600;font-size:12px">High</span></td><td style="font-size:11px">Hero (marquee), Cards (icon, 4-up), Tabs, Disclaimers, help-cta</td><td class="num">2</td><td class="num">4</td><td class="num">3</td></tr>
+      <tr><td><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#5A469B;margin-right:6px"></span><strong>Dev 2</strong></td><td style="font-size:12px">Loan Programs & Home Buying</td><td class="num">17</td><td><span style="color:var(--wf-red);font-weight:600;font-size:12px">High</span></td><td style="font-size:11px">Hero, Accordion, Cards, Table, product-comparison</td><td class="num">4</td><td class="num">8</td><td class="num">5</td></tr>
+      <tr><td><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#468254;margin-right:6px"></span><strong>Dev 3</strong></td><td style="font-size:12px">Refinance, Equity & Personal Loans</td><td class="num">17</td><td><span style="color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark));font-weight:600;font-size:12px">Medium</span></td><td style="font-size:11px">Hero, Accordion, Cards, Table, Disclaimers</td><td class="num">4</td><td class="num">8</td><td class="num">5</td></tr>
+      <tr><td><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#C05A10;margin-right:6px"></span><strong>Dev 4</strong></td><td style="font-size:12px">Education Articles (A–H)</td><td class="num">23</td><td><span style="color:var(--wf-green);font-weight:600;font-size:12px">Low</span></td><td style="font-size:11px">Default content, Cards, Help Sidebar, Disclaimers</td><td class="num">5</td><td class="num">11</td><td class="num">7</td></tr>
+      <tr><td><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#1A6B8A;margin-right:6px"></span><strong>Dev 5</strong></td><td style="font-size:12px">Education Articles (I–Z)</td><td class="num">23</td><td><span style="color:var(--wf-green);font-weight:600;font-size:12px">Low</span></td><td style="font-size:11px">Default content, Cards, Help Sidebar, Disclaimers</td><td class="num">5</td><td class="num">11</td><td class="num">7</td></tr>
+      <tr><td><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#8B5E3C;margin-right:6px"></span><strong>Dev 6</strong></td><td style="font-size:12px">Account Management + Support</td><td class="num">20</td><td><span style="color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark));font-weight:600;font-size:12px">Medium</span></td><td style="font-size:11px">Accordion, Cards, Tabs, contact-info, Disclaimers</td><td class="num">5</td><td class="num">10</td><td class="num">5</td></tr>
+      <tr><td><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#3B3331;margin-right:6px"></span><strong>Dev 7</strong></td><td style="font-size:12px">Block Infrastructure + Design System + QA</td><td class="num"><span style="font-size:11px;color:var(--fg3)">Infrastructure</span></td><td><span style="color:var(--wf-red);font-weight:600;font-size:12px">High</span></td><td style="font-size:11px">Hero (2 variants), Cards (4 variants), Accordion, Columns, Table</td><td class="num">—</td><td class="num">—</td><td class="num">—</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Block Inventory (OOB vs Custom) -->
+<div class="section" id="mortgage-blocks">
+  <h2>Block Inventory — OOB vs Custom</h2>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;max-width:600px">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px;text-align:center"><div style="font-size:24px;font-weight:700;font-family:var(--mono)">17</div><div style="font-size:11px;color:var(--fg3)">Total Blocks</div></div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px;text-align:center"><div style="font-size:24px;font-weight:700;font-family:var(--mono);color:var(--wf-green)">10</div><div style="font-size:11px;color:var(--fg3)">OOB (style only)</div></div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px;text-align:center"><div style="font-size:24px;font-weight:700;font-family:var(--mono);color:var(--wf-red)">7</div><div style="font-size:11px;color:var(--fg3)">Custom (build)</div></div>
+  </div>
+  <table>
+    <thead><tr><th>Block</th><th>Source</th><th>Variations</th><th>Usage</th><th style="text-align:right">Count</th></tr></thead>
+    <tbody>
+      <tr><td style="font-weight:700">Hero</td><td><span style="font-size:11px;background:color-mix(in srgb,var(--wf-green) 12%,white);padding:2px 6px;border-radius:4px;color:var(--wf-green)">OOB</span></td><td style="font-size:11px"><code style="font-family:var(--mono);font-size:10px;background:var(--surface-soft);padding:1px 5px;border-radius:3px">marquee</code> <code style="font-family:var(--mono);font-size:10px;background:var(--surface-soft);padding:1px 5px;border-radius:3px">compact</code></td><td style="font-size:12px">Landing pages</td><td class="num">5</td></tr>
+      <tr><td style="font-weight:700">Cards</td><td><span style="font-size:11px;background:color-mix(in srgb,var(--wf-green) 12%,white);padding:2px 6px;border-radius:4px;color:var(--wf-green)">OOB</span></td><td style="font-size:11px"><code style="font-family:var(--mono);font-size:10px;background:var(--surface-soft);padding:1px 5px;border-radius:3px">icon</code> <code style="font-family:var(--mono);font-size:10px;background:var(--surface-soft);padding:1px 5px;border-radius:3px">product</code> <code style="font-family:var(--mono);font-size:10px;background:var(--surface-soft);padding:1px 5px;border-radius:3px">3-up</code> <code style="font-family:var(--mono);font-size:10px;background:var(--surface-soft);padding:1px 5px;border-radius:3px">4-up</code></td><td style="font-size:12px">Journey steps, tools, features</td><td class="num">18</td></tr>
+      <tr><td style="font-weight:700">Accordion</td><td><span style="font-size:11px;background:color-mix(in srgb,var(--wf-green) 12%,white);padding:2px 6px;border-radius:4px;color:var(--wf-green)">OOB</span></td><td style="font-size:11px"><code style="font-family:var(--mono);font-size:10px;background:var(--surface-soft);padding:1px 5px;border-radius:3px">compact</code> <code style="font-family:var(--mono);font-size:10px;background:var(--surface-soft);padding:1px 5px;border-radius:3px">numbered</code></td><td style="font-size:12px">FAQs, learn articles</td><td class="num">12</td></tr>
+      <tr><td style="font-weight:700">Columns</td><td><span style="font-size:11px;background:color-mix(in srgb,var(--wf-green) 12%,white);padding:2px 6px;border-radius:4px;color:var(--wf-green)">OOB</span></td><td style="font-size:11px"><code style="font-family:var(--mono);font-size:10px;background:var(--surface-soft);padding:1px 5px;border-radius:3px">image-text</code> <code style="font-family:var(--mono);font-size:10px;background:var(--surface-soft);padding:1px 5px;border-radius:3px">reverse</code></td><td style="font-size:12px">CTAs, consultant contact</td><td class="num">15</td></tr>
+      <tr><td style="font-weight:700">Table</td><td><span style="font-size:11px;background:color-mix(in srgb,var(--wf-green) 12%,white);padding:2px 6px;border-radius:4px;color:var(--wf-green)">OOB</span></td><td style="font-size:11px"><code style="font-family:var(--mono);font-size:10px;background:var(--surface-soft);padding:1px 5px;border-radius:3px">striped</code> <code style="font-family:var(--mono);font-size:10px;background:var(--surface-soft);padding:1px 5px;border-radius:3px">fee</code></td><td style="font-size:12px">Rate tables, fee comparisons</td><td class="num">8</td></tr>
+      <tr><td style="font-weight:700">Tabs</td><td><span style="font-size:11px;background:color-mix(in srgb,var(--wf-green) 12%,white);padding:2px 6px;border-radius:4px;color:var(--wf-green)">OOB</span></td><td style="font-size:11px"><code style="font-family:var(--mono);font-size:10px;background:var(--surface-soft);padding:1px 5px;border-radius:3px">product-finder</code></td><td style="font-size:12px">Buy vs. Refinance toggle</td><td class="num">3</td></tr>
+      <tr><td style="font-weight:700">Carousel</td><td><span style="font-size:11px;background:color-mix(in srgb,var(--wf-green) 12%,white);padding:2px 6px;border-radius:4px;color:var(--wf-green)">OOB</span></td><td style="font-size:11px"><code style="font-family:var(--mono);font-size:10px;background:var(--surface-soft);padding:1px 5px;border-radius:3px">testimonial</code></td><td style="font-size:12px">Customer testimonials</td><td class="num">2</td></tr>
+      <tr><td style="font-weight:700">Quote</td><td><span style="font-size:11px;background:color-mix(in srgb,var(--wf-green) 12%,white);padding:2px 6px;border-radius:4px;color:var(--wf-green)">OOB</span></td><td style="font-size:11px">—</td><td style="font-size:12px">Customer quotes</td><td class="num">4</td></tr>
+      <tr><td style="font-weight:700">Embed</td><td><span style="font-size:11px;background:color-mix(in srgb,var(--wf-green) 12%,white);padding:2px 6px;border-radius:4px;color:var(--wf-green)">OOB</span></td><td style="font-size:11px"><code style="font-family:var(--mono);font-size:10px;background:var(--surface-soft);padding:1px 5px;border-radius:3px">video</code></td><td style="font-size:12px">Educational videos</td><td class="num">6</td></tr>
+      <tr><td style="font-weight:700">Fragment</td><td><span style="font-size:11px;background:color-mix(in srgb,var(--wf-green) 12%,white);padding:2px 6px;border-radius:4px;color:var(--wf-green)">OOB</span></td><td style="font-size:11px"><code style="font-family:var(--mono);font-size:10px;background:var(--surface-soft);padding:1px 5px;border-radius:3px">app-promo</code> <code style="font-family:var(--mono);font-size:10px;background:var(--surface-soft);padding:1px 5px;border-radius:3px">leaving-site</code></td><td style="font-size:12px">Reusable content fragments</td><td class="num">10</td></tr>
+      <tr style="border-top:2px solid var(--border)"><td style="font-weight:700">Disclaimers</td><td><span style="font-size:11px;background:var(--wf-cream);padding:2px 6px;border-radius:4px;color:var(--wf-text-primary)">Custom</span></td><td style="font-size:11px">—</td><td style="font-size:12px">Legal footnotes (every page)</td><td class="num">85</td></tr>
+      <tr><td style="font-weight:700">help-cta</td><td><span style="font-size:11px;background:var(--wf-cream);padding:2px 6px;border-radius:4px;color:var(--wf-text-primary)">Custom</span></td><td style="font-size:11px"><code style="font-family:var(--mono);font-size:10px;background:var(--surface-soft);padding:1px 5px;border-radius:3px">mortgage</code></td><td style="font-size:12px">Consultant contact section</td><td class="num">8</td></tr>
+      <tr><td style="font-weight:700">Rates Table</td><td><span style="font-size:11px;background:var(--wf-cream);padding:2px 6px;border-radius:4px;color:var(--wf-text-primary)">Custom</span></td><td style="font-size:11px"><code style="font-family:var(--mono);font-size:10px;background:var(--surface-soft);padding:1px 5px;border-radius:3px">mortgage</code></td><td style="font-size:12px">Dynamic rate display</td><td class="num">2</td></tr>
+      <tr><td style="font-weight:700">product-comparison</td><td><span style="font-size:11px;background:var(--wf-cream);padding:2px 6px;border-radius:4px;color:var(--wf-text-primary)">Custom</span></td><td style="font-size:11px"><code style="font-family:var(--mono);font-size:10px;background:var(--surface-soft);padding:1px 5px;border-radius:3px">loans</code></td><td style="font-size:12px">Loan program comparison</td><td class="num">3</td></tr>
+      <tr><td style="font-weight:700">contact-info</td><td><span style="font-size:11px;background:var(--wf-cream);padding:2px 6px;border-radius:4px;color:var(--wf-text-primary)">Custom</span></td><td style="font-size:11px">—</td><td style="font-size:12px">Phone + hours + callback</td><td class="num">6</td></tr>
+      <tr><td style="font-weight:700">App Promo</td><td><span style="font-size:11px;background:var(--wf-cream);padding:2px 6px;border-radius:4px;color:var(--wf-text-primary)">Custom</span></td><td style="font-size:11px"><code style="font-family:var(--mono);font-size:10px;background:var(--surface-soft);padding:1px 5px;border-radius:3px">compact</code></td><td style="font-size:12px">Mobile app download</td><td class="num">4</td></tr>
+      <tr><td style="font-weight:700">Help Sidebar</td><td><span style="font-size:11px;background:var(--wf-cream);padding:2px 6px;border-radius:4px;color:var(--wf-text-primary)">Custom</span></td><td style="font-size:11px">—</td><td style="font-size:12px">Quick help links (articles)</td><td class="num">40</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Third-Party Integrations -->
+
+<!-- Template Inventory for Mortgage Journey -->
+<div class="section" id="mortgage-templates">
+  <h2>Template Inventory</h2>
+  <p style="font-size:13px;color:var(--fg2);max-width:860px;margin-bottom:14px">Templates used in the Mortgage journey with page counts and key blocks. Each template represents a consistent page structure that shares parsers and transformers.</p>
+  <table>
+    <thead>
+      <tr><th>Template</th><th style="text-align:right">Pages</th><th>Funnel Stages</th><th>Key Pages</th><th>Key Blocks</th></tr>
+    </thead>
+    <tbody>
+      <tr><td style="font-weight:700">T2 L1 Product Landing</td><td class="num">3</td><td style="font-size:12px">Awareness</td><td style="font-size:11px;font-family:var(--mono)">/mortgage/, /mortgage/rates/, /mortgage/learn/</td><td style="font-size:11px">Hero, Cards, Tabs, Carousel, Quote, Disclaimers, help-cta, contact-info, Rates Table</td></tr>
+      <tr><td style="font-weight:700">T3 Product Detail</td><td class="num">49</td><td style="font-size:12px">Consideration, Conversion, Management</td><td style="font-size:11px;font-family:var(--mono)">/mortgage/loan-programs/*, /mortgage/buying-a-house/*, /mortgage/apply/</td><td style="font-size:11px">Hero, Accordion, Cards, Columns, Table, Disclaimers, help-cta, product-comparison, App Promo</td></tr>
+      <tr><td style="font-weight:700">T5 Education Article</td><td class="num">46</td><td style="font-size:12px">Education</td><td style="font-size:11px;font-family:var(--mono)">/mortgage/learn/* (46 articles)</td><td style="font-size:11px">Default content, Cards, Embed, Help Sidebar, Disclaimers</td></tr>
+      <tr><td style="font-weight:700">T6 Help/FAQ</td><td class="num">11</td><td style="font-size:12px">Management, Support</td><td style="font-size:11px;font-family:var(--mono)">/mortgage/faqs/, /help/home-lending/, /mortgage/manage-account/payment-help/*</td><td style="font-size:11px">Accordion, Cards, Tabs, contact-info, Disclaimers</td></tr>
+      <tr style="font-weight:700;background:var(--surface-soft)"><td>TOTAL</td><td class="num">109</td><td colspan="3" style="font-size:12px">4 templates covering the full mortgage funnel</td></tr>
+    </tbody>
+  </table>
+</div>
+
+
+<!-- Block × Template Coverage Matrix -->
+<div class="section" id="mortgage-coverage">
+  <h2>Block × Template Coverage</h2>
+  <p style="font-size:13px;color:var(--fg2);max-width:860px;margin-bottom:14px">Shows which blocks are used in which templates for the Mortgage journey. Shaded cells indicate the block is active in that template.</p>
+  <div style="overflow-x:auto">
+  <table style="font-size:12px;text-align:center">
+    <thead>
+      <tr>
+        <th style="text-align:left;min-width:160px">Block</th>
+        <th style="min-width:80px">T2<br><span style="font-size:9px;font-weight:400">Product<br>Landing</span></th>
+        <th style="min-width:80px">T3<br><span style="font-size:9px;font-weight:400">Product<br>Detail</span></th>
+        <th style="min-width:80px">T5<br><span style="font-size:9px;font-weight:400">Education<br>Article</span></th>
+        <th style="min-width:80px">T6<br><span style="font-size:9px;font-weight:400">Help /<br>FAQ</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td style="text-align:left"><span style="font-size:10px;display:inline-block;padding:1px 6px;border-radius:4px;background:color-mix(in srgb,var(--wf-green) 12%,var(--surface));color:var(--wf-green);font-weight:600">Hero</span></td><td style="background:color-mix(in srgb,var(--wf-green) 12%,var(--surface))">●</td><td style="background:color-mix(in srgb,var(--wf-green) 12%,var(--surface))">●</td><td></td><td></td></tr>
+      <tr><td style="text-align:left"><span style="font-size:10px;display:inline-block;padding:1px 6px;border-radius:4px;background:color-mix(in srgb,var(--wf-green) 12%,var(--surface));color:var(--wf-green);font-weight:600">Cards</span></td><td style="background:color-mix(in srgb,var(--wf-green) 12%,var(--surface))">●</td><td style="background:color-mix(in srgb,var(--wf-green) 12%,var(--surface))">●</td><td style="background:color-mix(in srgb,var(--wf-green) 12%,var(--surface))">●</td><td style="background:color-mix(in srgb,var(--wf-green) 12%,var(--surface))">●</td></tr>
+      <tr><td style="text-align:left"><span style="font-size:10px;display:inline-block;padding:1px 6px;border-radius:4px;background:color-mix(in srgb,var(--wf-green) 12%,var(--surface));color:var(--wf-green);font-weight:600">Accordion</span></td><td style="background:color-mix(in srgb,var(--wf-green) 12%,var(--surface))">●</td><td style="background:color-mix(in srgb,var(--wf-green) 12%,var(--surface))">●</td><td></td><td style="background:color-mix(in srgb,var(--wf-green) 12%,var(--surface))">●</td></tr>
+      <tr><td style="text-align:left"><span style="font-size:10px;display:inline-block;padding:1px 6px;border-radius:4px;background:color-mix(in srgb,var(--wf-green) 12%,var(--surface));color:var(--wf-green);font-weight:600">Columns</span></td><td style="background:color-mix(in srgb,var(--wf-green) 12%,var(--surface))">●</td><td style="background:color-mix(in srgb,var(--wf-green) 12%,var(--surface))">●</td><td></td><td></td></tr>
+      <tr><td style="text-align:left"><span style="font-size:10px;display:inline-block;padding:1px 6px;border-radius:4px;background:color-mix(in srgb,var(--wf-green) 12%,var(--surface));color:var(--wf-green);font-weight:600">Table</span></td><td></td><td style="background:color-mix(in srgb,var(--wf-green) 12%,var(--surface))">●</td><td></td><td></td></tr>
+      <tr><td style="text-align:left"><span style="font-size:10px;display:inline-block;padding:1px 6px;border-radius:4px;background:color-mix(in srgb,var(--wf-green) 12%,var(--surface));color:var(--wf-green);font-weight:600">Tabs</span></td><td style="background:color-mix(in srgb,var(--wf-green) 12%,var(--surface))">●</td><td></td><td></td><td style="background:color-mix(in srgb,var(--wf-green) 12%,var(--surface))">●</td></tr>
+      <tr><td style="text-align:left"><span style="font-size:10px;display:inline-block;padding:1px 6px;border-radius:4px;background:color-mix(in srgb,var(--wf-green) 12%,var(--surface));color:var(--wf-green);font-weight:600">Carousel</span></td><td style="background:color-mix(in srgb,var(--wf-green) 12%,var(--surface))">●</td><td></td><td></td><td></td></tr>
+      <tr><td style="text-align:left"><span style="font-size:10px;display:inline-block;padding:1px 6px;border-radius:4px;background:color-mix(in srgb,var(--wf-green) 12%,var(--surface));color:var(--wf-green);font-weight:600">Quote</span></td><td style="background:color-mix(in srgb,var(--wf-green) 12%,var(--surface))">●</td><td style="background:color-mix(in srgb,var(--wf-green) 12%,var(--surface))">●</td><td></td><td></td></tr>
+      <tr><td style="text-align:left"><span style="font-size:10px;display:inline-block;padding:1px 6px;border-radius:4px;background:color-mix(in srgb,var(--wf-green) 12%,var(--surface));color:var(--wf-green);font-weight:600">Embed</span></td><td></td><td style="background:color-mix(in srgb,var(--wf-green) 12%,var(--surface))">●</td><td style="background:color-mix(in srgb,var(--wf-green) 12%,var(--surface))">●</td><td></td></tr>
+      <tr><td style="text-align:left"><span style="font-size:10px;display:inline-block;padding:1px 6px;border-radius:4px;background:color-mix(in srgb,var(--wf-green) 12%,var(--surface));color:var(--wf-green);font-weight:600">Fragment</span></td><td style="background:color-mix(in srgb,var(--wf-green) 12%,var(--surface))">●</td><td style="background:color-mix(in srgb,var(--wf-green) 12%,var(--surface))">●</td><td></td><td></td></tr>
+      <tr><td style="text-align:left"><span style="font-size:10px;display:inline-block;padding:1px 6px;border-radius:4px;background:color-mix(in srgb,var(--wf-yellow) 12%,var(--surface));color:var(--wf-text-primary);font-weight:600">Disclaimers</span></td><td style="background:color-mix(in srgb,var(--wf-yellow) 12%,var(--surface))">●</td><td style="background:color-mix(in srgb,var(--wf-yellow) 12%,var(--surface))">●</td><td style="background:color-mix(in srgb,var(--wf-yellow) 12%,var(--surface))">●</td><td style="background:color-mix(in srgb,var(--wf-yellow) 12%,var(--surface))">●</td></tr>
+      <tr><td style="text-align:left"><span style="font-size:10px;display:inline-block;padding:1px 6px;border-radius:4px;background:color-mix(in srgb,var(--wf-yellow) 12%,var(--surface));color:var(--wf-text-primary);font-weight:600">help-cta</span></td><td style="background:color-mix(in srgb,var(--wf-yellow) 12%,var(--surface))">●</td><td style="background:color-mix(in srgb,var(--wf-yellow) 12%,var(--surface))">●</td><td></td><td></td></tr>
+      <tr><td style="text-align:left"><span style="font-size:10px;display:inline-block;padding:1px 6px;border-radius:4px;background:color-mix(in srgb,var(--wf-yellow) 12%,var(--surface));color:var(--wf-text-primary);font-weight:600">Rates Table</span></td><td style="background:color-mix(in srgb,var(--wf-yellow) 12%,var(--surface))">●</td><td style="background:color-mix(in srgb,var(--wf-yellow) 12%,var(--surface))">●</td><td></td><td></td></tr>
+      <tr><td style="text-align:left"><span style="font-size:10px;display:inline-block;padding:1px 6px;border-radius:4px;background:color-mix(in srgb,var(--wf-yellow) 12%,var(--surface));color:var(--wf-text-primary);font-weight:600">product-comparison</span></td><td></td><td style="background:color-mix(in srgb,var(--wf-yellow) 12%,var(--surface))">●</td><td></td><td></td></tr>
+      <tr><td style="text-align:left"><span style="font-size:10px;display:inline-block;padding:1px 6px;border-radius:4px;background:color-mix(in srgb,var(--wf-yellow) 12%,var(--surface));color:var(--wf-text-primary);font-weight:600">contact-info</span></td><td style="background:color-mix(in srgb,var(--wf-yellow) 12%,var(--surface))">●</td><td style="background:color-mix(in srgb,var(--wf-yellow) 12%,var(--surface))">●</td><td></td><td style="background:color-mix(in srgb,var(--wf-yellow) 12%,var(--surface))">●</td></tr>
+      <tr><td style="text-align:left"><span style="font-size:10px;display:inline-block;padding:1px 6px;border-radius:4px;background:color-mix(in srgb,var(--wf-yellow) 12%,var(--surface));color:var(--wf-text-primary);font-weight:600">App Promo</span></td><td style="background:color-mix(in srgb,var(--wf-yellow) 12%,var(--surface))">●</td><td style="background:color-mix(in srgb,var(--wf-yellow) 12%,var(--surface))">●</td><td></td><td></td></tr>
+      <tr><td style="text-align:left"><span style="font-size:10px;display:inline-block;padding:1px 6px;border-radius:4px;background:color-mix(in srgb,var(--wf-yellow) 12%,var(--surface));color:var(--wf-text-primary);font-weight:600">Help Sidebar</span></td><td></td><td></td><td style="background:color-mix(in srgb,var(--wf-yellow) 12%,var(--surface))">●</td><td></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <!-- Legend -->
+  <div style="display:flex;gap:16px;margin-top:12px;font-size:12px;color:var(--fg2)">
+    <div style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:color-mix(in srgb,var(--wf-green) 12%,var(--surface));border:1px solid var(--border)"></span> OOB Block (style to brand)</div>
+    <div style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:color-mix(in srgb,var(--wf-yellow) 12%,var(--surface));border:1px solid var(--border)"></span> Custom Block (to build)</div>
+    <div>● = Block used in template</div>
+  </div>
+</div>
+
+<div class="section" id="mortgage-integrations">
+  <h2>Third-Party & System Integrations</h2>
+  <p style="font-size:13px;color:var(--fg2);max-width:860px;margin-bottom:14px">Only pages under www.wellsfargo.com are in scope. External tools are preserved as link-out CTAs — no migration work required.</p>
+  <table>
+    <thead><tr><th>Integration</th><th>Type</th><th>Impact</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td style="font-weight:700">Prequalification / Refinance Tools</td><td>Internal Secure App</td><td style="color:var(--wf-green)">Link-out only</td><td style="font-size:12px">Preserve CTAs to web.secure.wellsfargo.com</td></tr>
+      <tr><td style="font-weight:700">Mortgage Application</td><td>Internal Secure App</td><td style="color:var(--wf-green)">Link-out only</td><td style="font-size:12px">Content page with CTA to secure app</td></tr>
+      <tr><td style="font-weight:700">Consultant Locator</td><td>Internal Tool</td><td style="color:var(--wf-green)">Link-out only</td><td style="font-size:12px">CTA links to homeloans.wellsfargo.com/search/</td></tr>
+      <tr><td style="font-weight:700">ComeHome (Home Shopping)</td><td style="color:#C05A10">Third-Party</td><td style="color:#C05A10;font-weight:600">Decision needed</td><td style="font-size:12px">Recommend: Link to portal (auth prevents embed)</td></tr>
+      <tr><td style="font-weight:700">Rate Feed API</td><td style="color:#C05A10">API</td><td style="color:#C05A10;font-weight:600">Decision needed</td><td style="font-size:12px">Recommend: Scheduled publish via DA sheet (daily update)</td></tr>
+      <tr><td style="font-weight:700">Mortgage Calculators (4 pages)</td><td style="color:var(--wf-red)">Dynamic JS</td><td style="color:var(--wf-red);font-weight:600">Not migratable</td><td style="font-size:12px">Stub pages with description + link to live tools</td></tr>
+      <tr><td style="font-weight:700">OneTrust + Nuance Chat</td><td>Third-Party (site-wide)</td><td style="color:var(--wf-green)">delayed.js</td><td style="font-size:12px">Load via delayed.js — no content impact</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Page Assignments by Developer -->
+<div class="section" id="mortgage-pages">
+  <h2>Page Assignments by Developer</h2>
+
+  <details style="margin-bottom:12px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+    <summary style="padding:12px 16px;background:var(--surface-soft);cursor:pointer;font-weight:700;display:flex;align-items:center;gap:8px">
+      <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#D71E28"></span>
+      Dev 1 — Awareness + Conversion (Entry & Exit Points)
+      <span style="margin-left:auto;font-family:var(--mono);font-size:13px;color:var(--fg3)">9 pages</span>
+    </summary>
+    <div style="padding:12px 16px">
+      <p style="font-size:12px;color:var(--fg2);margin-bottom:10px"><strong>Focus:</strong> Landing page hero/tabs, prequalification entry, personalized rate tool CTAs</p>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
+        <div style="text-align:center;padding:6px;background:color-mix(in srgb,var(--wf-red) 8%,var(--surface));border-radius:6px"><strong style="font-family:var(--mono)">2</strong><br><span style="font-size:11px;color:var(--fg3)">Week 1</span></div>
+        <div style="text-align:center;padding:6px;background:color-mix(in srgb,var(--wf-yellow) 12%,var(--surface));border-radius:6px"><strong style="font-family:var(--mono)">4</strong><br><span style="font-size:11px;color:var(--fg3)">Week 2</span></div>
+        <div style="text-align:center;padding:6px;background:color-mix(in srgb,var(--wf-green) 8%,var(--surface));border-radius:6px"><strong style="font-family:var(--mono)">3</strong><br><span style="font-size:11px;color:var(--fg3)">Week 3</span></div>
+      </div>
+      <table style="font-size:12px"><thead><tr><th>#</th><th>Path</th><th>Sprint</th></tr></thead><tbody>
+        <tr><td class="num">1</td><td><a href="https://www.wellsfargo.com/mortgage/" style="font-family:var(--mono);font-size:11px">/mortgage/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-red)">W1</span></td></tr>
+        <tr><td class="num">2</td><td><a href="https://www.wellsfargo.com/mortgage/learn/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-red)">W1</span></td></tr>
+        <tr><td class="num">3</td><td><a href="https://www.wellsfargo.com/mortgage/rates/" style="font-family:var(--mono);font-size:11px">/mortgage/rates/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">4</td><td><a href="https://www.wellsfargo.com/mortgage/apply/" style="font-family:var(--mono);font-size:11px">/mortgage/apply/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">5</td><td><a href="https://www.wellsfargo.com/mortgage/come-home/" style="font-family:var(--mono);font-size:11px">/mortgage/come-home/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">6</td><td><a href="https://www.wellsfargo.com/mortgage/cost-of-savings-index/" style="font-family:var(--mono);font-size:11px">/mortgage/cost-of-savings-index/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">7</td><td><a href="https://www.wellsfargo.com/mortgage/personalized-rate/" style="font-family:var(--mono);font-size:11px">/mortgage/personalized-rate/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-green)">W3</span></td></tr>
+        <tr><td class="num">8</td><td><a href="https://www.wellsfargo.com/mortgage/prequalification/" style="font-family:var(--mono);font-size:11px">/mortgage/prequalification/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-green)">W3</span></td></tr>
+        <tr><td class="num">9</td><td><a href="https://www.wellsfargo.com/mortgage/welcome/" style="font-family:var(--mono);font-size:11px">/mortgage/welcome/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-green)">W3</span></td></tr>
+      </tbody></table>
+    </div>
+  </details>
+
+  <details style="margin-bottom:12px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+    <summary style="padding:12px 16px;background:var(--surface-soft);cursor:pointer;font-weight:700;display:flex;align-items:center;gap:8px">
+      <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#5A469B"></span>
+      Dev 2 — Loan Programs & Home Buying
+      <span style="margin-left:auto;font-family:var(--mono);font-size:13px;color:var(--fg3)">17 pages</span>
+    </summary>
+    <div style="padding:12px 16px">
+      <p style="font-size:12px;color:var(--fg2);margin-bottom:10px"><strong>Focus:</strong> Loan program detail pages, product-comparison block, buying guides</p>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
+        <div style="text-align:center;padding:6px;background:color-mix(in srgb,var(--wf-red) 8%,var(--surface));border-radius:6px"><strong style="font-family:var(--mono)">4</strong><br><span style="font-size:11px;color:var(--fg3)">Week 1</span></div>
+        <div style="text-align:center;padding:6px;background:color-mix(in srgb,var(--wf-yellow) 12%,var(--surface));border-radius:6px"><strong style="font-family:var(--mono)">8</strong><br><span style="font-size:11px;color:var(--fg3)">Week 2</span></div>
+        <div style="text-align:center;padding:6px;background:color-mix(in srgb,var(--wf-green) 8%,var(--surface));border-radius:6px"><strong style="font-family:var(--mono)">5</strong><br><span style="font-size:11px;color:var(--fg3)">Week 3</span></div>
+      </div>
+      <table style="font-size:12px"><thead><tr><th>#</th><th>Path</th><th>Sprint</th></tr></thead><tbody>
+        <tr><td class="num">1</td><td><a href="https://www.wellsfargo.com/auto-loans/" style="font-family:var(--mono);font-size:11px">/auto-loans/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-red)">W1</span></td></tr>
+        <tr><td class="num">2</td><td><a href="https://www.wellsfargo.com/auto-loans/assist/" style="font-family:var(--mono);font-size:11px">/auto-loans/assist/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-red)">W1</span></td></tr>
+        <tr><td class="num">3</td><td><a href="https://www.wellsfargo.com/auto-loans/make-payments/" style="font-family:var(--mono);font-size:11px">/auto-loans/make-payments/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-red)">W1</span></td></tr>
+        <tr><td class="num">4</td><td><a href="https://www.wellsfargo.com/auto-loans/vehicle-financing-101/" style="font-family:var(--mono);font-size:11px">/auto-loans/vehicle-financing-101/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-red)">W1</span></td></tr>
+        <tr><td class="num">5</td><td><a href="https://www.wellsfargo.com/equity/" style="font-family:var(--mono);font-size:11px">/equity/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">6</td><td><a href="https://www.wellsfargo.com/mortgage/apply/disclosure-ny/" style="font-family:var(--mono);font-size:11px">/mortgage/apply/disclosure-ny/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">7</td><td><a href="https://www.wellsfargo.com/mortgage/buying-a-house/" style="font-family:var(--mono);font-size:11px">/mortgage/buying-a-house/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">8</td><td><a href="https://www.wellsfargo.com/mortgage/buying-a-house/affordable-options/" style="font-family:var(--mono);font-size:11px">/mortgage/buying-a-house/affordable-options/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">9</td><td><a href="https://www.wellsfargo.com/mortgage/buying-a-house/first-time-home-buyer/" style="font-family:var(--mono);font-size:11px">/mortgage/buying-a-house/first-time-home-buyer/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">10</td><td><a href="https://www.wellsfargo.com/mortgage/buying-a-house/specialized-financing/" style="font-family:var(--mono);font-size:11px">/mortgage/buying-a-house/specialized-financing/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">11</td><td><a href="https://www.wellsfargo.com/mortgage/loan-programs/" style="font-family:var(--mono);font-size:11px">/mortgage/loan-programs/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">12</td><td><a href="https://www.wellsfargo.com/mortgage/loan-programs/adjustable-rate-mortgage/" style="font-family:var(--mono);font-size:11px">/mortgage/loan-programs/adjustable-rate-mortgage/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">13</td><td><a href="https://www.wellsfargo.com/mortgage/loan-programs/fha-loan/" style="font-family:var(--mono);font-size:11px">/mortgage/loan-programs/fha-loan/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-green)">W3</span></td></tr>
+        <tr><td class="num">14</td><td><a href="https://www.wellsfargo.com/mortgage/loan-programs/fixed-rate-mortgage/" style="font-family:var(--mono);font-size:11px">/mortgage/loan-programs/fixed-rate-mortgage/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-green)">W3</span></td></tr>
+        <tr><td class="num">15</td><td><a href="https://www.wellsfargo.com/mortgage/loan-programs/jumbo-loan/" style="font-family:var(--mono);font-size:11px">/mortgage/loan-programs/jumbo-loan/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-green)">W3</span></td></tr>
+        <tr><td class="num">16</td><td><a href="https://www.wellsfargo.com/mortgage/loan-programs/va-loans/" style="font-family:var(--mono);font-size:11px">/mortgage/loan-programs/va-loans/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-green)">W3</span></td></tr>
+        <tr><td class="num">17</td><td><a href="https://www.wellsfargo.com/mortgage/mortgage-refinance/" style="font-family:var(--mono);font-size:11px">/mortgage/mortgage-refinance/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-green)">W3</span></td></tr>
+      </tbody></table>
+    </div>
+  </details>
+
+  <details style="margin-bottom:12px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+    <summary style="padding:12px 16px;background:var(--surface-soft);cursor:pointer;font-weight:700;display:flex;align-items:center;gap:8px">
+      <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#468254"></span>
+      Dev 3 — Refinance, Equity & Personal Loans
+      <span style="margin-left:auto;font-family:var(--mono);font-size:13px;color:var(--fg3)">17 pages</span>
+    </summary>
+    <div style="padding:12px 16px">
+      <p style="font-size:12px;color:var(--fg2);margin-bottom:10px"><strong>Focus:</strong> Refinance pages, equity/personal/auto loan detail pages</p>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
+        <div style="text-align:center;padding:6px;background:color-mix(in srgb,var(--wf-red) 8%,var(--surface));border-radius:6px"><strong style="font-family:var(--mono)">4</strong><br><span style="font-size:11px;color:var(--fg3)">Week 1</span></div>
+        <div style="text-align:center;padding:6px;background:color-mix(in srgb,var(--wf-yellow) 12%,var(--surface));border-radius:6px"><strong style="font-family:var(--mono)">8</strong><br><span style="font-size:11px;color:var(--fg3)">Week 2</span></div>
+        <div style="text-align:center;padding:6px;background:color-mix(in srgb,var(--wf-green) 8%,var(--surface));border-radius:6px"><strong style="font-family:var(--mono)">5</strong><br><span style="font-size:11px;color:var(--fg3)">Week 3</span></div>
+      </div>
+      <table style="font-size:12px"><thead><tr><th>#</th><th>Path</th><th>Sprint</th></tr></thead><tbody>
+        <tr><td class="num">1</td><td><a href="https://www.wellsfargo.com/mortgage/mortgage-refinance/cash-out-refinance/" style="font-family:var(--mono);font-size:11px">/mortgage/mortgage-refinance/cash-out-refinance/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-red)">W1</span></td></tr>
+        <tr><td class="num">2</td><td><a href="https://www.wellsfargo.com/mortgage/private-mortgage-banking/" style="font-family:var(--mono);font-size:11px">/mortgage/private-mortgage-banking/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-red)">W1</span></td></tr>
+        <tr><td class="num">3</td><td><a href="https://www.wellsfargo.com/mortgage/relationship-offers/" style="font-family:var(--mono);font-size:11px">/mortgage/relationship-offers/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-red)">W1</span></td></tr>
+        <tr><td class="num">4</td><td><a href="https://www.wellsfargo.com/personal-loans/" style="font-family:var(--mono);font-size:11px">/personal-loans/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-red)">W1</span></td></tr>
+        <tr><td class="num">5</td><td><a href="https://www.wellsfargo.com/personal-loans/auto-repair-loans/" style="font-family:var(--mono);font-size:11px">/personal-loans/auto-repair-loans/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">6</td><td><a href="https://www.wellsfargo.com/personal-loans/checklist/" style="font-family:var(--mono);font-size:11px">/personal-loans/checklist/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">7</td><td><a href="https://www.wellsfargo.com/personal-loans/debt-consolidation/" style="font-family:var(--mono);font-size:11px">/personal-loans/debt-consolidation/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">8</td><td><a href="https://www.wellsfargo.com/personal-loans/emergency-loans/" style="font-family:var(--mono);font-size:11px">/personal-loans/emergency-loans/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">9</td><td><a href="https://www.wellsfargo.com/personal-loans/family-planning-loans/" style="font-family:var(--mono);font-size:11px">/personal-loans/family-planning-loans/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">10</td><td><a href="https://www.wellsfargo.com/personal-loans/home-improvement/" style="font-family:var(--mono);font-size:11px">/personal-loans/home-improvement/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">11</td><td><a href="https://www.wellsfargo.com/personal-loans/medical-loans/" style="font-family:var(--mono);font-size:11px">/personal-loans/medical-loans/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">12</td><td><a href="https://www.wellsfargo.com/personal-loans/moving-loans/" style="font-family:var(--mono);font-size:11px">/personal-loans/moving-loans/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">13</td><td><a href="https://www.wellsfargo.com/personal-loans/pet-care-loans/" style="font-family:var(--mono);font-size:11px">/personal-loans/pet-care-loans/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-green)">W3</span></td></tr>
+        <tr><td class="num">14</td><td><a href="https://www.wellsfargo.com/personal-loans/rates/" style="font-family:var(--mono);font-size:11px">/personal-loans/rates/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-green)">W3</span></td></tr>
+        <tr><td class="num">15</td><td><a href="https://www.wellsfargo.com/personal-loans/uses-of-a-personal-loan/" style="font-family:var(--mono);font-size:11px">/personal-loans/uses-of-a-personal-loan/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-green)">W3</span></td></tr>
+        <tr><td class="num">16</td><td><a href="https://www.wellsfargo.com/personal-loans/vacation-loans/" style="font-family:var(--mono);font-size:11px">/personal-loans/vacation-loans/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-green)">W3</span></td></tr>
+        <tr><td class="num">17</td><td><a href="https://www.wellsfargo.com/personal-loans/wedding-loans/" style="font-family:var(--mono);font-size:11px">/personal-loans/wedding-loans/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-green)">W3</span></td></tr>
+      </tbody></table>
+    </div>
+  </details>
+
+  <details style="margin-bottom:12px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+    <summary style="padding:12px 16px;background:var(--surface-soft);cursor:pointer;font-weight:700;display:flex;align-items:center;gap:8px">
+      <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#C05A10"></span>
+      Dev 4 — Education Articles (A–H)
+      <span style="margin-left:auto;font-family:var(--mono);font-size:13px;color:var(--fg3)">23 pages</span>
+    </summary>
+    <div style="padding:12px 16px">
+      <p style="font-size:12px;color:var(--fg2);margin-bottom:10px"><strong>Focus:</strong> First batch of /mortgage/learn/* articles (same template, bulk import)</p>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
+        <div style="text-align:center;padding:6px;background:color-mix(in srgb,var(--wf-red) 8%,var(--surface));border-radius:6px"><strong style="font-family:var(--mono)">5</strong><br><span style="font-size:11px;color:var(--fg3)">Week 1</span></div>
+        <div style="text-align:center;padding:6px;background:color-mix(in srgb,var(--wf-yellow) 12%,var(--surface));border-radius:6px"><strong style="font-family:var(--mono)">11</strong><br><span style="font-size:11px;color:var(--fg3)">Week 2</span></div>
+        <div style="text-align:center;padding:6px;background:color-mix(in srgb,var(--wf-green) 8%,var(--surface));border-radius:6px"><strong style="font-family:var(--mono)">7</strong><br><span style="font-size:11px;color:var(--fg3)">Week 3</span></div>
+      </div>
+      <table style="font-size:12px"><thead><tr><th>#</th><th>Path</th><th>Sprint</th></tr></thead><tbody>
+        <tr><td class="num">1</td><td><a href="https://www.wellsfargo.com/mortgage/learn/are-you-financially-ready-to-buy-a-home/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/are-you-financially-ready-to-buy-a-home/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-red)">W1</span></td></tr>
+        <tr><td class="num">2</td><td><a href="https://www.wellsfargo.com/mortgage/learn/benefits-of-refinancing-your-mortgage/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/benefits-of-refinancing-your-mortgage/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-red)">W1</span></td></tr>
+        <tr><td class="num">3</td><td><a href="https://www.wellsfargo.com/mortgage/learn/build-a-new-home-guide/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/build-a-new-home-guide/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-red)">W1</span></td></tr>
+        <tr><td class="num">4</td><td><a href="https://www.wellsfargo.com/mortgage/learn/buyers-market-vs-sellers-market/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/buyers-market-vs-sellers-market/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-red)">W1</span></td></tr>
+        <tr><td class="num">5</td><td><a href="https://www.wellsfargo.com/mortgage/learn/buying-a-home-on-a-budget/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/buying-a-home-on-a-budget/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-red)">W1</span></td></tr>
+        <tr><td class="num">6</td><td><a href="https://www.wellsfargo.com/mortgage/learn/buying-a-home-with-a-low-down-payment/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/buying-a-home-with-a-low-down-payment/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">7</td><td><a href="https://www.wellsfargo.com/mortgage/learn/buying-selling-home-same-time/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/buying-selling-home-same-time/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">8</td><td><a href="https://www.wellsfargo.com/mortgage/learn/cash-out-refinancing/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/cash-out-refinancing/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">9</td><td><a href="https://www.wellsfargo.com/mortgage/learn/closing-costs/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/closing-costs/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">10</td><td><a href="https://www.wellsfargo.com/mortgage/learn/common-homebuying-obstacles/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/common-homebuying-obstacles/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">11</td><td><a href="https://www.wellsfargo.com/mortgage/learn/compare-cost-of-renting-vs-buying-a-home/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/compare-cost-of-renting-vs-buying-a-home/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">12</td><td><a href="https://www.wellsfargo.com/mortgage/learn/compare-mortgage-lenders/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/compare-mortgage-lenders/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">13</td><td><a href="https://www.wellsfargo.com/mortgage/learn/costs-tied-to-making-an-offer-on-a-home/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/costs-tied-to-making-an-offer-on-a-home/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">14</td><td><a href="https://www.wellsfargo.com/mortgage/learn/downsizing-home/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/downsizing-home/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">15</td><td><a href="https://www.wellsfargo.com/mortgage/learn/earnest-money/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/earnest-money/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">16</td><td><a href="https://www.wellsfargo.com/mortgage/learn/escrow-accounts/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/escrow-accounts/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">17</td><td><a href="https://www.wellsfargo.com/mortgage/learn/explaining-dti-why-it-matters/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/explaining-dti-why-it-matters/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-green)">W3</span></td></tr>
+        <tr><td class="num">18</td><td><a href="https://www.wellsfargo.com/mortgage/learn/gift-funds-down-payment/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/gift-funds-down-payment/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-green)">W3</span></td></tr>
+        <tr><td class="num">19</td><td><a href="https://www.wellsfargo.com/mortgage/learn/home-financing-and-cash-flow/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/home-financing-and-cash-flow/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-green)">W3</span></td></tr>
+        <tr><td class="num">20</td><td><a href="https://www.wellsfargo.com/mortgage/learn/how-much-do-you-need-for-a-down-payment/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/how-much-do-you-need-for-a-down-payment/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-green)">W3</span></td></tr>
+        <tr><td class="num">21</td><td><a href="https://www.wellsfargo.com/mortgage/learn/how-to-build-your-credit-and-savings-for-a-new-home/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/how-to-build-your-credit-and-savings-for-a-new-home/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-green)">W3</span></td></tr>
+        <tr><td class="num">22</td><td><a href="https://www.wellsfargo.com/mortgage/learn/how-to-make-a-competitive-home-offer/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/how-to-make-a-competitive-home-offer/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-green)">W3</span></td></tr>
+        <tr><td class="num">23</td><td><a href="https://www.wellsfargo.com/mortgage/learn/if-you-get-turned-down-for-a-home-loan/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/if-you-get-turned-down-for-a-home-loan/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-green)">W3</span></td></tr>
+      </tbody></table>
+    </div>
+  </details>
+
+  <details style="margin-bottom:12px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+    <summary style="padding:12px 16px;background:var(--surface-soft);cursor:pointer;font-weight:700;display:flex;align-items:center;gap:8px">
+      <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#1A6B8A"></span>
+      Dev 5 — Education Articles (I–Z)
+      <span style="margin-left:auto;font-family:var(--mono);font-size:13px;color:var(--fg3)">23 pages</span>
+    </summary>
+    <div style="padding:12px 16px">
+      <p style="font-size:12px;color:var(--fg2);margin-bottom:10px"><strong>Focus:</strong> Second batch of /mortgage/learn/* articles (same template, bulk import)</p>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
+        <div style="text-align:center;padding:6px;background:color-mix(in srgb,var(--wf-red) 8%,var(--surface));border-radius:6px"><strong style="font-family:var(--mono)">5</strong><br><span style="font-size:11px;color:var(--fg3)">Week 1</span></div>
+        <div style="text-align:center;padding:6px;background:color-mix(in srgb,var(--wf-yellow) 12%,var(--surface));border-radius:6px"><strong style="font-family:var(--mono)">11</strong><br><span style="font-size:11px;color:var(--fg3)">Week 2</span></div>
+        <div style="text-align:center;padding:6px;background:color-mix(in srgb,var(--wf-green) 8%,var(--surface));border-radius:6px"><strong style="font-family:var(--mono)">7</strong><br><span style="font-size:11px;color:var(--fg3)">Week 3</span></div>
+      </div>
+      <table style="font-size:12px"><thead><tr><th>#</th><th>Path</th><th>Sprint</th></tr></thead><tbody>
+        <tr><td class="num">1</td><td><a href="https://www.wellsfargo.com/mortgage/learn/importance-of-credit-debt-savings-in-homebuying/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/importance-of-credit-debt-savings-in-homebuying/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-red)">W1</span></td></tr>
+        <tr><td class="num">2</td><td><a href="https://www.wellsfargo.com/mortgage/learn/important-steps-for-homebuying-process/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/important-steps-for-homebuying-process/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-red)">W1</span></td></tr>
+        <tr><td class="num">3</td><td><a href="https://www.wellsfargo.com/mortgage/learn/insurance-and-your-home/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/insurance-and-your-home/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-red)">W1</span></td></tr>
+        <tr><td class="num">4</td><td><a href="https://www.wellsfargo.com/mortgage/learn/make-home-more-energy-efficient/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/make-home-more-energy-efficient/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-red)">W1</span></td></tr>
+        <tr><td class="num">5</td><td><a href="https://www.wellsfargo.com/mortgage/learn/mortgage-prequalification-vs-preapproval/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/mortgage-prequalification-vs-preapproval/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-red)">W1</span></td></tr>
+        <tr><td class="num">6</td><td><a href="https://www.wellsfargo.com/mortgage/learn/mortgage-self-employed/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/mortgage-self-employed/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">7</td><td><a href="https://www.wellsfargo.com/mortgage/learn/new-homeowners-guide-property-taxes/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/new-homeowners-guide-property-taxes/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">8</td><td><a href="https://www.wellsfargo.com/mortgage/learn/pay-down-mortgage-faster/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/pay-down-mortgage-faster/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">9</td><td><a href="https://www.wellsfargo.com/mortgage/learn/prepare-for-home-buying-with-a-financial-checkup/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/prepare-for-home-buying-with-a-financial-checkup/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">10</td><td><a href="https://www.wellsfargo.com/mortgage/learn/prepare-for-your-closing/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/prepare-for-your-closing/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">11</td><td><a href="https://www.wellsfargo.com/mortgage/learn/rate-lock/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/rate-lock/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">12</td><td><a href="https://www.wellsfargo.com/mortgage/learn/real-estate-tax-implications/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/real-estate-tax-implications/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">13</td><td><a href="https://www.wellsfargo.com/mortgage/learn/rent-vs-own-decision/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/rent-vs-own-decision/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">14</td><td><a href="https://www.wellsfargo.com/mortgage/learn/steps-to-safety-proof-your-home/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/steps-to-safety-proof-your-home/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">15</td><td><a href="https://www.wellsfargo.com/mortgage/learn/steps-to-understand-mortgage-underwriting/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/steps-to-understand-mortgage-underwriting/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">16</td><td><a href="https://www.wellsfargo.com/mortgage/learn/tips-to-avoid-homebuying-stress/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/tips-to-avoid-homebuying-stress/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">17</td><td><a href="https://www.wellsfargo.com/mortgage/learn/tips-to-start-your-home-search/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/tips-to-start-your-home-search/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-green)">W3</span></td></tr>
+        <tr><td class="num">18</td><td><a href="https://www.wellsfargo.com/mortgage/learn/understanding-homeowner-taxes/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/understanding-homeowner-taxes/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-green)">W3</span></td></tr>
+        <tr><td class="num">19</td><td><a href="https://www.wellsfargo.com/mortgage/learn/what-is-a-jumbo-loan/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/what-is-a-jumbo-loan/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-green)">W3</span></td></tr>
+        <tr><td class="num">20</td><td><a href="https://www.wellsfargo.com/mortgage/learn/what-is-apr/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/what-is-apr/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-green)">W3</span></td></tr>
+        <tr><td class="num">21</td><td><a href="https://www.wellsfargo.com/mortgage/learn/what-is-pmi/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/what-is-pmi/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-green)">W3</span></td></tr>
+        <tr><td class="num">22</td><td><a href="https://www.wellsfargo.com/mortgage/learn/what-monthly-mortgage-payment-can-you-afford/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/what-monthly-mortgage-payment-can-you-afford/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-green)">W3</span></td></tr>
+        <tr><td class="num">23</td><td><a href="https://www.wellsfargo.com/mortgage/learn/what-those-homebuying-tv-series-dont-show/" style="font-family:var(--mono);font-size:11px">/mortgage/learn/what-those-homebuying-tv-series-dont-show/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-green)">W3</span></td></tr>
+      </tbody></table>
+    </div>
+  </details>
+
+  <details style="margin-bottom:12px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+    <summary style="padding:12px 16px;background:var(--surface-soft);cursor:pointer;font-weight:700;display:flex;align-items:center;gap:8px">
+      <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#8B5E3C"></span>
+      Dev 6 — Account Management + Support
+      <span style="margin-left:auto;font-family:var(--mono);font-size:13px;color:var(--fg3)">20 pages</span>
+    </summary>
+    <div style="padding:12px 16px">
+      <p style="font-size:12px;color:var(--fg2);margin-bottom:10px"><strong>Focus:</strong> Payment help, assistance programs, FAQs, help pages</p>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
+        <div style="text-align:center;padding:6px;background:color-mix(in srgb,var(--wf-red) 8%,var(--surface));border-radius:6px"><strong style="font-family:var(--mono)">5</strong><br><span style="font-size:11px;color:var(--fg3)">Week 1</span></div>
+        <div style="text-align:center;padding:6px;background:color-mix(in srgb,var(--wf-yellow) 12%,var(--surface));border-radius:6px"><strong style="font-family:var(--mono)">10</strong><br><span style="font-size:11px;color:var(--fg3)">Week 2</span></div>
+        <div style="text-align:center;padding:6px;background:color-mix(in srgb,var(--wf-green) 8%,var(--surface));border-radius:6px"><strong style="font-family:var(--mono)">5</strong><br><span style="font-size:11px;color:var(--fg3)">Week 3</span></div>
+      </div>
+      <table style="font-size:12px"><thead><tr><th>#</th><th>Path</th><th>Sprint</th></tr></thead><tbody>
+        <tr><td class="num">1</td><td><a href="https://www.wellsfargo.com/mortgage/manage-account/" style="font-family:var(--mono);font-size:11px">/mortgage/manage-account/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-red)">W1</span></td></tr>
+        <tr><td class="num">2</td><td><a href="https://www.wellsfargo.com/mortgage/manage-account/automatic-mortgage-payments-terms/" style="font-family:var(--mono);font-size:11px">/mortgage/manage-account/automatic-mortgage-payments-terms/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-red)">W1</span></td></tr>
+        <tr><td class="num">3</td><td><a href="https://www.wellsfargo.com/mortgage/manage-account/automatic-mortgage-payments/" style="font-family:var(--mono);font-size:11px">/mortgage/manage-account/automatic-mortgage-payments/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-red)">W1</span></td></tr>
+        <tr><td class="num">4</td><td><a href="https://www.wellsfargo.com/mortgage/manage-account/disaster-recovery/" style="font-family:var(--mono);font-size:11px">/mortgage/manage-account/disaster-recovery/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-red)">W1</span></td></tr>
+        <tr><td class="num">5</td><td><a href="https://www.wellsfargo.com/mortgage/manage-account/fees/" style="font-family:var(--mono);font-size:11px">/mortgage/manage-account/fees/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-red)">W1</span></td></tr>
+        <tr><td class="num">6</td><td><a href="https://www.wellsfargo.com/mortgage/manage-account/maturing-home-equity-account/" style="font-family:var(--mono);font-size:11px">/mortgage/manage-account/maturing-home-equity-account/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">7</td><td><a href="https://www.wellsfargo.com/mortgage/manage-account/maturing-mortgage/" style="font-family:var(--mono);font-size:11px">/mortgage/manage-account/maturing-mortgage/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">8</td><td><a href="https://www.wellsfargo.com/mortgage/manage-account/payment-help/" style="font-family:var(--mono);font-size:11px">/mortgage/manage-account/payment-help/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">9</td><td><a href="https://www.wellsfargo.com/mortgage/manage-account/payment-help/home-assist-reference/" style="font-family:var(--mono);font-size:11px">/mortgage/manage-account/payment-help/home-assist-reference/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">10</td><td><a href="https://www.wellsfargo.com/mortgage/manage-account/payment-help/homeowner-assistance-fund/" style="font-family:var(--mono);font-size:11px">/mortgage/manage-account/payment-help/homeowner-assistance-fund/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">11</td><td><a href="https://www.wellsfargo.com/mortgage/manage-account/payment-help/mortgage-assistance-application/" style="font-family:var(--mono);font-size:11px">/mortgage/manage-account/payment-help/mortgage-assistance-application/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">12</td><td><a href="https://www.wellsfargo.com/mortgage/manage-account/preferred-payment-plan-terms/" style="font-family:var(--mono);font-size:11px">/mortgage/manage-account/preferred-payment-plan-terms/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">13</td><td><a href="https://www.wellsfargo.com/mortgage/manage-account/wiring-instructions/" style="font-family:var(--mono);font-size:11px">/mortgage/manage-account/wiring-instructions/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">14</td><td><a href="https://www.wellsfargo.com/help/home-lending/" style="font-family:var(--mono);font-size:11px">/help/home-lending/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">15</td><td><a href="https://www.wellsfargo.com/help/loans/" style="font-family:var(--mono);font-size:11px">/help/loans/</a></td><td><span style="font-size:10px;font-weight:700;color:color-mix(in srgb,var(--wf-yellow) 80%,var(--wf-dark))">W2</span></td></tr>
+        <tr><td class="num">16</td><td><a href="https://www.wellsfargo.com/help/loans/auto-loans-faqs/" style="font-family:var(--mono);font-size:11px">/help/loans/auto-loans-faqs/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-green)">W3</span></td></tr>
+        <tr><td class="num">17</td><td><a href="https://www.wellsfargo.com/help/loans/personal-loan-faqs/" style="font-family:var(--mono);font-size:11px">/help/loans/personal-loan-faqs/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-green)">W3</span></td></tr>
+        <tr><td class="num">18</td><td><a href="https://www.wellsfargo.com/help/loans/personal-loan-faqs/" style="font-family:var(--mono);font-size:11px">/help/loans/personal-loan-faqs/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-green)">W3</span></td></tr>
+        <tr><td class="num">19</td><td><a href="https://www.wellsfargo.com/mortgage/faqs/" style="font-family:var(--mono);font-size:11px">/mortgage/faqs/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-green)">W3</span></td></tr>
+        <tr><td class="num">20</td><td><a href="https://www.wellsfargo.com/mortgage/safe-act/" style="font-family:var(--mono);font-size:11px">/mortgage/safe-act/</a></td><td><span style="font-size:10px;font-weight:700;color:var(--wf-green)">W3</span></td></tr>
+      </tbody></table>
+    </div>
+  </details>
+
+  <details style="margin-bottom:12px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+    <summary style="padding:12px 16px;background:var(--surface-soft);cursor:pointer;font-weight:700;display:flex;align-items:center;gap:8px">
+      <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#3B3331"></span>
+      Dev 7 — Block Infrastructure + Design System + QA
+      <span style="margin-left:auto;font-family:var(--mono);font-size:13px;color:var(--fg3)">Infrastructure</span>
+    </summary>
+    <div style="padding:12px 16px;font-size:13px;color:var(--fg2)">
+      <strong>Focus:</strong> Build all 17 blocks (10 OOB styling + 7 custom dev), integration testing, visual QA<br>
+      <strong>Key Blocks:</strong> Hero (2 variants), Cards (4 variants), Accordion, Columns, Table, Tabs, Disclaimers, help-cta, Rates Table, product-comparison, contact-info, Help Sidebar, App Promo
+    </div>
+  </details>
+</div>
+
+<!-- Success Criteria -->
+<div class="section" id="mortgage-success">
+  <h2>Success Criteria</h2>
+  <table>
+    <thead><tr><th>Metric</th><th>Target</th><th>Owner</th></tr></thead>
+    <tbody>
+      <tr><td style="font-weight:700">Pages imported</td><td>109 / 109 (100%)</td><td>All devs</td></tr>
+      <tr><td style="font-weight:700">Journey navigation</td><td>100% cross-page links resolve within wellsfargo.com</td><td>Dev 7</td></tr>
+      <tr><td style="font-weight:700">Visual parity</td><td>&ge; 95% match to source</td><td>Dev 7</td></tr>
+      <tr><td style="font-weight:700">Lighthouse Performance</td><td>&ge; 95 on all pages</td><td>Dev 7</td></tr>
+      <tr><td style="font-weight:700">Calculator stubs</td><td>4 stub pages link correctly to live tools</td><td>Dev 1</td></tr>
+      <tr><td style="font-weight:700">Block coverage</td><td>All 17 blocks functional</td><td>Dev 7</td></tr>
+    </tbody>
+  </table>
+</div>
+
+</div>
 
 <div class="main-tab-panel" id="tab-panel-devplan" role="tabpanel" aria-labelledby="tab-btn-devplan">
 
