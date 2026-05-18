@@ -15,13 +15,14 @@
   --wf-link-hover: #6048AD;
   --wf-bg-warm: #F4F0ED;
   --wf-bg-light: #F9F7F6;
+  --wf-bg-white: #FFFFFF;
   --wf-bg-gray: #E2DEDE;
   --wf-bg-offwhite: #F8F8F8;
   --wf-green: #468254;
   --wf-cream: #FFF7E2;
 
   /* semantic aliases */
-  --background-color: #fff;
+  --background-color: var(--wf-bg-white);
   --light-color: var(--wf-bg-light);
   --dark-color: var(--wf-dark);
   --text-color: var(--wf-text-primary);
@@ -33,6 +34,7 @@
   --heading-font-family: 'Wells Fargo Sans', arial, helvetica, sans-serif;
 
   /* body sizes */
+  --body-font-size-xl: 21px;
   --body-font-size-m: 17px;
   --body-font-size-s: 15px;
   --body-font-size-xs: 13px;
@@ -59,7 +61,12 @@
 
 @media (width >= 900px) {
   :root {
-    --heading-font-size-xxl: 40px;
+    /* body sizes */
+    --body-font-size-xl: 24px;
+    --body-font-size-m: 17px;
+    --body-font-size-s: 15px;
+    --body-font-size-xs: 13px;
+    --heading-font-size-xxl: 56px;
     --heading-font-size-xl: 32px;
     --heading-font-size-l: 26px;
     --heading-font-size-m: 22px;
@@ -176,15 +183,16 @@ button.button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  min-width: 208px;
   max-width: 100%;
   margin: 0;
-  border: 2px solid transparent;
+  border: 1px solid transparent;
   border-radius: 24px;
   padding: 0.6em 1.4em;
   font: inherit;
   font-weight: 600;
   font-size: var(--body-font-size-s);
-  line-height: 1.25;
+  line-height: 1;
   text-decoration: none;
   cursor: pointer;
   overflow: hidden;
@@ -202,15 +210,15 @@ a.button.primary,
 button.button.primary {
   border-color: var(--wf-red);
   background-color: var(--wf-red);
-  color: #fff;
+  color: var(--background-color);
 }
 
 a.button.primary:hover,
 a.button.primary:focus-visible,
 button.button.primary:hover,
 button.button.primary:focus-visible {
-  background-color: #b5161e;
-  border-color: #b5161e;
+  background-color: #b01c24;
+  border-color: #b01c24;
 }
 
 a.button.primary[aria-disabled="true"],
@@ -223,15 +231,17 @@ button.button.primary:disabled {
 a.button.secondary,
 button.button.secondary {
   border-color: var(--wf-text-primary);
-  background-color: transparent;
+  background-color: var(--background-color);
   color: var(--wf-text-primary);
+  
 }
 
 a.button.secondary:hover,
 a.button.secondary:focus-visible,
 button.button.secondary:hover,
 button.button.secondary:focus-visible {
-  background-color: var(--wf-bg-offwhite);
+  background: var(--wf-dark);
+  color: #fff;
 }
 
 a.button.secondary[aria-disabled="true"],
@@ -281,12 +291,11 @@ main img {
 
 /* sections — 1400px max-width */
 main > .section {
-  margin: 40px 0;
+  max-width: var(--content-max-width);
+  margin: 0 auto;
 }
 
 main > .section > div {
-  max-width: var(--content-max-width);
-  margin: auto;
   padding: 0 24px;
 }
 
@@ -316,7 +325,7 @@ main .section.warm {
 
 main .section.dark {
   background-color: var(--wf-dark);
-  color: #fff;
+  color: var(--background-color);
   margin: 0;
   padding: 40px 0;
 }
@@ -327,11 +336,11 @@ main .section.dark h3,
 main .section.dark h4,
 main .section.dark h5,
 main .section.dark h6 {
-  color: #fff;
+  color: var(--background-color);
 }
 
 main .section.dark a:any-link {
-  color: #fff;
+  color: var(--background-color);
 }
 
 main .section.cream {

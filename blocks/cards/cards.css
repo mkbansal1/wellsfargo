@@ -8,8 +8,10 @@
 }
 
 .cards > ul > li {
-  border: 1px solid #dadada;
+  border: 1px solid var(--wf-bg-gray);
   background-color: var(--background-color);
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .cards .cards-card-body {
@@ -24,4 +26,78 @@
   width: 100%;
   aspect-ratio: 4 / 3;
   object-fit: cover;
+}
+
+/* --- Variant: feature --- */
+
+/* Authored as | Cards (feature) | — feature highlight cards with large images */
+.cards.feature > ul {
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 32px;
+}
+
+.cards.feature > ul > li {
+  border: none;
+  background: transparent;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.cards.feature > ul > li img {
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+}
+
+.cards.feature .cards-card-body {
+  margin: 16px 0;
+}
+
+.cards.feature .cards-card-body h3 {
+  font-size: var(--heading-font-size-l);
+  margin-top: 8px;
+}
+
+.cards.feature .cards-card-body a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+}
+
+/* --- Variant: promo --- */
+
+/* Authored as | Cards (promo) | — promotional tiles with icons */
+.cards.promo > ul {
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.cards.promo > ul > li {
+  border: none;
+  background: var(--wf-bg-light);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.cards.promo .cards-card-image {
+  flex-shrink: 0;
+}
+
+.cards.promo .cards-card-image img {
+  width: 48px;
+  height: 48px;
+  aspect-ratio: 1;
+  object-fit: contain;
+}
+
+.cards.promo .cards-card-body {
+  margin: 0;
+}
+
+.cards.promo .cards-card-body h2 {
+  font-size: var(--heading-font-size-xs);
+  margin-top: 0;
 }
