@@ -1,0 +1,40 @@
+.accordion details {
+  border-bottom: 1px solid var(--wf-bg-gray);
+}
+
+.accordion summary {
+  cursor: pointer;
+  padding: 16px 0;
+  font-size: var(--heading-font-size-s);
+  font-weight: 600;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.accordion summary::after {
+  content: '+';
+  font-size: 24px;
+  font-weight: 300;
+  color: var(--wf-text-secondary);
+  flex-shrink: 0;
+  margin-left: 16px;
+}
+
+.accordion details[open] summary::after {
+  content: '\2212';
+}
+
+.accordion .accordion-item-body {
+  padding: 0 0 20px;
+  font-size: var(--body-font-size-m);
+  line-height: 1.6;
+}
+
+/* --- Variant: faq --- */
+
+/* Authored as | Accordion (faq) | */
+.accordion.faq details:first-of-type {
+  border-top: 1px solid var(--wf-bg-gray);
+}

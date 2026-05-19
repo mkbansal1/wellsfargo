@@ -101,3 +101,124 @@
   font-size: var(--heading-font-size-xs);
   margin-top: 0;
 }
+
+/* --- Variant: benefit --- */
+
+/* Authored as | Cards (benefit) | — text-only value proposition cards */
+.cards.benefit > ul {
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.cards.benefit > ul > li {
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+.cards.benefit .cards-card-body h3 {
+  font-size: var(--heading-font-size-m);
+  margin-top: 0;
+}
+
+.cards.benefit .cards-card-body a {
+  font-weight: 600;
+}
+
+/* --- Variant: resource --- */
+
+/* Authored as | Cards (resource) | — text-only resource/tool cards */
+.cards.resource > ul {
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 24px;
+}
+
+.cards.resource > ul > li {
+  border: 1px solid var(--wf-bg-gray);
+  border-radius: 8px;
+  padding: 24px;
+}
+
+.cards.resource .cards-card-body {
+  margin: 0;
+}
+
+.cards.resource .cards-card-body h3 {
+  font-size: var(--heading-font-size-s);
+  margin-top: 0;
+}
+
+/* --- Variant: testimonial --- */
+
+/* Authored as | Cards (testimonial) | — customer quote cards */
+.cards.testimonial > ul {
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 32px;
+}
+
+.cards.testimonial > ul > li {
+  border: none;
+  background: var(--wf-bg-light);
+  border-radius: 12px;
+  padding: 32px;
+}
+
+.cards.testimonial .cards-card-body {
+  margin: 0;
+  font-style: italic;
+  font-size: var(--body-font-size-m);
+  line-height: 1.6;
+}
+
+.cards.testimonial .cards-card-body strong {
+  display: block;
+  margin-top: 12px;
+  font-style: normal;
+  font-size: var(--body-font-size-s);
+}
+
+/* --- Variant: nav --- */
+
+/* Authored as | Cards (nav) | — icon-based product navigation strip */
+
+/* NOTE: nav variant last because :hover pseudo-class has higher specificity */
+.cards.nav > ul {
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 8px;
+  text-align: center;
+}
+
+.cards.nav > ul > li {
+  border: none;
+  background: transparent;
+  padding: 12px 8px;
+  transition: background-color 0.15s;
+}
+
+.cards.nav > ul > li:hover {
+  background-color: var(--wf-bg-light);
+}
+
+.cards.nav .cards-card-image {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.cards.nav .cards-card-image img {
+  width: 40px;
+  height: 40px;
+  aspect-ratio: 1;
+  object-fit: contain;
+}
+
+.cards.nav .cards-card-body {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+.cards.nav .cards-card-body a {
+  color: var(--wf-text-primary);
+  text-decoration: none;
+}

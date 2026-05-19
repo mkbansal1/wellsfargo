@@ -34,15 +34,10 @@ export default function transform(hookName, element, payload) {
   if (hookName === H.after) {
     // --- Remove non-authorable site shell elements ---
 
-    // Header/masthead - Found in cleaned.html line 6: <header class="ps-masthead ...">
-    // Support dropdown overlay - Found in cleaned.html lines 44-46
-    // Fat nav overlay - Found in cleaned.html line 153: <div class="ps-fat-nav-overlay">
-    // Fat nav outer - Found in cleaned.html line 155: <div class="ps-fat-nav-outer ...">
-    // Container L3 mobile - Found in cleaned.html line 1096: <div class="container-l3-mobile" ...>
-    // Emergency message - Found in cleaned.html line 4: <div class="ps-emergency-message">
-    // Skip link - Found in cleaned.html line 2: <a href="#skip" class="hidden">
+    // Header/masthead/nav - all header variants across page types
     WebImporter.DOMUtils.remove(element, [
-      'header.ps-masthead',
+      'header',
+      '.ps-masthead',
       '.ps-support-dropdown-overlay-container',
       '.ps-support-dropdown-overlay',
       '.ps-fat-nav-overlay',
@@ -50,11 +45,17 @@ export default function transform(hookName, element, payload) {
       '#containerL3Mobile',
       '.ps-emergency-message',
       'a.hidden[href="#skip"]',
+      'nav[aria-label="Breadcrumb"]',
+      '.breadcrumb',
+      '#feedbackSurvey',
+      '.feedback-survey',
     ]);
 
-    // Footer - Found in cleaned.html line 1700: <footer class="ps-footer-homepage">
+    // Footer - all footer variants (homepage uses .ps-footer-homepage, other pages use footer tag)
     WebImporter.DOMUtils.remove(element, [
-      'footer.ps-footer-homepage',
+      'footer',
+      '.ps-footer-homepage',
+      '.ps-footer-wrapper',
     ]);
 
     // Remove iframes (tracking, font detection, challenge)

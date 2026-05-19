@@ -3,10 +3,10 @@
 
 // PARSER IMPORTS
 import heroPromoParser from './parsers/hero-promo.js';
-import cardsNavParser from './parsers/cards-nav.js';
-import cardsPromoParser from './parsers/cards-promo.js';
 import cardsFeatureParser from './parsers/cards-feature.js';
-import fragmentParser from './parsers/fragment.js';
+import accordionParser from './parsers/accordion.js';
+import contactInfoParser from './parsers/contact-info.js';
+import disclaimersParser from './parsers/disclaimers.js';
 
 // TRANSFORMER IMPORTS
 import wellsfargoCleanup from './transformers/wellsfargo-cleanup.js';
@@ -15,115 +15,141 @@ import wellsfargoSections from './transformers/wellsfargo-sections.js';
 // PARSER REGISTRY
 const parsers = {
   'hero-promo': heroPromoParser,
-  'cards-nav': cardsNavParser,
-  'cards-promo': cardsPromoParser,
   'cards-feature': cardsFeatureParser,
-  'fragment': fragmentParser,
+  'cards-no-images': cardsFeatureParser,
+  'accordion': accordionParser,
+  'contact-info': contactInfoParser,
+  'disclaimers': disclaimersParser,
 };
 
 // PAGE TEMPLATE CONFIGURATION
 const PAGE_TEMPLATE = {
-  name: 'homepage',
-  description: 'Wells Fargo consumer homepage with hero promo, product navigation, promo tile carousel, feature highlights, app promo, community columns, help-cta, and disclaimers',
+  name: 'product-landing',
+  description: 'Wells Fargo L1 product landing page with hero, feature cards, FAQ accordion, customer testimonials, contact info, and disclaimers',
   urls: [
-    'https://www.wellsfargo.com/',
+    'https://www.wellsfargo.com/mortgage/',
   ],
   blocks: [
     {
       name: 'hero-promo',
-      instances: ['.marquee-container', '.ps-large-promo-full-container'],
-    },
-    {
-      name: 'cards-nav',
-      instances: ['.alt-nav-container'],
-    },
-    {
-      name: 'cards-promo',
-      instances: ['.ps-marketing-small-promo-items'],
+      instances: ['.rsk-marquee-container'],
     },
     {
       name: 'cards-feature',
-      instances: [
-        '.card-background-white.text-aligned-center .ps-promo-full-items',
-        '.card-background-white.text-aligned-center .ps-promo-full-content',
-      ],
+      instances: ['.small-promo-combined'],
     },
     {
-      name: 'fragment',
-      instances: ['.ps-native-app-container', '.contact-bar-container'],
+      name: 'cards-no-images',
+      instances: ['.card-background-white.text-aligned-center .card-container'],
+    },
+    {
+      name: 'accordion',
+      instances: ['details.show-hide-content-wrapper'],
+    },
+    {
+      name: 'contact-info',
+      instances: ['.card-background-white.text-aligned-center:has(h3)'],
+    },
+    {
+      name: 'disclaimers',
+      instances: ['.ps-footnote'],
     },
   ],
   sections: [
     {
-      id: 'section-1-hero',
-      name: 'Hero Marquee Banner',
-      selector: '.marquee-container',
-      style: null,
-      blocks: ['hero-promo'],
-      defaultContent: [],
-    },
-    {
-      id: 'section-2-nav',
-      name: 'Product Navigation Bar',
-      selector: '.alt-nav-container',
-      style: null,
-      blocks: ['cards-nav'],
-      defaultContent: [],
-    },
-    {
-      id: 'section-3-promo-tiles',
-      name: 'Promotional Tiles Strip',
-      selector: '.ps-marketing-small-promo-items',
-      style: null,
-      blocks: ['cards-promo'],
-      defaultContent: [],
-    },
-    {
-      id: 'section-4-large-promo',
-      name: 'Secondary Promotional Banner',
-      selector: '.ps-large-promo-full-container',
-      style: null,
-      blocks: ['hero-promo'],
-      defaultContent: [],
-    },
-    {
-      id: 'section-5-guidance',
-      name: 'Financial Guidance and Support',
-      selector: 'main >.card-background-white:nth-of-type(1)',
-      style: null,
-      blocks: ['cards-feature'],
-      defaultContent: ['.ps-mid-page-title-wrapper:nth-of-type(1)'],
-    },
-    {
-      id: 'section-6-app',
-      name: 'App Promo - Ask Fargo',
-      selector: '.ps-native-app-container',
-      style: 'grey',
-      blocks: ['fragment'],
-      defaultContent: [],
-    },
-    {
-      id: 'section-7-community',
-      name: 'Serving Our Communities',
-      selector: 'main >.card-background-white:nth-of-type(2)',
-      style: null,
-      blocks: ['cards-feature'],
-      defaultContent: ['.ps-mid-page-title-wrapper:nth-of-type(2)'],
-    },
-    {
-      id: 'section-8-help',
-      name: 'Help CTA Strip',
-      selector: '.contact-bar-container',
-      style: null,
-      blocks: ['fragment'],
-      defaultContent: [],
-    },
-    {
-      id: 'section-9-footer',
-      name: 'Footer Disclaimers',
-      selector: '.ps-footer-wrapper',
+      id: 'section-1-title',
+      name: 'Page Title',
+      selector: '.ps-page-title',
       style: null,
       blocks: [],
+      defaultContent: ['.ps-page-title h1'],
+    },
+    {
+      id: 'section-2-hero',
+      name: 'Hero Marquee',
+      selector: '.rsk-marquee-container',
+      style: null,
+      blocks: ['hero-promo'],
+      defaultContent: [],
+    },
+    {
+      id: 'section-3-rate-cta',
+      name: 'Rate Quote CTA',
+      selector: 'main >.enhanced-txt-cm.text-aligned-center:first-of-type',
+      style: null,
+      blocks: [],
+      defaultContent: ['h3', 'p'],
+    },
+    {
+      id: 'section-4-homebuying',
+      name: 'Homebuying Cards',
+      selector: 'main >.small-promo-combined:nth-of-type(1)',
+      style: null,
+      blocks: ['cards-feature'],
+      defaultContent: [],
+    },
+    {
+      id: 'section-5-refinancing',
+      name: 'Refinancing Cards',
+      selector: 'main >.small-promo-combined:nth-of-type(2)',
+      style: null,
+      blocks: ['cards-feature'],
+      defaultContent: [],
+    },
+    {
+      id: 'section-6-benefits',
+      name: 'Get More Benefits',
+      selector: 'main >.card-background-white:nth-of-type(1)',
+      style: null,
+      blocks: ['cards-no-images'],
+      defaultContent: [],
+    },
+    {
+      id: 'section-7-tools',
+      name: 'Mortgage Tools',
+      selector: 'main >.small-promo-combined:nth-of-type(3)',
+      style: null,
+      blocks: ['cards-feature'],
+      defaultContent: [],
+    },
+    {
+      id: 'section-8-faq',
+      name: 'FAQ Accordion',
+      selector: 'main >.card-background-white:nth-of-type(2)',
+      style: null,
+      blocks: ['accordion'],
+      defaultContent: [],
+    },
+    {
+      id: 'section-9-testimonials',
+      name: 'Customer Testimonials',
+      selector: 'main >.card-background-white:nth-of-type(3)',
+      style: null,
+      blocks: [],
+      defaultContent: [],
+    },
+    {
+      id: 'section-10-contact',
+      name: 'Talk to a Consultant',
+      selector: 'main >.card-background-white:nth-of-type(4)',
+      style: null,
+      blocks: ['contact-info'],
+      defaultContent: [],
+    },
+    {
+      id: 'section-11-quickhelp',
+      name: 'Quick Help',
+      selector: 'main >.enhanced-txt-cm.text-aligned-left:nth-of-type(1)',
+      style: null,
+      blocks: [],
+      defaultContent: ['h3', 'ul'],
+    },
+    {
+      id: 'section-12-footnotes',
+      name: 'Footnotes',
+      selector: '.ps-footnote',
+      style: null,
+      blocks: ['disclaimers'],
       defaultContent: [],
     },
   ],
