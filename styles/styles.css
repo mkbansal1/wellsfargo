@@ -15,7 +15,7 @@
   --wf-link-hover: #6048AD;
   --wf-bg-warm: #F4F0ED;
   --wf-bg-light: #F9F7F6;
-  --wf-bg-white: #FFFFFF;
+  --wf-bg-white: #FFF;
   --wf-bg-gray: #E2DEDE;
   --wf-bg-offwhite: #F8F8F8;
   --wf-green: #468254;
@@ -347,6 +347,26 @@ main .section.cream {
   background-color: var(--wf-cream);
   margin: 0;
   padding: 40px 0;
+}
+
+/* product-landing template — page title H1 */
+body.product-landing main > .section:first-of-type {
+  margin: 0;
+  padding: 0;
+}
+
+body.product-landing main > .section:first-of-type > div {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--wf-bg-gray);
+}
+
+body.product-landing main > .section:first-of-type h1 {
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 1.16;
+  color: var(--wf-dark);
+  margin: 0;
 }
 
 /* wealth theme override (via page/section metadata) */
