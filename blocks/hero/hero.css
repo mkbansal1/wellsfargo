@@ -1,0 +1,160 @@
+/* Hero block — default: background image with text overlay */
+.hero-container {
+  max-width: unset;
+}
+
+.hero-container .hero-wrapper {
+  max-width: unset;
+  padding: 0;
+}
+
+.hero {
+  position: relative;
+  min-height: 17.65rem;
+  display: flex;
+  align-items: flex-start;
+  overflow: hidden;
+}
+
+.hero.no-image {
+  background-color: var(--wf-bg-light);
+}
+
+.hero .hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.hero .hero-bg picture {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+.hero .hero-bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero .hero-content {
+  position: relative;
+  z-index: 1;
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: 2.82rem 1.41rem;
+  width: 100%;
+}
+
+.hero .hero-content h1,
+.hero .hero-content h2 {
+  font-size: var(--heading-font-size-xxl);
+  font-weight: 300;
+  line-height: 1.2;
+  color: var(--wf-dark);
+  margin: 0 0 0.94rem;
+}
+
+.hero .hero-content p {
+  font-size: var(--body-font-size-m);
+  line-height: 1.5;
+  color: var(--wf-text-primary);
+  margin: 0 0 0.94rem;
+  max-width: 31.76rem;
+}
+
+.hero .hero-content .button-wrapper {
+  margin-top: 1.41rem;
+}
+
+@media (width >= 900px) {
+  .hero {
+    min-height: 24.71rem;
+  }
+
+  .hero .hero-content {
+    padding: 4.71rem 1.88rem;
+    max-width: 50%;
+  }
+
+  .hero .hero-content h1,
+  .hero .hero-content h2 {
+    font-size: 2.59rem;
+  }
+}
+
+/* --- Variant: overlay-bottom --- */
+
+/* Authored as | Hero (overlay-bottom) | — text centered at bottom, overlapping image */
+.hero.overlay-bottom {
+  min-height: auto;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.hero.overlay-bottom .hero-bg {
+  position: relative;
+  inset: auto;
+  z-index: 0;
+}
+
+.hero.overlay-bottom .hero-bg picture {
+  display: block;
+}
+
+.hero.overlay-bottom .hero-bg img {
+  width: 100%;
+  height: auto;
+  min-height: 11.76rem;
+  max-height: 20.59rem;
+  object-fit: cover;
+}
+
+.hero.overlay-bottom .hero-content {
+  position: relative;
+  z-index: 1;
+  margin-top: -1.88rem;
+  padding: 1.41rem 2.35rem;
+  text-align: center;
+  max-width: 40rem;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: var(--wf-bg-light);
+  border-radius: 0.24rem;
+}
+
+.hero.overlay-bottom .hero-content::before {
+  content: '';
+  display: block;
+  width: 2.35rem;
+  height: 0.18rem;
+  background-color: var(--wf-yellow);
+  margin: 0 auto 0.94rem;
+}
+
+.hero.overlay-bottom .hero-content h1,
+.hero.overlay-bottom .hero-content h2 {
+  font-size: var(--heading-font-size-xl);
+  font-weight: 400;
+  line-height: 1.21;
+  color: var(--wf-text-primary);
+  margin: 0;
+}
+
+.hero.overlay-bottom .hero-content p {
+  max-width: none;
+  text-align: center;
+}
+
+@media (width >= 900px) {
+  .hero.overlay-bottom .hero-bg img {
+    min-height: 17.65rem;
+    max-height: 26.47rem;
+  }
+
+  .hero.overlay-bottom .hero-content {
+    margin-top: -2.82rem;
+    padding: 1.88rem 3.29rem;
+  }
+}
