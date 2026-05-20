@@ -183,7 +183,7 @@ button.button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 208px;
+  min-width: 177px;
   max-width: 100%;
   margin: 0;
   border: 1px solid transparent;
@@ -191,7 +191,7 @@ button.button {
   padding: 0.6em 1.4em;
   font: inherit;
   font-weight: 600;
-  font-size: var(--body-font-size-s);
+  font-size: var(--body-font-size-m);
   line-height: 1;
   text-decoration: none;
   cursor: pointer;
@@ -293,6 +293,7 @@ main img {
 main > .section {
   max-width: var(--content-max-width);
   margin: 0 auto;
+  padding: 18px 0;
 }
 
 main > .section > div {
@@ -301,6 +302,7 @@ main > .section > div {
 
 main > .section:first-of-type {
   margin-top: 0;
+  padding-top: 0;
 }
 
 @media (width >= 900px) {

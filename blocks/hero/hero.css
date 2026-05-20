@@ -42,7 +42,6 @@
   position: relative;
   z-index: 1;
   max-width: var(--content-max-width);
-  margin: 0 auto;
   padding: 2.82rem 1.41rem;
   width: 100%;
 }
@@ -57,7 +56,7 @@
 }
 
 .hero .hero-content p {
-  font-size: var(--body-font-size-m);
+  font-size: var(--body-font-size-xl);
   line-height: 1.5;
   color: var(--wf-text-primary);
   margin: 0 0 0.94rem;
@@ -73,8 +72,12 @@
     min-height: 24.71rem;
   }
 
+  .hero:not(.no-image) {
+    height: 650px;
+  }
+
   .hero .hero-content {
-    padding: 4.71rem 1.88rem;
+    padding: 78px 114px;
     max-width: 50%;
   }
 
@@ -149,8 +152,8 @@
 
 @media (width >= 900px) {
   .hero.overlay-bottom .hero-bg img {
-    min-height: 17.65rem;
-    max-height: 26.47rem;
+    min-height: 282px;
+    max-height: 554px;
   }
 
   .hero.overlay-bottom .hero-content {
