@@ -63,7 +63,7 @@ function buildBreadcrumbBlock(main) {
  * Builds all synthetic blocks in a container element.
  * @param {Element} main The container element
  */
-function buildAutoBlocks(main) {
+function buildAutoBlocks(main, isFragment = false) {
   try {
     // auto load `*/fragments/*` references
     const fragments = [...main.querySelectorAll('a[href*="/fragments/"]')].filter((f) => !f.closest('.fragment'));
@@ -82,8 +82,9 @@ function buildAutoBlocks(main) {
         });
       });
     }
-
-    buildBreadcrumbBlock(main);
+    if (!isFragment) {
+      buildBreadcrumbBlock(main);
+    }
     buildHeroBlock(main);
   } catch (error) {
     // eslint-disable-next-line no-console
@@ -135,9 +136,9 @@ function decorateButtons(main) {
  * @param {Element} main The main element
  */
 // eslint-disable-next-line import/prefer-default-export
-export function decorateMain(main) {
+export function decorateMain(main, isFragment = false) {
   decorateIcons(main);
-  buildAutoBlocks(main);
+  buildAutoBlocks(main, isFragment);
   decorateSections(main);
   decorateBlocks(main);
   decorateButtons(main);
