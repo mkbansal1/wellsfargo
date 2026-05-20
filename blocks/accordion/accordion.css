@@ -1,40 +1,123 @@
+/* Accordion - base styles matching Wells Fargo design */
 .accordion details {
-  border-bottom: 1px solid var(--wf-bg-gray);
+  border-top: 1px solid #e2dede;
+  margin-top: 0;
+  padding: 0;
 }
 
-.accordion summary {
+.accordion details:last-child {
+  border-bottom: 1px solid #e2dede;
+}
+
+.accordion details summary {
+  position: relative;
+  display: block;
+  padding: 18px 16px 18px 26px;
   cursor: pointer;
-  padding: 16px 0;
-  font-size: var(--heading-font-size-s);
-  font-weight: 600;
   list-style: none;
-  display: flex;
+  font-family: 'Wells Fargo Sans Regular', Arial, Helvetica, sans-serif;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.375;
+  color: #141414;
+}
+
+.accordion details[open] summary {
+  font-family: 'Wells Fargo Sans SemiBold', Arial, Helvetica, sans-serif;
+  font-weight: 600;
+}
+
+.accordion details summary::-webkit-details-marker {
+  display: none;
+}
+
+.accordion details summary h1,
+.accordion details summary h2,
+.accordion details summary h3,
+.accordion details summary h4,
+.accordion details summary h5,
+.accordion details summary h6 {
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  margin: 0;
+}
+
+.accordion details summary::before {
+  content: '';
+  position: absolute;
+  left: -3px;
+  top: 34px;
+  width: 22px;
+  height: 20px;
+  min-width: 20px;
+  background: url('https://www17.wellsfargomedia.com/assets/images/sprite/responsive-sprite-v15.png') -481px -132px;
+  transform: scale(0.7);
+}
+
+.accordion details[open] summary::before {
+  background-position: -436px -132px;
+}
+
+.accordion details .accordion-item-body {
+  padding: 0 0 8px 26px;
+  font-family: 'Wells Fargo Sans Regular', Arial, Helvetica, sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.375;
+  color: #141414;
+}
+
+.accordion details .accordion-item-body p {
+  margin: 0 0 0.8em;
+}
+
+.accordion details .accordion-item-body p:last-child {
+  margin-bottom: 0;
+}
+
+/* Variation: compact */
+.accordion.compact details summary {
+  padding: 12px 16px 12px 26px;
+  font-size: 16px;
+}
+
+.accordion.compact details summary::before {
+  top: 26px;
+}
+
+.accordion.compact details .accordion-item-body {
+  padding: 0 0 8px 26px;
+  font-size: 14px;
+}
+
+/* Variation: numbered */
+.accordion.numbered details summary {
+  padding-left: 48px;
+}
+
+.accordion.numbered details summary::before {
+  display: none;
+}
+
+.accordion.numbered .accordion-item-number {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: var(--link-color, #d71e28);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
 }
 
-.accordion summary::after {
-  content: '+';
-  font-size: 24px;
-  font-weight: 300;
-  color: var(--wf-text-secondary);
-  flex-shrink: 0;
-  margin-left: 16px;
-}
-
-.accordion details[open] summary::after {
-  content: '\2212';
-}
-
-.accordion .accordion-item-body {
-  padding: 0 0 20px;
-  font-size: var(--body-font-size-m);
-  line-height: 1.6;
-}
-
-/* --- Variant: faq --- */
-
-/* Authored as | Accordion (faq) | */
-.accordion.faq details:first-of-type {
-  border-top: 1px solid var(--wf-bg-gray);
+.accordion.numbered details .accordion-item-body {
+  padding-left: 48px;
 }
