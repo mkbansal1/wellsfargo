@@ -1,7 +1,177 @@
-footer .footer-wrapper {
+/* ── Footer shell ─────────────────────────────────────────── */
+footer {
   background-color: #3b3331;
   color: #f4f0ed;
   font-size: 12px;
   line-height: 1.5;
-  width: 100%;
+}
+
+footer a {
+  color: #f4f0ed;
+  text-decoration: none;
+}
+
+footer a:hover {
+  text-decoration: underline;
+}
+
+/* ── Wrapper ──────────────────────────────────────────────── */
+footer .ps-footer-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ── Nav links ────────────────────────────────────────────── */
+footer .ps-footer-links {
+  padding: 24px 0 16px;
+  border-bottom: 1px solid #5a5250;
+}
+
+footer .ps-footer-links ul {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  margin: 0;
+  padding: 0;
+}
+
+footer .ps-footer-link {
+  font-size: 12px;
+}
+
+footer .ps-footer-link a {
+  white-space: nowrap;
+}
+
+/* ── Social icons ─────────────────────────────────────────── */
+footer .ps-footer-social-icons {
+  padding: 16px 0;
+  border-bottom: 1px solid #5a5250;
+}
+
+footer .ps-footer-social-icons ul {
+  list-style: none;
+  display: flex;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+}
+
+footer .ps-footer-social-icons .social-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #5a5250;
+  transition: background 0.2s;
+}
+
+footer .ps-footer-social-icons .social-icon:hover {
+  background: #787070;
+  text-decoration: none;
+}
+
+footer .ps-footer-social-icons .social-icon .icon {
+  width: 16px;
+  height: 16px;
+  filter: brightness(0) invert(1);
+}
+
+/* ── Investment / insurance disclaimer (ps-not-not) ──────── */
+footer .ps-not-not {
+  padding: 20px 0 16px;
+  border-bottom: 1px solid #5a5250;
+  color: #c4bfbc;
+  font-size: 12px;
+}
+
+footer .ps-not-not p {
+  margin: 0 0 8px;
+}
+
+footer .ps-not-not ul {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+}
+
+footer .ps-not-not li {
+  position: relative;
+  padding-left: 14px;
+  margin-bottom: 4px;
+  font-size: 11px;
+}
+
+footer .ps-not-not li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+}
+
+/* ── Footnote text sections ───────────────────────────────── */
+footer .ps-footnote-text {
+  padding: 12px 0 0;
+  color: #a09a97;
+  font-size: 11px;
+}
+
+footer .ps-footnote-text p {
+  margin: 0 0 6px;
+}
+
+footer .ps-footnote-text a {
+  color: #c4bfbc;
+  text-decoration: underline;
+}
+
+/* ── Equal Housing Lender row ─────────────────────────────── */
+footer .ps-footnote-footer {
+  padding: 12px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #a09a97;
+  font-size: 11px;
+}
+
+footer .ps-home-lending-icon {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23a09a97"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>');
+  background-repeat: no-repeat;
+  background-size: contain;
+  flex-shrink: 0;
+}
+
+/* ── Gray divider + copyright ─────────────────────────────── */
+footer .ps-gray-line-container {
+  padding-top: 16px;
+}
+
+footer .ps-gray-line {
+  height: 1px;
+  background: #5a5250;
+  margin-bottom: 12px;
+}
+
+footer .ps-copyright {
+  padding-bottom: 24px;
+  color: #a09a97;
+  font-size: 11px;
+}
+
+/* ── Responsive ───────────────────────────────────────────── */
+@media (width >= 900px) {
+  footer .ps-footer-wrapper {
+    padding: 0 32px;
+  }
+
+  footer .ps-footer-links ul {
+    gap: 6px 24px;
+  }
 }
