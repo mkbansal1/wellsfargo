@@ -4,6 +4,13 @@ import { loadFragment } from '../fragment/fragment.js';
 export default async function decorate(block) {
   const footerMeta = getMetadata('footer');
   const footerPath = footerMeta ? new URL(footerMeta, window.location).pathname : '/footer';
+
+  // Avoid duplicating content when viewing the footer document itself as a page
+  if (window.location.pathname === footerPath) {
+    block.closest('footer')?.setAttribute('hidden', '');
+    return;
+  }
+
   const fragment = await loadFragment(footerPath);
 
   block.textContent = '';
@@ -36,8 +43,29 @@ export default async function decorate(block) {
       });
     } else if (i === 2) {
       section.classList.add('footer-disclaimers');
-    } else if (i === 3) {
+    } else {
+      // All remaining sections are legal/footnote content
       section.classList.add('footer-legal');
+
+      // Mark Equal Housing Lender paragraph
+      section.querySelectorAll('p').forEach((p) => {
+        const text = p.textContent.trim().toLowerCase();
+        if (text.includes('equal housing lender')) {
+          p.classList.add('footer-equal-housing');
+        }
+      });
+
+      // Find the copyright paragraph (contains © symbol) and add separator + class
+      section.querySelectorAll('p').forEach((p) => {
+        const text = p.textContent.trim();
+        if (text.startsWith('©') || text.startsWith('\u00A9')) {
+          // Insert a horizontal rule before the copyright line
+          const hr = document.createElement('hr');
+          hr.classList.add('footer-gray-line');
+          p.before(hr);
+          p.classList.add('footer-copyright');
+        }
+      });
     }
   });
 
