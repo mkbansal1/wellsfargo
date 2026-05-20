@@ -34,6 +34,9 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+}
+
+.cards .cards-card-image + .cards-card-body {
   border-top: 3px solid var(--wf-yellow);
 }
 
@@ -61,6 +64,15 @@
   color: var(--wf-link);
   font-weight: 600;
   text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cards .cards-card-body a::after {
+  content: '>';
+  font-size: 14px;
+  font-weight: 700;
 }
 
 .cards .cards-card-body a:hover {
@@ -99,6 +111,7 @@
 }
 
 .cards.icons .cards-card-body {
+  border-top: none;
   border-left: 3px solid var(--wf-yellow);
   margin-left: 16px;
   padding: 24px 24px 28px 16px;
