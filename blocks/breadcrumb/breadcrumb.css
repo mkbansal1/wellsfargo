@@ -1,0 +1,84 @@
+/* Breadcrumb block — mobile first */
+.breadcrumb-container {
+  max-width: unset;
+}
+
+.breadcrumb-container .breadcrumb-wrapper {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.breadcrumb nav ol {
+  list-style: none;
+  margin: 0;
+  padding: 12px 0;
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+/* Mobile: hide all items except parent (second-to-last) */
+.breadcrumb nav ol li {
+  display: none;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--wf-text-secondary);
+  white-space: nowrap;
+}
+
+.breadcrumb nav ol li a {
+  color: var(--wf-text-secondary);
+  text-decoration: none;
+}
+
+.breadcrumb nav ol li a:hover {
+  text-decoration: underline;
+}
+
+.breadcrumb nav ol li[aria-current="page"] {
+  color: var(--wf-dark);
+  font-weight: 600;
+}
+
+/* Mobile: show only parent with back arrow */
+.breadcrumb nav ol li:nth-last-child(2) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.breadcrumb nav ol li:nth-last-child(2)::before {
+  content: '\2039';
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--wf-dark);
+}
+
+/* Desktop: show full breadcrumb trail with separators */
+@media (width >= 900px) {
+  .breadcrumb-container .breadcrumb-wrapper {
+    padding: 0 32px;
+  }
+
+  .breadcrumb nav ol li {
+    display: inline;
+  }
+
+  .breadcrumb nav ol li + li::before {
+    content: '>';
+    margin: 0 12px;
+    color: var(--wf-text-secondary);
+    font-weight: 400;
+    font-size: 14px;
+  }
+
+  .breadcrumb nav ol li:nth-last-child(2)::before {
+    content: '>';
+    margin: 0 12px;
+    color: var(--wf-text-secondary);
+    font-weight: 400;
+    font-size: 14px;
+  }
+}
