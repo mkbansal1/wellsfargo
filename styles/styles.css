@@ -351,24 +351,8 @@ main .section.cream {
   padding: 40px 0;
 }
 
-/* product-landing template — page title H1 */
-body.product-landing main > .section:first-of-type {
-  margin: 0;
-  padding: 0;
-}
-
-body.product-landing main > .section:first-of-type > div {
-  padding-top: 10px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--wf-bg-gray);
-}
-
-body.product-landing main > .section:first-of-type h1 {
-  font-size: 24px;
-  font-weight: 400;
-  line-height: 1.16;
-  color: var(--wf-dark);
-  margin: 0;
+main .section.center-align {
+  text-align: center;
 }
 
 /* wealth theme override (via page/section metadata) */

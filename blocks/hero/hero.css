@@ -90,7 +90,7 @@
 
   .hero .hero-bg img {
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
   }
 
   .hero .hero-content {
