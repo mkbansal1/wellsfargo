@@ -78,44 +78,44 @@
   }
 }
 
-/* === Variant: icon === */
+/* === Variant: icons === */
 
-/* Mobile: icon left, text right with yellow left border */
-.cards.icon > ul > li {
+/* Mobile: icons left, text right with yellow left border */
+.cards.icons > ul > li {
   flex-direction: row;
   align-items: flex-start;
 }
 
-.cards.icon .cards-card-image {
+.cards.icons .cards-card-image {
   padding: 24px 0 24px 24px;
   flex-shrink: 0;
 }
 
-.cards.icon .cards-card-image img {
+.cards.icons .cards-card-image img {
   width: 64px;
   height: 64px;
   object-fit: contain;
 }
 
-.cards.icon .cards-card-body {
+.cards.icons .cards-card-body {
   border-left: 3px solid var(--wf-yellow);
   margin-left: 16px;
   padding: 24px 24px 28px 16px;
 }
 
-/* Desktop: icon on top, yellow top border, text below */
+/* Desktop: icons on top, yellow top border, text below */
 @media (width >= 900px) {
-  .cards.icon > ul > li {
+  .cards.icons > ul > li {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .cards.icon .cards-card-image {
+  .cards.icons .cards-card-image {
     padding: 32px 28px 0;
     text-align: center;
   }
 
-  .cards.icon .cards-card-body {
+  .cards.icons .cards-card-body {
     border-left: none;
     border-top: 3px solid var(--wf-yellow);
     margin-left: 0;
@@ -153,24 +153,24 @@
   background-repeat: no-repeat;
 }
 
-/* bg-image + icon: icon on top, text below on gradient */
-.cards.bg-image.icon > ul > li {
+/* bg-image + icons: icons on top, text below on gradient */
+.cards.bg-image.icons > ul > li {
   flex-direction: column;
 }
 
-.cards.bg-image.icon .cards-card-image {
+.cards.bg-image.icons .cards-card-image {
   padding: 24px 24px 0;
   text-align: center;
   border-left: none;
 }
 
-.cards.bg-image.icon .cards-card-image img {
+.cards.bg-image.icons .cards-card-image img {
   width: 56px;
   height: 56px;
   object-fit: contain;
 }
 
-.cards.bg-image.icon .cards-card-body {
+.cards.bg-image.icons .cards-card-body {
   border-left: none;
   border-top: none;
   margin-left: 0;
@@ -179,11 +179,11 @@
 }
 
 @media (width >= 900px) {
-  .cards.bg-image.icon .cards-card-image {
+  .cards.bg-image.icons .cards-card-image {
     padding: 32px 28px 0;
   }
 
-  .cards.bg-image.icon .cards-card-body {
+  .cards.bg-image.icons .cards-card-body {
     margin-top: 20px;
     padding: 0 28px 32px;
   }
