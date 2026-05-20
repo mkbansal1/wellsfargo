@@ -1,61 +1,67 @@
-/* Accordion - base styles */
+/* Accordion - base styles matching Wells Fargo design */
 .accordion details {
-  border: 1px solid var(--border-color, #dadada);
+  border-top: 1px solid #e2dede;
+  margin-top: 0;
+  padding: 0;
 }
 
-.accordion details + details {
-  border-top: none;
+.accordion details:last-child {
+  border-bottom: 1px solid #e2dede;
 }
 
 .accordion details summary {
   position: relative;
-  padding: 16px 46px 16px 16px;
+  display: block;
+  padding: 18px 16px 18px 26px;
   cursor: pointer;
   list-style: none;
-  font-weight: 700;
-  transition: background-color 0.2s;
-}
-
-.accordion details[open] summary {
-  background-color: var(--light-color, #f5f5f5);
-}
-
-.accordion details summary:focus,
-.accordion details summary:hover {
-  background-color: var(--light-color, #f5f5f5);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.375;
+  color: #141414;
 }
 
 .accordion details summary::-webkit-details-marker {
   display: none;
 }
 
-.accordion details summary::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  right: 18px;
-  transform: translateY(-50%) rotate(135deg);
-  width: 8px;
-  height: 8px;
-  border: 2px solid currentcolor;
-  border-width: 2px 2px 0 0;
-  transition: transform 0.2s;
+.accordion details summary h1,
+.accordion details summary h2,
+.accordion details summary h3,
+.accordion details summary h4,
+.accordion details summary h5,
+.accordion details summary h6 {
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  margin: 0;
 }
 
-.accordion details[open] summary::after {
-  transform: translateY(-50%) rotate(-45deg);
+.accordion details summary::before {
+  content: '';
+  position: absolute;
+  left: -3px;
+  top: 34px;
+  width: 22px;
+  height: 20px;
+  min-width: 20px;
+  background: url('https://www17.wellsfargomedia.com/assets/images/sprite/responsive-sprite-v15.png') -481px -132px;
+  transform: scale(0.7);
+}
+
+.accordion details[open] summary::before {
+  background-position: -436px -132px;
 }
 
 .accordion details .accordion-item-body {
-  padding: 16px;
-}
-
-.accordion details[open] .accordion-item-body {
-  border-top: 1px solid var(--border-color, #dadada);
+  padding: 0 0 8px 26px;
+  font-size: 16px;
+  line-height: 1.375;
+  color: #141414;
 }
 
 .accordion details .accordion-item-body p {
-  margin-bottom: 0.8em;
+  margin: 0 0 0.8em;
 }
 
 .accordion details .accordion-item-body p:last-child {
@@ -64,19 +70,17 @@
 
 /* Variation: compact */
 .accordion.compact details summary {
-  padding: 10px 40px 10px 12px;
-  font-size: var(--body-font-size-s, 14px);
+  padding: 12px 16px 12px 26px;
+  font-size: 16px;
+}
+
+.accordion.compact details summary::before {
+  top: 26px;
 }
 
 .accordion.compact details .accordion-item-body {
-  padding: 10px 12px;
-  font-size: var(--body-font-size-s, 14px);
-}
-
-.accordion.compact details summary::after {
-  width: 6px;
-  height: 6px;
-  right: 14px;
+  padding: 0 0 8px 26px;
+  font-size: 14px;
 }
 
 /* Variation: numbered */
@@ -84,19 +88,27 @@
   padding-left: 48px;
 }
 
+.accordion.numbered details summary::before {
+  display: none;
+}
+
 .accordion.numbered .accordion-item-number {
   position: absolute;
-  left: 16px;
+  left: 0;
   top: 50%;
   transform: translateY(-50%);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background-color: var(--link-color, #d71e28);
   color: #fff;
-  font-size: var(--body-font-size-xs, 0.75rem);
+  font-size: 14px;
   font-weight: 700;
+}
+
+.accordion.numbered details .accordion-item-body {
+  padding-left: 48px;
 }
