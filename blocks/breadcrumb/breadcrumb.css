@@ -1,0 +1,76 @@
+/* Breadcrumb block — mobile first */
+main > .section.breadcrumb-container {
+  margin: 0 auto;
+  padding: 0;
+}
+
+.breadcrumb nav ol {
+  list-style: none;
+  margin: 0;
+  padding: 14px 0;
+  display: flex;
+  align-items: center;
+}
+
+.breadcrumb nav ol li {
+  display: none;
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--wf-text-secondary);
+  white-space: nowrap;
+}
+
+.breadcrumb nav ol li a {
+  color: var(--wf-text-secondary);
+  text-decoration: none;
+}
+
+.breadcrumb nav ol li a:hover {
+  text-decoration: underline;
+  color: var(--wf-text-primary);
+}
+
+.breadcrumb nav ol li[aria-current="page"] {
+  color: var(--wf-text-primary);
+  font-weight: 600;
+}
+
+/* Mobile: show only parent item as back link */
+.breadcrumb nav ol li:nth-last-child(2) {
+  display: flex;
+  align-items: center;
+}
+
+.breadcrumb nav ol li:nth-last-child(2) a {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--wf-text-primary);
+}
+
+.breadcrumb nav ol li:nth-last-child(2) a::before {
+  content: '\2039';
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Desktop: full breadcrumb trail */
+@media (width >= 900px) {
+  .breadcrumb nav ol li {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .breadcrumb nav ol li:nth-last-child(2) a::before {
+    content: none;
+  }
+
+  .breadcrumb nav ol li + li::before {
+    content: '>';
+    margin: 0 16px;
+    color: var(--wf-text-secondary);
+    font-size: 13px;
+    font-weight: 400;
+  }
+}
