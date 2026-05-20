@@ -1,0 +1,8 @@
+---
+description: AEM Edge Delivery block development rules
+globs: blocks/**/*
+---
+
+## Block Development
+When creating or modifying blocks, always read and follow 
+`.claude/skills/building-blocks.md` before writing any code.
