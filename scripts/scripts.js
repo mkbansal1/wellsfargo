@@ -44,10 +44,26 @@ async function loadFonts() {
 }
 
 /**
+ * Builds breadcrumb block and prepends to main.
+ * Skipped on homepage and pages with hide-breadcrumb metadata.
+ * @param {Element} main The container element
+ */
+function buildBreadcrumbBlock(main) {
+  const isHomepage = window.location.pathname === '/' || window.location.pathname === '/index';
+  const hideBreadcrumb = document.head.querySelector('meta[name="hide-breadcrumb"]')?.content === 'true';
+
+  if (isHomepage || hideBreadcrumb) return;
+
+  const section = document.createElement('div');
+  section.append(buildBlock('breadcrumb', { elems: [] }));
+  main.prepend(section);
+}
+
+/**
  * Builds all synthetic blocks in a container element.
  * @param {Element} main The container element
  */
-function buildAutoBlocks(main) {
+function buildAutoBlocks(main, isFragment = false) {
   try {
     // auto load `*/fragments/*` references
     const fragments = [...main.querySelectorAll('a[href*="/fragments/"]')].filter((f) => !f.closest('.fragment'));
@@ -66,7 +82,9 @@ function buildAutoBlocks(main) {
         });
       });
     }
-
+    if (!isFragment) {
+      buildBreadcrumbBlock(main);
+    }
     buildHeroBlock(main);
   } catch (error) {
     // eslint-disable-next-line no-console
@@ -118,9 +136,9 @@ function decorateButtons(main) {
  * @param {Element} main The main element
  */
 // eslint-disable-next-line import/prefer-default-export
-export function decorateMain(main) {
+export function decorateMain(main, isFragment = false) {
   decorateIcons(main);
-  buildAutoBlocks(main);
+  buildAutoBlocks(main, isFragment);
   decorateSections(main);
   decorateBlocks(main);
   decorateButtons(main);

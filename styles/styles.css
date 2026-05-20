@@ -300,7 +300,8 @@ main > .section > div {
   padding: 0 24px;
 }
 
-main > .section:first-of-type {
+main > .section:first-of-type,
+main > .section.breadcrumb-container + div.section {
   margin-top: 0;
   padding-top: 0;
 }
