@@ -1,0 +1,78 @@
+.disclaimers {
+  font-size: var(--body-font-size-xs);
+  line-height: 18px;
+  color: var(--wf-dark);
+}
+
+.disclaimers p {
+  font-size: var(--body-font-size-xs);
+  color: var(--wf-dark);
+  line-height: 18px;
+  margin: 24px 0;
+}
+
+.disclaimers p:first-child {
+  margin-top: 0;
+}
+
+.disclaimers a:any-link {
+  color: var(--wf-dark);
+  text-decoration: underline;
+}
+
+.disclaimers a:hover {
+  color: var(--wf-text-primary);
+}
+
+/* "Not-Not" investment disclaimer box */
+.disclaimers .disclaimers-not-not {
+  border: 1px solid var(--wf-dark);
+  border-radius: 0;
+  padding: 16px;
+  margin: 0 0 24px;
+}
+
+.disclaimers .disclaimers-not-not p {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--wf-dark);
+  line-height: 23px;
+  margin: 0 0 8px;
+}
+
+.disclaimers .disclaimers-not-not ul {
+  list-style-type: disc;
+  padding: 0 0 0 10px;
+  margin: 0 0 0 10px;
+}
+
+.disclaimers .disclaimers-not-not li {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--wf-dark);
+  line-height: 23px;
+}
+
+/* Equal Housing Lender */
+.disclaimers .disclaimers-equal-housing {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 24px 0;
+  font-size: var(--body-font-size-xs);
+}
+
+.disclaimers .disclaimers-equal-housing .icon {
+  width: 25px;
+  height: 24px;
+}
+
+/* Copyright line with separator */
+.disclaimers .disclaimers-copyright {
+  border-top: 1px solid var(--wf-bg-gray);
+  padding-top: 16px;
+  margin-top: 24px;
+  font-size: var(--body-font-size-xs);
+  color: var(--wf-dark);
+  line-height: 17px;
+}
