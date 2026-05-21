@@ -147,15 +147,6 @@
   border-radius: 12px;
 }
 
-.hero.overlay-bottom .hero-content::before {
-  content: '';
-  display: block;
-  width: 64px;
-  height: 4px;
-  background-color: var(--wf-yellow);
-  margin: 0 auto 20px;
-}
-
 .hero.overlay-bottom .hero-content h1,
 .hero.overlay-bottom .hero-content h2 {
   font-size: 40px;

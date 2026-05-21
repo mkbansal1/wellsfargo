@@ -7,6 +7,7 @@
   /* brand colors — default theme */
   --wf-red: #D71E28;
   --wf-yellow: #FCC60A;
+  --wf-dark-yellow: #ffcd41;
   --wf-dark: #141414;
   --wf-text-primary: #3B3331;
   --wf-text-secondary: #787070;
@@ -28,6 +29,7 @@
   --text-color: var(--wf-text-primary);
   --link-color: var(--wf-link);
   --link-hover-color: var(--wf-link-hover);
+  --heading-bar-color: var(--wf-dark-yellow);
 
   /* fonts */
   --body-font-family: 'Wells Fargo Sans', arial, helvetica, sans-serif;
@@ -40,8 +42,8 @@
   --body-font-size-xs: 13px;
 
   /* heading sizes */
-  --heading-font-size-xxl: 34px;
-  --heading-font-size-xl: 28px;
+  --heading-font-size-xxl: 32px;
+  --heading-font-size-xl: 24px;
   --heading-font-size-l: 22px;
   --heading-font-size-m: 20px;
   --heading-font-size-s: 18px;
@@ -66,8 +68,8 @@
     --body-font-size-m: 17px;
     --body-font-size-s: 15px;
     --body-font-size-xs: 13px;
-    --heading-font-size-xxl: 56px;
-    --heading-font-size-xl: 32px;
+    --heading-font-size-xxl: 42px;
+    --heading-font-size-xl: 34px;
     --heading-font-size-l: 26px;
     --heading-font-size-m: 22px;
     --heading-font-size-s: 20px;
@@ -118,8 +120,11 @@ h6 {
   color: var(--wf-text-primary);
 }
 
-h1 { font-size: var(--heading-font-size-xxl); }
-h2 { font-size: var(--heading-font-size-xl); }
+h1 { font-size: var(--heading-font-size-xl); }
+h2 { 
+  font-size: var(--heading-font-size-xxl);
+  font-weight: 300;
+}
 h3 { font-size: var(--heading-font-size-l); }
 h4 { font-size: var(--heading-font-size-m); }
 h5 { font-size: var(--heading-font-size-s); }
@@ -297,7 +302,7 @@ main > .section {
 }
 
 main > .section > div {
-  padding: 0 24px;
+  padding: 0 24px 16px;
 }
 
 main > .section:first-of-type,
@@ -308,7 +313,11 @@ main > .section.breadcrumb-container + div.section {
 
 @media (width >= 900px) {
   main > .section > div {
-    padding: 0 32px;
+    padding: 0 32px 20px;
+  }
+
+  main > .section.narrow-width > div {
+    padding: 0 134px 20px;
   }
 }
 
@@ -352,8 +361,17 @@ main .section.cream {
   padding: 40px 0;
 }
 
-main .section.center-align {
+main .section.center-align .default-content-wrapper {
   text-align: center;
+}
+
+main .section.heading-bar h2::before {
+  content: "";
+  display: block;
+  width: 96px;
+  height: 2px;
+  margin: 0 auto 25px;
+  background-color: var(--heading-bar-color);
 }
 
 /* wealth theme override (via page/section metadata) */
