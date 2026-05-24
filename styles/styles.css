@@ -121,6 +121,7 @@ h6 {
 }
 
 h1 { font-size: var(--heading-font-size-xl); }
+
 h2 { 
   font-size: var(--heading-font-size-xxl);
   font-weight: 300;
@@ -366,10 +367,4 @@ main .section.heading-bar h2::before {
   background-color: var(--heading-bar-color);
 }
 
-/* wealth theme override (via page/section metadata) */
-.theme-wealth {
-  --wf-link: #1a5276;
-  --wf-link-hover: #154360;
-  --link-color: var(--wf-link);
-  --link-hover-color: var(--wf-link-hover);
-}
+/* wealth theme — loaded from /styles/themes/wealth.css via scripts.js */

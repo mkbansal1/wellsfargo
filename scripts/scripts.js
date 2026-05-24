@@ -1,5 +1,6 @@
 import {
   buildBlock,
+  getMetadata,
   loadHeader,
   loadFooter,
   decorateIcons,
@@ -151,6 +152,10 @@ export function decorateMain(main, isFragment = false) {
 async function loadEager(doc) {
   document.documentElement.lang = 'en';
   decorateTemplateAndTheme();
+  const theme = getMetadata('theme');
+  if (theme) {
+    loadCSS(`${window.hlx.codeBasePath}/styles/themes/${theme}.css`);
+  }
   const main = doc.querySelector('main');
   if (main) {
     decorateMain(main);
