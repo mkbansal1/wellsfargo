@@ -39,14 +39,16 @@ Good: Authoring | Cards (icon-belt) | and adding .cards.icon-belt CSS rules
 
 `theme: wealth` applies **only** to pages under `/investing-wealth/`. NEVER apply it to Premier, CIB, Biz, or any consumer LOB.
 
-- Set via section/page metadata only: `theme: wealth`
+- Set via page metadata only: `theme: wealth`
+- The EDS framework (`decorateTemplateAndTheme`) adds a `wealth` class to `<body>`
+- The wealth theme CSS is loaded conditionally from `/styles/themes/wealth.css`
 - All other pages use the Default palette (no `theme` key needed)
-- NEVER scope the Wealth palette by URL path in CSS or JS — always use the metadata/CSS-variable mechanism
-- NEVER place `--wf-wealth-*` variables outside a `[data-theme="wealth"]` selector
+- NEVER scope the Wealth palette by URL path in CSS or JS — always use the body class mechanism
+- NEVER place `--wf-wealth-*` variables outside a `.wealth` selector
 
 ```
 Bad:  .ps-wealth-wrapper { color: #0C2340; }  (path-scoped in shared CSS)
-Good: [data-theme="wealth"] { --wf-text-primary: #1C2533; }  (token-scoped)
+Good: .wealth { --wf-wealth-text: #1C2533; }  (class-scoped via page metadata)
 ```
 
 ### Rule 3: Navigation — Four Variants, Always Selected by Metadata
@@ -91,13 +93,15 @@ All color, type, and spacing values are confirmed from the live Wells Fargo CSS.
 --wf-cream: #FFF7E2;
 ```
 
-**Wealth palette — only inside `[data-theme="wealth"]`:**
+**Wealth palette — only inside `.wealth` (body class set by page metadata):**
 ```css
 --wf-wealth-primary: #0C2340;
---wf-wealth-accent: #B89060;
+--wf-wealth-accent: #946E3A;
 --wf-wealth-accent-deep: #8B6F3F;
 --wf-wealth-bg: #F5EFE6;
 --wf-wealth-text: #1C2533;
+--wf-wealth-button: #352B6B;
+--wf-wealth-button-hover: #2A2256;
 ```
 
 **Typography (confirmed):**
