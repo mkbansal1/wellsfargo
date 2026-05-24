@@ -1,0 +1,36 @@
+/* Divider block — 5px full-width separator bar */
+.divider {
+  height: 5px;
+  width: 100%;
+  background-color: var(--wf-yellow);
+}
+
+/* Variant: red */
+.divider.red {
+  background-color: var(--wf-red);
+}
+
+/* Variant: dark */
+.divider.dark {
+  background-color: var(--wf-dark);
+}
+
+/* Variant: gray */
+.divider.gray {
+  background-color: var(--wf-bg-gray);
+}
+
+/* Variant: warm */
+.divider.warm {
+  background-color: var(--wf-bg-warm);
+}
+
+/* Variant: green */
+.divider.green {
+  background-color: var(--wf-green);
+}
+
+/* Variant: accent (wealth gold) */
+.divider.accent {
+  background-color: var(--wf-wealth-accent, #946E3A);
+}
