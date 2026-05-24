@@ -1,0 +1,11 @@
+{
+  "project": "Wells Fargo",
+  "plugins": [
+    {
+      "id": "library",
+      "title": "Library",
+      "environments": ["edit"],
+      "url": "/tools/sidekick/library?plugin=library&path=/tools/sidekick/library"
+    }
+  ]
+}
