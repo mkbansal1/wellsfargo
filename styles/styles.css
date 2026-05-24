@@ -325,21 +325,15 @@ main > .section.breadcrumb-container + div.section {
 main .section.light,
 main .section.highlight {
   background-color: var(--wf-bg-light);
-  margin: 0;
-  padding: 40px 0;
 }
 
 main .section.warm {
   background-color: var(--wf-bg-warm);
-  margin: 0;
-  padding: 40px 0;
 }
 
 main .section.dark {
   background-color: var(--wf-dark);
   color: var(--background-color);
-  margin: 0;
-  padding: 40px 0;
 }
 
 main .section.dark h1,
@@ -357,8 +351,6 @@ main .section.dark a:any-link {
 
 main .section.cream {
   background-color: var(--wf-cream);
-  margin: 0;
-  padding: 40px 0;
 }
 
 main .section.center-align .default-content-wrapper {
