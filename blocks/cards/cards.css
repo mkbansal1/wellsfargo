@@ -161,7 +161,7 @@
 
 /* Cards with gradient background image */
 .cards.bg-image > ul > li {
-  background-image: url('/assets/card-background-gradient.png');
+  background-image: url('/assets/card-background-gradient.jpg');
   background-size: cover;
   background-position: top center;
   background-repeat: no-repeat;
