@@ -161,7 +161,7 @@
 
 /* Cards with gradient background image */
 .cards.bg-image > ul > li {
-  background-image: url('https://www17.wellsfargomedia.com/assets/images/homepage/card_background-gradient-375x2172.png');
+  background-image: url('/assets/card-background-gradient.jpg');
   background-size: cover;
   background-position: top center;
   background-repeat: no-repeat;
