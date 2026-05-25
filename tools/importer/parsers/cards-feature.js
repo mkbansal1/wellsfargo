@@ -55,7 +55,7 @@ export default function parse(element, { document }) {
     const image = card.querySelector('img');
 
     // --- Col 2: Content (heading + description + CTA) ---
-    const textBody = card.querySelector('.enhanced-txt-body') || card;
+    const textBody = card.querySelector('.enhanced-txt-body, .ps-marketing-text') || card;
 
     // Heading: h3 is primary from source, fallback h2/h4 for variation
     const heading = textBody.querySelector('h3, h2, h4')
