@@ -117,25 +117,13 @@ function buildSubNav(navLists, activeIndex = 0) {
   return subNav;
 }
 
-function buildMobileNav(navLists, signinText, signinHref) {
+function buildMobileNav(navLists) {
   const mobileNav = document.createElement('div');
   mobileNav.className = 'nav-mobile-menu';
   mobileNav.setAttribute('aria-hidden', 'true');
 
   const content = document.createElement('div');
   content.className = 'nav-mobile-content';
-
-  // mobile header: Sign On + Close
-  const mobileHeader = document.createElement('div');
-  mobileHeader.className = 'nav-mobile-header';
-  mobileHeader.innerHTML = `
-    <a href="${signinHref}" class="nav-mobile-signon">${signinText}</a>
-    <button class="nav-mobile-close" aria-label="Close navigation">
-      <span class="nav-mobile-close-icon"></span>
-      <span class="nav-mobile-close-text">CLOSE</span>
-    </button>
-  `;
-  content.append(mobileHeader);
 
   // search bar
   const searchBar = document.createElement('div');
@@ -354,12 +342,8 @@ export default async function decorate(block) {
   nav.append(subNav);
 
   // build mobile menu
-  const mobileMenu = buildMobileNav(navLists, signinText, signinHref);
+  const mobileMenu = buildMobileNav(navLists);
   nav.append(mobileMenu);
-
-  // mobile close button
-  const closeBtn = mobileMenu.querySelector('.nav-mobile-close');
-  if (closeBtn) closeBtn.addEventListener('click', () => toggleMobileMenu(nav, false));
 
   // hamburger (right side on mobile, with MENU label)
   const hamburger = document.createElement('div');
@@ -370,6 +354,16 @@ export default async function decorate(block) {
   </button>`;
   hamburger.addEventListener('click', () => toggleMobileMenu(nav));
   topBar.querySelector('.nav-top-bar-inner').append(hamburger);
+
+  // close button (replaces hamburger when menu is open)
+  const navCloseBtn = document.createElement('div');
+  navCloseBtn.className = 'nav-close';
+  navCloseBtn.innerHTML = `<button type="button" aria-label="Close navigation">
+    <span class="nav-close-icon"></span>
+    <span class="nav-close-label">CLOSE</span>
+  </button>`;
+  navCloseBtn.addEventListener('click', () => toggleMobileMenu(nav, false));
+  topBar.querySelector('.nav-top-bar-inner').append(navCloseBtn);
 
   // handle resize
   isDesktop.addEventListener('change', () => {
