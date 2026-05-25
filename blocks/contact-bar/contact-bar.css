@@ -1,6 +1,6 @@
 /* contact-bar block */
 .contact-bar-container {
-  background-color: var(--wf-bg-warm);
+  background-color: #fff;
 }
 
 .contact-bar {
@@ -96,6 +96,12 @@
   outline-offset: 1px;
 }
 
+.contact-bar .contact-bar-item > button[aria-expanded="true"] {
+  outline: 2px solid var(--wf-link);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
 /* expanded panel — below its own item */
 .contact-bar .contact-bar-panel {
   width: 100%;
@@ -124,12 +130,16 @@
 }
 
 .contact-bar .contact-bar-panel ul li {
-  padding: 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
 }
 
 .contact-bar .contact-bar-panel ul li::before {
-  content: "→ ";
+  content: "→";
   color: var(--wf-text-secondary);
+  flex-shrink: 0;
 }
 
 .contact-bar .contact-bar-item .contact-bar-panel a {
@@ -203,32 +213,46 @@
   background-color: var(--wf-text-primary);
 }
 
-/* tablet and above — items in a row, panels below each */
+/* tablet and above — items in a row with wrap */
 @media (width >= 600px) {
   .contact-bar .contact-bar-items {
-    flex-direction: row;
+    flex-flow: row wrap;
     align-items: flex-start;
-    justify-content: center;
-    gap: 48px;
+    justify-content: flex-start;
+    gap: 0;
+    padding: 0 16px;
   }
 
   .contact-bar {
     padding: 56px 24px;
+    text-align: left;
   }
 
   .contact-bar .contact-bar-item {
-    flex: 1;
-    max-width: 300px;
+    flex: 0 1 50%;
+    max-width: 50%;
+    padding-bottom: 24px;
+  }
+
+  .contact-bar .contact-bar-item:last-child {
+    flex: 0 1 100%;
+    max-width: 100%;
   }
 }
 
 /* desktop */
 @media (width >= 900px) {
-  .contact-bar .contact-bar-items {
-    gap: 80px;
-  }
-
   .contact-bar {
     padding: 60px 32px;
+  }
+
+  .contact-bar .contact-bar-item {
+    flex: 0 1 33.33%;
+    max-width: 33.33%;
+  }
+
+  .contact-bar .contact-bar-item:last-child {
+    flex: 0 1 33.33%;
+    max-width: 33.33%;
   }
 }

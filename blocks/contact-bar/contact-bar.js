@@ -8,7 +8,7 @@ function setupLocationSearch(panel) {
   const navigate = () => {
     const query = input.value.trim();
     if (query) {
-      window.open(`${LOCATOR_URL}?searchTxt=${encodeURIComponent(query)}`, '_blank', 'noopener');
+      window.open(`${LOCATOR_URL}?qp=${encodeURIComponent(query)}`, '_blank', 'noopener');
     }
   };
 
@@ -37,7 +37,25 @@ function buildContentPanel(contentCell) {
   const panel = document.createElement('div');
   panel.className = 'contact-bar-panel';
   panel.hidden = true;
-  panel.append(...contentCell.childNodes);
+
+  const children = [...contentCell.children];
+  const allLinks = children.every((child) => child.querySelector('a') && !child.querySelector('strong'));
+
+  if (allLinks) {
+    const ul = document.createElement('ul');
+    children.forEach((child) => {
+      const link = child.querySelector('a');
+      if (link) {
+        const li = document.createElement('li');
+        li.append(link);
+        ul.append(li);
+      }
+    });
+    panel.append(ul);
+  } else {
+    panel.append(...contentCell.childNodes);
+  }
+
   return panel;
 }
 
@@ -104,14 +122,8 @@ export default function decorate(block) {
         li.append(panel);
         btn.addEventListener('click', () => {
           const expanded = btn.getAttribute('aria-expanded') === 'true';
-          ul.querySelectorAll('button[aria-expanded="true"]').forEach((other) => {
-            other.setAttribute('aria-expanded', 'false');
-            other.closest('.contact-bar-item').querySelector('.contact-bar-panel').hidden = true;
-          });
-          if (!expanded) {
-            btn.setAttribute('aria-expanded', 'true');
-            panel.hidden = false;
-          }
+          btn.setAttribute('aria-expanded', String(!expanded));
+          panel.hidden = expanded;
         });
       }
     }
