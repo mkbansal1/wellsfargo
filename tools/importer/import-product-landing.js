@@ -281,6 +281,13 @@ function buildSections(main, document) {
       continue;
     }
 
+    // Check for data-section-style on block elements (set by parsers)
+    if (el.hasAttribute && el.hasAttribute('data-section-style')) {
+      const blockStyle = el.getAttribute('data-section-style');
+      if (blockStyle && !current.style) current.style = blockStyle;
+      else if (blockStyle) current.style = current.style + ', ' + blockStyle;
+    }
+
     // Default: add to current section
     const style = getStyle(el);
     if (style && !current.style) current.style = style;
