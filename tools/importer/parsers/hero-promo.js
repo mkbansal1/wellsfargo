@@ -97,10 +97,13 @@ export default function parse(element, { document }) {
     variant = 'Hero';
   }
 
-  const cells = [[cellContent]];
+  // Create block table — single row, single cell with all content
+  const cells = [
+    [cellContent],
+  ];
   const block = WebImporter.Blocks.createBlock(document, { name: variant, cells });
 
-  // Mark for heading-bar section metadata if content has overlay pattern
+  // Mark for heading-bar section metadata if overlay-bottom
   if (variant === 'Hero (overlay-bottom)') {
     block.setAttribute('data-section-style', 'heading-bar');
   }
