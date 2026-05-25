@@ -98,7 +98,8 @@ export default function parse(element, { document }) {
       const p = document.createElement('p');
       const link = document.createElement('a');
       link.href = ctaLink.href;
-      link.textContent = ctaLink.textContent;
+      // Strip trailing ">" arrows — the block CSS adds these via ::after
+      link.textContent = ctaLink.textContent.replace(/\s*>\s*$/, '').trim();
       p.appendChild(link);
       contentCell.push(p);
     }
@@ -109,6 +110,6 @@ export default function parse(element, { document }) {
     }
   });
 
-  const block = WebImporter.Blocks.createBlock(document, { name: 'Cards (feature)', cells });
+  const block = WebImporter.Blocks.createBlock(document, { name: 'Cards (separator)', cells });
   element.replaceWith(block);
 }
