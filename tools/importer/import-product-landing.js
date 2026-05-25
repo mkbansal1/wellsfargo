@@ -281,12 +281,20 @@ function buildSections(main, document) {
       continue;
     }
 
+    // Check for data-section-style on block elements (set by parsers)
+    if (el.hasAttribute && el.hasAttribute('data-section-style')) {
+      const blockStyle = el.getAttribute('data-section-style');
+      if (blockStyle && !current.style) current.style = blockStyle;
+      else if (blockStyle) current.style = current.style + ', ' + blockStyle;
+    }
+
     // Default: add to current section
     const style = getStyle(el);
     if (style && !current.style) current.style = style;
     current.els.push(el);
 
     // After a block table, start a new section
+    // BUT: keep H1 together with the first block (they belong in same section)
     const isBlock = el.tagName === 'TABLE' || (cls.includes('block') && !cls.includes('card-background'));
     if (isBlock) {
       sections.push(current);
@@ -295,6 +303,17 @@ function buildSections(main, document) {
   }
 
   if (current.els.length > 0) sections.push(current);
+
+  // Merge H1-only sections with the following section
+  for (let i = sections.length - 2; i >= 0; i--) {
+    const sec = sections[i];
+    const isH1Only = sec.els.length === 1 && sec.els[0] && sec.els[0].tagName === 'H1';
+    if (isH1Only && sections[i + 1]) {
+      sections[i + 1].els.unshift(sec.els[0]);
+      if (sec.style && !sections[i + 1].style) sections[i + 1].style = sec.style;
+      sections.splice(i, 1);
+    }
+  }
 
   // Render: clear main, insert sections with hrs and section-metadata
   while (main.firstChild) main.removeChild(main.firstChild);
