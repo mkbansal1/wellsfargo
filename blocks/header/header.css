@@ -34,6 +34,7 @@ header nav a:hover {
 header .nav-top-bar {
   background-color: var(--wf-red);
   color: #fff;
+  border-bottom: 4px solid var(--wf-yellow);
 }
 
 header .nav-top-bar-inner {
@@ -42,8 +43,8 @@ header .nav-top-bar-inner {
   justify-content: space-between;
   max-width: var(--content-max-width);
   margin: 0 auto;
-  padding: 0 24px;
-  height: 56px;
+  /* padding: 0 24px; */
+  height: 100%;
 }
 
 /* logo */
@@ -51,6 +52,7 @@ header .nav-logo {
   display: flex;
   align-items: center;
   color: #fff;
+  margin-left: 16px;
 }
 
 header .nav-logo svg {
@@ -107,19 +109,19 @@ header .nav-signon-btn {
   align-items: center;
   justify-content: center;
   padding: 8px 20px;
-  border: 1.5px solid #fff;
   border-radius: 24px;
-  color: #fff;
+  color: var(--wf-text-primary);
   font-size: 14px;
   font-weight: 600;
   white-space: nowrap;
   background: transparent;
+  background-color: var(--wf-bg-white);
 }
 
 header .nav-signon-btn:hover {
-  background-color: rgb(255 255 255 / 15%);
-  color: #fff;
-  text-decoration: none;
+  cursor: pointer;
+  text-decoration: underline;
+  color: var(--wf-text-primary);
 }
 
 /* ===== PRIMARY NAV (tabs) ===== */
@@ -231,7 +233,7 @@ header .nav-hamburger button {
   padding: 4px 8px;
   background: transparent;
   cursor: pointer;
-  color: var(--wf-text-primary);
+  color: var(--wf-bg-light);
 }
 
 header .nav-hamburger-icon,
@@ -239,10 +241,12 @@ header .nav-hamburger-icon::before,
 header .nav-hamburger-icon::after {
   display: block;
   position: relative;
-  width: 24px;
+  width: 30px;
   height: 2px;
-  border-radius: 2px;
-  background: currentcolor;
+  border-radius: 1px;
+  margin-bottom: 5px;
+  padding: 0 .5px;
+  background: var(--wf-bg-white);
 }
 
 header .nav-hamburger-icon::before,
@@ -264,7 +268,7 @@ header .nav-hamburger-label {
   font-weight: 600;
   letter-spacing: 0.5px;
   margin-top: 4px;
-  color: var(--wf-text-primary);
+  color: var(--wf-bg-light);
 }
 
 header nav[aria-expanded='true'] .nav-hamburger {
@@ -422,6 +426,7 @@ header .nav-mobile-sub-links {
   margin: 0;
   padding: 0;
   display: none;
+  background-color: var(--wf-cream);
 }
 
 header .nav-mobile-section.active .nav-mobile-sub-links {
@@ -429,7 +434,7 @@ header .nav-mobile-section.active .nav-mobile-sub-links {
 }
 
 header .nav-mobile-sub-links li {
-  border-bottom: 1px solid var(--wf-bg-gray);
+  border-bottom: 1px solid rgb(0 0 0 / 8%);
 }
 
 /* stylelint-disable-next-line no-descending-specificity */
@@ -439,7 +444,7 @@ header .nav-mobile-sub-links a {
   justify-content: space-between;
   padding: 16px 20px;
   font-size: 15px;
-  color: var(--wf-text-primary);
+  color: var(--wf-link);
 }
 
 header .nav-mobile-sub-links a::after {
@@ -447,8 +452,8 @@ header .nav-mobile-sub-links a::after {
   display: block;
   width: 7px;
   height: 7px;
-  border-right: 2px solid var(--wf-text-secondary);
-  border-bottom: 2px solid var(--wf-text-secondary);
+  border-right: 2px solid var(--wf-link);
+  border-bottom: 2px solid var(--wf-link);
   transform: rotate(-45deg);
   flex-shrink: 0;
 }
@@ -460,14 +465,15 @@ header .nav-mobile-sub-links a::after {
     top: 0;
   }
 
-  header .nav-top-bar-inner {
+  /* header .nav-top-bar-inner {
     height: 64px;
     padding: 0 12px 0 16px;
-  }
+  } */
 
   header .nav-hamburger {
     display: flex;
     order: 3;
+    padding: 25px 23px 15px 8px;
   }
 
   header .nav-utilities {
@@ -481,7 +487,6 @@ header .nav-mobile-sub-links a::after {
   }
 
   header .nav-signon-btn {
-    border-color: var(--wf-text-primary);
     color: var(--wf-text-primary);
     background: var(--background-color);
     font-size: 15px;
