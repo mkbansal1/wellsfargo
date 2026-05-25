@@ -86,7 +86,7 @@
 }
 
 /* Desktop: cards in a row */
-@media (width >= 900px) {
+@media (width >= 768px) {
   .cards > ul {
     flex-flow: row wrap;
   }
@@ -121,7 +121,7 @@
 }
 
 /* Desktop: icons on top, yellow top border, text below */
-@media (width >= 900px) {
+@media (width >= 768px) {
   .cards.icons > ul > li {
     flex-direction: column;
     align-items: stretch;
@@ -180,7 +180,7 @@
   padding: 0 24px 28px;
 }
 
-@media (width >= 900px) {
+@media (width >= 768px) {
   .cards.bg-image.icons .cards-card-image {
     padding: 32px 28px 0;
   }
