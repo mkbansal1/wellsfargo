@@ -110,6 +110,17 @@ export default function parse(element, { document }) {
     }
   });
 
-  const block = WebImporter.Blocks.createBlock(document, { name: 'Cards (separator)', cells });
+  // Determine variant: icons if images are small (64x64 icon-size), separator if photos
+  let variant = 'Cards (separator)';
+  const firstImg = element.querySelector('img');
+  if (firstImg) {
+    const src = (firstImg.src || firstImg.getAttribute('src') || '').toLowerCase();
+    const w = parseInt(firstImg.getAttribute('width') || '0', 10);
+    if (w > 0 && w <= 100 || src.includes('64x64') || src.includes('icon') || src.includes('-64x') || src.includes('gradient-64')) {
+      variant = 'Cards (icons, bg-image)';
+    }
+  }
+
+  const block = WebImporter.Blocks.createBlock(document, { name: variant, cells });
   element.replaceWith(block);
 }
