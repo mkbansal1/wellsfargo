@@ -116,6 +116,21 @@ All color, type, and spacing values are confirmed from the live Wells Fargo CSS.
 | `--fs-small` | 14px | 1.45 | 400 | Captions, footnotes |
 | `--fs-micro` | 12px | 1.4 | 500 | Disclosures, legal |
 
+**Responsive Breakpoints (confirmed):**
+
+| Viewport | Range | Media Query |
+|---|---|---|
+| Mobile | 0 – 767px | Default (no query) |
+| Tablet | 768px – 1023px | `@media (width >= 768px)` |
+| Desktop | 1024px – 1399px | `@media (width >= 1024px)` |
+| Wide Desktop | 1400px+ | `@media (width >= 1400px)` |
+
+- Declare styles mobile-first, use `min-width` media queries
+- Cards, Columns, Footer go side-by-side at **768px** (tablet)
+- Hero side-by-side layout and full Header nav activate at **1024px** (desktop)
+- Content max-width caps at **1400px** (wide desktop)
+- NEVER use `max-width` media queries or `600px`/`900px` breakpoints
+
 **Layout (confirmed):**
 - Max content width: `1400px` (centered, `0 auto`)
 - Button border-radius: `24px` (pill shape)
@@ -240,7 +255,7 @@ Run through this checklist before completing any task. Fix every failure before 
 - Follow Stylelint standard configuration
 - Use modern CSS features (CSS Grid, Flexbox, CSS Custom Properties)
 - Maintain responsive design principles
-  - Declare styles mobile first, use `min-width` media queries at 600px/900px/1200px for tablet and desktop
+  - Declare styles mobile first, use `min-width` media queries at 768px/1024px/1400px for tablet, desktop, and wide desktop
 - Ensure all selectors are scoped to the block.
   - Bad: `.item-list`
   - Good: `.{blockname} .item-list`   

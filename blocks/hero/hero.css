@@ -69,7 +69,7 @@
 }
 
 /* === Default variant — desktop: background image with text overlay === */
-@media (width >= 900px) {
+@media (width >= 1024px) {
   .hero {
     flex-direction: row;
     min-height: 420px;
@@ -162,7 +162,7 @@
 }
 
 /* === Variant: overlay-bottom — desktop === */
-@media (width >= 900px) {
+@media (width >= 1024px) {
   .hero.overlay-bottom {
     flex-direction: column;
     height: auto;

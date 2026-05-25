@@ -102,7 +102,7 @@
 }
 
 /* === Variant: desktop-hidden (mobile only, combinable) === */
-@media (width >= 900px) {
+@media (width >= 768px) {
   .divider.desktop-hidden {
     display: none;
   }
