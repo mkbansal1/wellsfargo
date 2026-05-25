@@ -2,40 +2,72 @@
 /* global WebImporter */
 
 /**
- * Parser: contact-info
- * Base block: Columns (contact) variant
- * Source selector: .card-background-white with contact phone numbers
- * Source: https://www.wellsfargo.com/mortgage/
+ * Parser: contact-info / cards-no-images
+ * Base block: Cards (noimage)
+ * Source: Wells Fargo card sections with multiple h3s and no/few images
  *
- * Extracts contact information columns (phone + hours + CTA) into a Columns (contact) block.
- * Each column = one row with its H3 heading + phone + hours + links.
+ * Block library structure (2-column rows, empty col1):
+ *   | Cards (noimage) |
+ *   | (empty) | heading + description + CTA |
+ *   | (empty) | heading + description + CTA |
+ *
+ * Source patterns:
+ *   .card-container > div (each div = one card)
+ *   .card-theme2 > div
+ *   [class*="card-content"] items
+ *   Or: sections with multiple h3 groups
  */
 export default function parse(element, { document }) {
-  const columns = element.querySelectorAll('.card-container > div, .card-theme2 > div, [class*="card-content"]');
+  // Find individual card items
+  let cardItems = Array.from(element.querySelectorAll(
+    '.card-container > div, .card-theme2 > div, [class*="card-content"]:not(.card-container)'
+  ));
 
-  if (columns.length === 0) {
-    const innerDivs = element.querySelectorAll(':scope > div > div > div');
-    if (innerDivs.length > 1) {
-      const cells = [];
-      innerDivs.forEach((col) => {
-        cells.push([col]);
-      });
-      const block = WebImporter.Blocks.createBlock(document, { name: 'Columns (contact)', cells });
-      element.replaceWith(block);
-      return;
+  // Fallback: look for groups of h3 + content
+  if (cardItems.length === 0) {
+    const container = element.querySelector('.card-container, [class*="card-container"]');
+    if (container) {
+      cardItems = Array.from(container.children).filter((el) => el.querySelector('h3, h4'));
     }
   }
 
-  const cells = [];
-  const row = [];
-  columns.forEach((col) => {
-    row.push(col);
-  });
-
-  if (row.length > 0) {
-    cells.push(row);
+  // Last fallback: direct children with h3s
+  if (cardItems.length === 0) {
+    cardItems = Array.from(element.querySelectorAll(':scope > div > div')).filter((el) => el.querySelector('h3, h4'));
   }
 
-  const block = WebImporter.Blocks.createBlock(document, { name: 'Columns (contact)', cells });
-  element.replaceWith(block);
+  const cells = [];
+
+  cardItems.forEach((card) => {
+    const heading = card.querySelector('h3, h4');
+    const contentParts = [];
+
+    if (heading) {
+      const h3 = document.createElement('h3');
+      h3.innerHTML = heading.innerHTML;
+      contentParts.push(h3);
+    }
+
+    // Get all paragraphs (description + CTA)
+    const textBody = card.querySelector('.enhanced-txt-body, [class*="txt-body"]') || card;
+    const paragraphs = textBody.querySelectorAll('p, div:not(:has(h3)):not(:has(h4))');
+    paragraphs.forEach((p) => {
+      if (p.querySelector('h3, h4')) return;
+      if (p.textContent.trim() || p.querySelector('a')) {
+        const para = document.createElement('p');
+        para.innerHTML = p.innerHTML;
+        contentParts.push(para);
+      }
+    });
+
+    if (contentParts.length > 0) {
+      // 2-column row: empty col1 | content col2
+      cells.push([[''], contentParts]);
+    }
+  });
+
+  if (cells.length > 0) {
+    const block = WebImporter.Blocks.createBlock(document, { name: 'Cards (noimage)', cells });
+    element.replaceWith(block);
+  }
 }
