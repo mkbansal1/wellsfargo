@@ -3,7 +3,9 @@ import { loadFragment } from '../fragment/fragment.js';
 
 const isDesktop = window.matchMedia('(min-width: 900px)');
 
-function buildTopBar(sectionMeta) {
+function buildTopBar({
+  utilities, logoEl, logoHref, signinText, signinHref,
+}) {
   const topBar = document.createElement('div');
   topBar.className = 'nav-top-bar';
 
@@ -11,39 +13,40 @@ function buildTopBar(sectionMeta) {
   inner.className = 'nav-top-bar-inner';
 
   // logo
-  const logoLink = sectionMeta.get('logo-url') || '/';
   const brand = document.createElement('a');
   brand.className = 'nav-logo';
-  brand.href = logoLink;
+  brand.href = logoHref;
   brand.setAttribute('aria-label', 'Wells Fargo Home');
-  brand.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 36" fill="#fff" aria-hidden="true">
-    <text x="0" y="28" font-family="'Wells Fargo Sans', serif" font-size="28" font-weight="700" letter-spacing="1">WELLS FARGO</text>
-  </svg>`;
+  if (logoEl) {
+    brand.append(logoEl);
+  } else {
+    brand.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 36" fill="#fff" aria-hidden="true"><text x="0" y="28" font-family="\'Wells Fargo Sans\', serif" font-size="28" font-weight="700" letter-spacing="1">WELLS FARGO</text></svg>';
+  }
   inner.append(brand);
 
-  // utility links
+  // utility links (from section-metadata)
   const utils = document.createElement('div');
   utils.className = 'nav-utilities';
-  utils.innerHTML = `
-    <a href="/locator/" class="nav-util-link">ATMs/Locations</a>
-    <a href="/help/" class="nav-util-link">Help</a>
-    <a href="/es/" class="nav-util-link">Español</a>
-  `;
+  utilities.forEach(({ text, href }) => {
+    const a = document.createElement('a');
+    a.className = 'nav-util-link';
+    a.href = href;
+    a.textContent = text;
+    utils.append(a);
+  });
 
-  // search
-  const searchAlt = sectionMeta.get('search-alt-text') || 'Search';
+  // search icon
   const searchBtn = document.createElement('button');
   searchBtn.className = 'nav-search-btn';
-  searchBtn.setAttribute('aria-label', searchAlt);
+  searchBtn.setAttribute('aria-label', 'Search');
   searchBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M16.9,15.5c2.4-3.2,2.2-7.7-0.7-10.6c-3.1-3.1-8.1-3.1-11.3,0c-3.1,3.2-3.1,8.3,0,11.4c2.9,2.9,7.5,3.1,10.6,0.6c0,0.1,0,0.1,0,0.1l4.2,4.2c0.5,0.4,1.1,0.4,1.5,0c0.4-0.4,0.4-1,0-1.4L16.9,15.5C16.9,15.5,16.9,15.5,16.9,15.5L16.9,15.5z M14.8,6.3c2.3,2.3,2.3,6.1,0,8.5c-2.3,2.3-6.1,2.3-8.5,0C4,12.5,4,8.7,6.3,6.3C8.7,4,12.5,4,14.8,6.3z"/></svg>';
   utils.append(searchBtn);
 
   // sign on button
-  const signonText = sectionMeta.get('signin-text') || 'Sign On';
   const signonBtn = document.createElement('a');
   signonBtn.className = 'nav-signon-btn';
-  signonBtn.href = '#';
-  signonBtn.textContent = signonText;
+  signonBtn.href = signinHref;
+  signonBtn.textContent = signinText;
   utils.append(signonBtn);
 
   inner.append(utils);
@@ -114,7 +117,7 @@ function buildSubNav(navLists, activeIndex = 0) {
   return subNav;
 }
 
-function buildMobileNav(navLists) {
+function buildMobileNav(navLists, utilities) {
   const mobileNav = document.createElement('div');
   mobileNav.className = 'nav-mobile-menu';
   mobileNav.setAttribute('aria-hidden', 'true');
@@ -156,14 +159,15 @@ function buildMobileNav(navLists) {
     content.append(section);
   });
 
-  // mobile utility links
+  // mobile utility links (from section-metadata)
   const mobileUtils = document.createElement('div');
   mobileUtils.className = 'nav-mobile-utils';
-  mobileUtils.innerHTML = `
-    <a href="/locator/">ATMs/Locations</a>
-    <a href="/help/">Help</a>
-    <a href="/es/">Español</a>
-  `;
+  utilities.forEach(({ text, href }) => {
+    const a = document.createElement('a');
+    a.href = href;
+    a.textContent = text;
+    mobileUtils.append(a);
+  });
   content.append(mobileUtils);
 
   mobileNav.append(content);
@@ -171,31 +175,129 @@ function buildMobileNav(navLists) {
 }
 
 function parseNavContent(container) {
-  const sectionMeta = new Map();
+  const utilities = [];
   const navLists = [];
+  let logoEl = null;
+  let logoHref = '/';
+  let signinText = 'Sign On';
+  let signinHref = '#';
 
-  // parse section metadata
-  const metaDiv = container.querySelector('.section-metadata');
-  if (metaDiv) {
-    metaDiv.querySelectorAll(':scope > div').forEach((row) => {
-      const key = row.children[0]?.textContent?.trim().toLowerCase();
-      const val = row.children[1]?.querySelector('a')?.href || row.children[1]?.textContent?.trim();
-      if (key && val) sectionMeta.set(key, val);
+  // Try decorated sections first (local dev with loadFragment)
+  const sections = [...container.querySelectorAll(':scope > .section')];
+
+  if (sections.length >= 2) {
+    // Section 1: logo (picture wrapped in a link)
+    const logoSection = sections[0];
+    const logoLink = logoSection.querySelector('a');
+    if (logoLink) logoHref = logoLink.href;
+    const picture = logoSection.querySelector('picture');
+    if (picture) logoEl = picture.cloneNode(true);
+
+    // Section 2: nav lists
+    const navSection = sections[1];
+    navSection.querySelectorAll('ul').forEach((ul) => {
+      if (ul.parentElement && ul.parentElement.closest('ul')) return;
+      ul.querySelectorAll(':scope > li').forEach((li) => {
+        const linkEl = li.querySelector(':scope > p > a') || li.querySelector(':scope > a');
+        if (!linkEl) return;
+        const children = [...li.querySelectorAll(':scope > ul > li > a')];
+        navLists.push({ link: linkEl, children });
+      });
     });
+
+    // Section 3: utilities — from section-metadata block or data attributes on div
+    const utilSection = sections[2] || sections[0];
+    if (utilSection) {
+      const metaDiv = utilSection.querySelector('.section-metadata');
+      if (metaDiv) {
+        metaDiv.querySelectorAll(':scope > div').forEach((row) => {
+          const key = row.children[0]?.textContent?.trim().toLowerCase();
+          const linkEl = row.children[1]?.querySelector('a');
+          const text = linkEl?.textContent?.trim() || row.children[1]?.textContent?.trim();
+          const href = linkEl?.href || '';
+          if (!key) return;
+          if (key === 'signin') {
+            signinText = text || 'Sign On';
+            signinHref = href || '#';
+          } else if (key !== 'languages' && href) {
+            utilities.push({ text, href });
+          } else if (key === 'languages') {
+            // multiple language links in one cell
+            row.children[1]?.querySelectorAll('a').forEach((a) => {
+              utilities.push({ text: a.textContent.trim(), href: a.href });
+            });
+          }
+        });
+      } else {
+        // data attributes on the div (AEM renders section-metadata as data-*)
+        const dataset = utilSection.dataset || {};
+        if (dataset.signin) signinHref = dataset.signin;
+        if (dataset.locator) utilities.push({ text: 'ATMs/Locations', href: dataset.locator });
+        if (dataset.help) utilities.push({ text: 'Help', href: dataset.help });
+        if (dataset.languages) {
+          const langs = dataset.languages.split(',');
+          const langNames = ['English', 'Español'];
+          langs.forEach((url, i) => {
+            if (url.trim()) utilities.push({ text: langNames[i] || url.trim(), href: url.trim() });
+          });
+        }
+      }
+    }
+  } else {
+    // Fallback: raw div structure (no .section classes)
+    const divs = [...container.querySelectorAll(':scope > div')];
+
+    // Find logo div (has picture or data-logo-img-url)
+    const logoDiv = divs.find((d) => d.querySelector('picture') || d.dataset?.logoImgUrl);
+    if (logoDiv) {
+      const logoLink = logoDiv.querySelector('a');
+      if (logoLink) logoHref = logoLink.href;
+      const picture = logoDiv.querySelector('picture');
+      if (picture) {
+        logoEl = picture.cloneNode(true);
+      } else if (logoDiv.dataset?.logoImgUrl) {
+        const img = document.createElement('img');
+        img.src = logoDiv.dataset.logoImgUrl;
+        img.alt = logoDiv.dataset.logoAlt || 'Wells Fargo';
+        img.height = 23;
+        logoEl = img;
+      }
+    }
+
+    // Find nav div (has <ul>)
+    const navDiv = divs.find((d) => d.querySelector('ul'));
+    if (navDiv) {
+      navDiv.querySelectorAll('ul').forEach((ul) => {
+        if (ul.parentElement && ul.parentElement.closest('ul')) return;
+        ul.querySelectorAll(':scope > li').forEach((li) => {
+          const linkEl = li.querySelector(':scope > p > a') || li.querySelector(':scope > a');
+          if (!linkEl) return;
+          const children = [...li.querySelectorAll(':scope > ul > li > a')];
+          navLists.push({ link: linkEl, children });
+        });
+      });
+    }
+
+    // Find utilities div (has data-signin, data-locator, etc.)
+    const utilDiv = divs.find((d) => d.dataset?.signin || d.dataset?.locator);
+    if (utilDiv) {
+      const { dataset } = utilDiv;
+      if (dataset.signin) signinHref = dataset.signin;
+      if (dataset.locator) utilities.push({ text: 'ATMs/Locations', href: dataset.locator });
+      if (dataset.help) utilities.push({ text: 'Help', href: dataset.help });
+      if (dataset.languages) {
+        const langs = dataset.languages.split(',');
+        const langNames = ['English', 'Español'];
+        langs.forEach((url, i) => {
+          if (url.trim()) utilities.push({ text: langNames[i] || url.trim(), href: url.trim() });
+        });
+      }
+    }
   }
 
-  // parse nav lists — find all top-level <ul> elements (those whose parent is not a <li>)
-  container.querySelectorAll('ul').forEach((ul) => {
-    if (ul.parentElement && ul.parentElement.closest('ul')) return;
-    ul.querySelectorAll(':scope > li').forEach((li) => {
-      const linkEl = li.querySelector(':scope > p > a') || li.querySelector(':scope > a');
-      if (!linkEl) return;
-      const children = [...li.querySelectorAll(':scope > ul > li > a')];
-      navLists.push({ link: linkEl, children });
-    });
-  });
-
-  return { sectionMeta, navLists };
+  return {
+    utilities, navLists, logoEl, logoHref, signinText, signinHref,
+  };
 }
 
 function toggleMobileMenu(nav, open) {
@@ -222,13 +324,17 @@ export default async function decorate(block) {
 
   while (fragment.firstElementChild) nav.append(fragment.firstElementChild);
 
-  const { sectionMeta, navLists } = parseNavContent(nav);
+  const {
+    utilities, navLists, logoEl, logoHref, signinText, signinHref,
+  } = parseNavContent(nav);
 
   // clear raw content
   nav.innerHTML = '';
 
   // build top bar (red bar with logo + utilities)
-  const topBar = buildTopBar(sectionMeta);
+  const topBar = buildTopBar({
+    utilities, logoEl, logoHref, signinText, signinHref,
+  });
   nav.append(topBar);
 
   // build primary nav tabs
@@ -240,7 +346,7 @@ export default async function decorate(block) {
   nav.append(subNav);
 
   // build mobile menu
-  const mobileMenu = buildMobileNav(navLists);
+  const mobileMenu = buildMobileNav(navLists, utilities);
   nav.append(mobileMenu);
 
   // hamburger
