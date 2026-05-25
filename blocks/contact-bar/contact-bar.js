@@ -8,7 +8,7 @@ function setupLocationSearch(panel) {
   const navigate = () => {
     const query = input.value.trim();
     if (query) {
-      window.open(`${LOCATOR_URL}?qp=${encodeURIComponent(query)}`, '_blank', 'noopener');
+      window.open(`${LOCATOR_URL}?searchTxt=${encodeURIComponent(query)}`, '_blank', 'noopener');
     }
   };
 
@@ -16,6 +16,29 @@ function setupLocationSearch(panel) {
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') navigate();
   });
+}
+
+function buildLocationSearchPanel() {
+  const panel = document.createElement('div');
+  panel.className = 'contact-bar-panel';
+  panel.hidden = true;
+  panel.innerHTML = `
+    <div class="panel-search">
+      <input type="text" placeholder=" " aria-label="Enter City, State or ZIP to find a location">
+      <span class="panel-search-label">City, State or ZIP</span>
+    </div>
+    <button type="button" class="panel-search-btn">Go</button>
+  `;
+  setupLocationSearch(panel);
+  return panel;
+}
+
+function buildContentPanel(contentCell) {
+  const panel = document.createElement('div');
+  panel.className = 'contact-bar-panel';
+  panel.hidden = true;
+  panel.append(...contentCell.childNodes);
+  return panel;
 }
 
 export default function decorate(block) {
@@ -26,17 +49,19 @@ export default function decorate(block) {
   [...block.children].forEach((row) => {
     if (row.querySelector('h2')) return;
 
-    const cell = row.querySelector('div');
+    const cells = [...row.children];
+    const cell = cells[0];
+    const panelCell = cells[1];
     if (!cell) return;
 
     const link = cell.querySelector('a');
     const icon = cell.querySelector('.icon');
-    const panel = cell.querySelector('.contact-bar-panel');
+    const hasPanelContent = panelCell && panelCell.innerHTML.trim().length > 0;
 
     const li = document.createElement('li');
     li.className = 'contact-bar-item';
 
-    if (link && !panel) {
+    if (link && !hasPanelContent) {
       const a = document.createElement('a');
       a.href = link.href;
       a.setAttribute('aria-label', link.textContent.trim());
@@ -50,8 +75,7 @@ export default function decorate(block) {
       const btn = document.createElement('button');
       btn.setAttribute('type', 'button');
       btn.setAttribute('aria-expanded', 'false');
-      const text = cell.querySelector('p')?.textContent.trim()
-        || cell.childNodes[0]?.textContent.trim() || '';
+      const text = cell.textContent.trim();
       btn.setAttribute('aria-label', text);
       if (icon) btn.append(icon);
       const label = document.createElement('span');
@@ -66,8 +90,17 @@ export default function decorate(block) {
 
       li.append(btn);
 
+      let panel = null;
+      if (hasPanelContent) {
+        const isLocationSearch = panelCell.textContent.trim().toLowerCase() === 'location-search';
+        if (isLocationSearch) {
+          panel = buildLocationSearchPanel();
+        } else {
+          panel = buildContentPanel(panelCell);
+        }
+      }
+
       if (panel) {
-        panel.hidden = true;
         li.append(panel);
         btn.addEventListener('click', () => {
           const expanded = btn.getAttribute('aria-expanded') === 'true';
@@ -80,9 +113,6 @@ export default function decorate(block) {
             panel.hidden = false;
           }
         });
-        if (panel.querySelector('.panel-search-btn')) {
-          setupLocationSearch(panel);
-        }
       }
     }
 
