@@ -202,14 +202,31 @@ footer .footer-legal .footer-gray-line {
 }
 
 /* Copyright */
-footer .footer-legal .footer-copyright {
+footer .footer-legal .footer-copyright,
+footer .footer-nav .footer-copyright {
   font-size: 12px;
   color: #141414;
   margin: 0 0 24px;
 }
 
+/* Gray separator line above copyright in nav-only footers */
+footer .footer-nav .footer-gray-line {
+  border: none;
+  margin: 16px 0 12px;
+}
+
+/* Equal Housing Lender in nav-only footers */
+footer .footer-nav .footer-equal-housing {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+  font-size: 12px;
+  color: #141414;
+}
+
 /* ── Responsive ───────────────────────────────────────────── */
-@media (width >= 768px) {
+@media (width >= 1024px) {
   footer .footer > div {
     padding: 0 32px;
   }
