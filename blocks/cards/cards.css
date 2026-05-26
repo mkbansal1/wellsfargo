@@ -85,15 +85,51 @@
   text-decoration: underline;
 }
 
-/* Desktop: cards in a row */
+/* Tablet: cards wrap into rows */
 @media (width >= 768px) {
   .cards > ul {
     flex-flow: row wrap;
   }
 
   .cards > ul > li {
-    flex: 1 1 0;
+    flex: 0 0 calc(50% - 12px);
     min-width: 0;
+  }
+}
+
+/* Desktop: default 4-up */
+@media (width >= 1024px) {
+  .cards > ul > li {
+    flex: 0 0 calc(25% - 18px);
+  }
+}
+
+/* === Column count variants === */
+
+/* two-up: 2 per row on tablet and desktop */
+@media (width >= 768px) {
+  .cards.two-up > ul > li {
+    flex: 0 0 calc(50% - 12px);
+  }
+}
+
+/* three-up: 3 per row on tablet and desktop */
+@media (width >= 768px) {
+  .cards.three-up > ul > li {
+    flex: 0 0 calc(33.33% - 16px);
+  }
+}
+
+/* four-up: 2 on tablet, 4 on desktop (same as default) */
+@media (width >= 768px) {
+  .cards.four-up > ul > li {
+    flex: 0 0 calc(50% - 12px);
+  }
+}
+
+@media (width >= 1024px) {
+  .cards.four-up > ul > li {
+    flex: 0 0 calc(25% - 18px);
   }
 }
 
