@@ -150,6 +150,12 @@
 }
 
 
+/* === Variant: bg-light === */
+
+.cards.bg-light > ul > li {
+  background-color: var(--wf-bg-light);
+}
+
 /* === Variant: bg-image === */
 
 /* Cards with gradient background image */
