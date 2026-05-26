@@ -1,4 +1,4 @@
-/* Wells Fargo Header â€” 3-tier navigation */
+/* Wells Fargo Header — 3-tier navigation */
 
 /* wrapper */
 header .nav-wrapper {
@@ -105,7 +105,7 @@ header .nav-search-btn:hover {
   opacity: 0.8;
 }
 
-/* desktop search overlay â€” replaces top bar content */
+/* desktop search overlay — replaces top bar content */
 header .nav-search-overlay {
   display: none;
   position: absolute;

@@ -1,0 +1,275 @@
+/* contact-bar block */
+.contact-bar-container {
+  background-color: var(--background-color);
+}
+
+.contact-bar {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: 48px 16px;
+  text-align: left;
+}
+
+.contact-bar h2 {
+  font-size: var(--heading-font-size-xl);
+  font-weight: 400;
+  color: var(--wf-text-primary);
+  margin: 0 0 32px;
+}
+
+.contact-bar .contact-bar-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.contact-bar .contact-bar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.contact-bar .contact-bar-item .icon {
+  width: 44px;
+  height: 44px;
+  background-color: var(--wf-text-secondary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.contact-bar .contact-bar-item .icon img {
+  width: 22px;
+  height: 22px;
+  filter: brightness(0) invert(1);
+}
+
+.contact-bar .contact-bar-label {
+  font-size: var(--body-font-size-m);
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+/* chevron indicator */
+.contact-bar .contact-bar-chevron {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid currentcolor;
+  border-bottom: 2px solid currentcolor;
+  transform: rotate(45deg);
+  margin-left: 6px;
+  transition: transform 0.2s;
+}
+
+.contact-bar button[aria-expanded="true"] .contact-bar-chevron {
+  transform: rotate(-135deg);
+}
+
+.contact-bar .contact-bar-item a,
+.contact-bar .contact-bar-item > button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  padding: 12px 0;
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--wf-text-primary);
+  transition: background-color 0.2s;
+}
+
+.contact-bar .contact-bar-item a {
+  color: var(--wf-link);
+}
+
+.contact-bar .contact-bar-item a:hover .contact-bar-label,
+.contact-bar .contact-bar-item > button:hover .contact-bar-label {
+  text-decoration: underline;
+}
+
+.contact-bar .contact-bar-item a:focus-visible,
+.contact-bar .contact-bar-item > button:focus-visible {
+  outline: 2px solid var(--wf-red);
+  outline-offset: 1px;
+}
+
+.contact-bar .contact-bar-item > button[aria-expanded="true"] {
+  outline: 2px solid var(--wf-link);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+/* expanded panel — below its own item */
+.contact-bar .contact-bar-panel {
+  width: 100%;
+  padding: 16px 0 0;
+  text-align: left;
+  color: var(--wf-text-primary);
+  line-height: 1.5;
+}
+
+.contact-bar .contact-bar-panel p {
+  margin: 4px 0;
+  font-size: var(--body-font-size-s);
+}
+
+.contact-bar .contact-bar-panel strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: var(--body-font-size-s);
+}
+
+/* quick help links */
+.contact-bar .contact-bar-panel ul {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+}
+
+.contact-bar .contact-bar-panel ul li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+}
+
+.contact-bar .contact-bar-panel ul li::before {
+  content: "→";
+  color: var(--wf-text-secondary);
+  flex-shrink: 0;
+}
+
+.contact-bar .contact-bar-item .contact-bar-panel a {
+  color: var(--wf-link);
+  text-decoration: none;
+  font-size: var(--body-font-size-m);
+  padding: 0;
+}
+
+.contact-bar .contact-bar-item .contact-bar-panel a:hover {
+  text-decoration: underline;
+}
+
+/* location search input — floating label style */
+.contact-bar .contact-bar-panel .panel-search {
+  position: relative;
+  width: 236px;
+}
+
+.contact-bar .contact-bar-panel .panel-search-label {
+  position: absolute;
+  top: 6px;
+  left: 0;
+  font-size: var(--body-font-size-s);
+  color: var(--wf-text-secondary);
+  pointer-events: none;
+  transition: top 0.2s, font-size 0.2s;
+}
+
+.contact-bar .contact-bar-panel .panel-search input[type="text"] {
+  width: 100%;
+  padding: 24px 8px 8px 0;
+  border: none;
+  border-bottom: 1px solid var(--wf-text-secondary);
+  border-radius: 0;
+  font-size: 20px;
+  font-family: var(--body-font-family);
+  color: var(--wf-dark);
+  background: transparent;
+  outline: none;
+}
+
+.contact-bar .contact-bar-panel .panel-search input[type="text"]:focus {
+  border-bottom-color: var(--wf-dark);
+  border-bottom-width: 2px;
+}
+
+.contact-bar .contact-bar-panel .panel-search input[type="text"]:focus + .panel-search-label,
+.contact-bar .contact-bar-panel .panel-search input[type="text"]:not(:placeholder-shown) + .panel-search-label {
+  top: 0;
+  font-size: 12px;
+}
+
+.contact-bar .contact-bar-panel .panel-search-btn {
+  display: block;
+  margin: 16px 0 0;
+  padding: 9px 38px;
+  background-color: var(--wf-dark);
+  color: var(--background-color);
+  border: 1px solid var(--wf-dark);
+  border-radius: 24px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: var(--body-font-size-m);
+  line-height: 1.3;
+  white-space: nowrap;
+  transition: background-color 0.2s;
+}
+
+.contact-bar .contact-bar-panel .panel-search-btn:hover {
+  background-color: var(--wf-text-primary);
+}
+
+/* tablet and above — items in a row with wrap */
+@media (width >= 768px) {
+  .contact-bar .contact-bar-items {
+    flex-flow: row wrap;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 0;
+    padding: 0 16px;
+  }
+
+  .contact-bar {
+    padding: 56px 24px;
+  }
+
+  .contact-bar .contact-bar-item {
+    flex: 0 1 50%;
+    max-width: 50%;
+    padding-bottom: 24px;
+  }
+
+  .contact-bar .contact-bar-item:last-child {
+    flex: 0 1 100%;
+    max-width: 100%;
+  }
+}
+
+/* desktop */
+@media (width >= 1024px) {
+  .contact-bar {
+    padding: 60px 32px;
+  }
+
+  .contact-bar .contact-bar-item {
+    flex: 0 1 33.33%;
+    max-width: 33.33%;
+  }
+
+  .contact-bar .contact-bar-item:last-child {
+    flex: 0 1 33.33%;
+    max-width: 33.33%;
+  }
+}
+
+/* wide desktop */
+@media (width >= 1400px) {
+  .contact-bar {
+    padding: 64px 40px;
+  }
+
+  .contact-bar .contact-bar-item,
+  .contact-bar .contact-bar-item:last-child {
+    flex: 0 1 25%;
+    max-width: 25%;
+  }
+}
