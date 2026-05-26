@@ -1,22 +1,29 @@
+function isVideoUrl(url) {
+  return /\.(mp4|webm|ogg)(\?.*)?$/i.test(url);
+}
+
+function isImageUrl(url) {
+  return /\.(png|jpg|jpeg|gif|webp|svg)(\?.*)?$/i.test(url);
+}
+
 export default function decorate(block) {
   const rows = [...block.children];
   const videoRow = rows[0];
   const transcriptRow = rows[1];
 
-  // Extract video source — either a link to mp4 or a video element
-  const link = videoRow.querySelector('a[href]');
-  const existingVideo = videoRow.querySelector('video');
+  // Extract video and poster from all links in the video row
+  const links = videoRow.querySelectorAll('a[href]');
+  const picture = videoRow.querySelector('picture img');
   let videoSrc = '';
   let posterSrc = '';
 
-  if (existingVideo) {
-    videoSrc = existingVideo.src || existingVideo.querySelector('source')?.src || '';
-    posterSrc = existingVideo.poster || '';
-  } else if (link) {
-    videoSrc = link.href;
-    const picture = videoRow.querySelector('picture img');
-    if (picture) posterSrc = picture.src;
-  }
+  links.forEach((a) => {
+    const { href } = a;
+    if (isVideoUrl(href)) videoSrc = href;
+    else if (isImageUrl(href)) posterSrc = href;
+  });
+
+  if (picture) posterSrc = picture.src;
 
   // Build video player
   block.textContent = '';
@@ -41,22 +48,30 @@ export default function decorate(block) {
 
   // Build transcript (optional — only if second row exists)
   if (transcriptRow) {
-    const transcriptTitle = transcriptRow.querySelector('h1, h2, h3, h4, h5, h6, strong');
-    const transcriptContent = transcriptRow.querySelectorAll('p');
+    const paragraphs = [...transcriptRow.querySelectorAll('p')];
+    const heading = transcriptRow.querySelector('h1, h2, h3, h4, h5, h6, strong');
 
-    if (transcriptContent.length > 0) {
+    if (paragraphs.length > 0 || heading) {
       const details = document.createElement('details');
       details.className = 'video-transcript';
 
       const summary = document.createElement('summary');
-      summary.textContent = transcriptTitle
-        ? transcriptTitle.textContent.trim()
-        : 'Transcript';
+      let titleText = '';
+      let contentParagraphs = paragraphs;
+
+      if (heading) {
+        titleText = heading.textContent.trim();
+      } else if (paragraphs.length > 0) {
+        titleText = paragraphs[0].textContent.trim();
+        contentParagraphs = paragraphs.slice(1);
+      }
+
+      summary.textContent = titleText || 'Transcript';
       details.append(summary);
 
       const contentDiv = document.createElement('div');
       contentDiv.className = 'video-transcript-content';
-      transcriptContent.forEach((p) => {
+      contentParagraphs.forEach((p) => {
         if (p.textContent.trim()) contentDiv.append(p.cloneNode(true));
       });
       details.append(contentDiv);
