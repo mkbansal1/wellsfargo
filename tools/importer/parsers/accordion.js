@@ -11,19 +11,23 @@
  * Each details element = one row: col1 = summary (question), col2 = body (answer).
  */
 export default function parse(element, { document }) {
-  const allDetails = element.closest('.ps-body-wrapper, main')
-    ? document.querySelectorAll('details.show-hide-content-wrapper')
-    : [element];
-
-  const cells = [];
-
   const detailsList = element.tagName === 'DETAILS'
     ? [element]
     : Array.from(element.querySelectorAll('details'));
 
+  const cells = [];
+
   detailsList.forEach((details) => {
     const summary = details.querySelector('summary');
-    const questionText = summary ? summary.textContent.trim() : '';
+    if (!summary) return;
+
+    // Wells Fargo FAQ summaries duplicate text in a hidden span + an anchor.
+    // Extract from the anchor or the hidden span to avoid duplication.
+    const anchor = summary.querySelector('a');
+    const hiddenSpan = summary.querySelector('.hidden');
+    const questionText = (anchor && anchor.textContent.trim())
+      || (hiddenSpan && hiddenSpan.textContent.trim())
+      || summary.textContent.trim();
 
     const bodyContent = [];
     [...details.children].forEach((child) => {
@@ -33,12 +37,12 @@ export default function parse(element, { document }) {
     });
 
     if (questionText) {
-      const questionCell = document.createElement('p');
+      const questionCell = document.createElement('h3');
       questionCell.textContent = questionText;
       cells.push([[questionCell], bodyContent.length ? bodyContent : ['']]);
     }
   });
 
-  const block = WebImporter.Blocks.createBlock(document, { name: 'Accordion (faq)', cells });
+  const block = WebImporter.Blocks.createBlock(document, { name: 'Accordion', cells });
   element.replaceWith(block);
 }

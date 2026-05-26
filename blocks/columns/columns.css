@@ -24,7 +24,7 @@
   display: block;
 }
 
-@media (width >= 900px) {
+@media (width >= 768px) {
   .columns > div {
     align-items: center;
     flex-direction: unset;
@@ -55,7 +55,7 @@
   line-height: 1.5;
 }
 
-@media (width >= 900px) {
+@media (width >= 768px) {
   .columns.contact > div {
     align-items: flex-start;
   }
