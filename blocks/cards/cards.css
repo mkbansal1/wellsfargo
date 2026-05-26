@@ -85,7 +85,7 @@
   text-decoration: underline;
 }
 
-/* Tablet: default — 2 per row, centered */
+/* Tablet: default — 2 cards per row, centered */
 @media (width >= 768px) {
   .cards > ul {
     flex-flow: row wrap;
