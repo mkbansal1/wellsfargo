@@ -33,17 +33,14 @@ async function resolveFooterPath() {
       const rows = json.data || [];
       const currentPath = window.location.pathname;
 
-      for (const row of rows) {
-        const urlPattern = row.URL || '';
+      const match = rows.find((row) => {
         const footerValue = row.footer || '';
+        if (!footerValue) return false;
+        return globToRegex(row.URL || '').test(currentPath);
+      });
 
-        // Only consider rows that explicitly define a footer path
-        if (!footerValue) continue;
-
-        const regex = globToRegex(urlPattern);
-        if (regex.test(currentPath)) {
-          return new URL(footerValue, window.location).pathname;
-        }
+      if (match) {
+        return new URL(match.footer, window.location).pathname;
       }
     }
   } catch (e) {
