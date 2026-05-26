@@ -26,26 +26,7 @@ async function resolveFooterPath() {
   // Page-level meta tag (set on individual pages via metadata block)
   const pageMeta = getMetadata('footer');
 
-  try {
-    const resp = await fetch('/metadata.json');
-    if (resp.ok) {
-      const json = await resp.json();
-      const rows = json.data || [];
-      const currentPath = window.location.pathname;
-
-      const match = rows.find((row) => {
-        const footerValue = row.footer || '';
-        if (!footerValue) return false;
-        return globToRegex(row.URL || '').test(currentPath);
-      });
-
-      if (match) {
-        return new URL(match.footer, window.location).pathname;
-      }
-    }
-  } catch (e) {
-    // Network or parse error – fall through to defaults
-  }
+  
 
   // Fall back to page-level meta tag, then to the default /footer
   if (pageMeta) return new URL(pageMeta, window.location).pathname;

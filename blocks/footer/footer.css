@@ -224,7 +224,7 @@ footer .footer-nav .footer-equal-housing {
 }
 
 /* ── Responsive ───────────────────────────────────────────── */
-@media (width >= 900px) {
+@media (width >= 1024px) {
   footer .footer > div {
     padding: 0 32px;
   }
