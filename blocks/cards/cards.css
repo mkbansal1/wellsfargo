@@ -203,6 +203,40 @@
   }
 }
 
+/* === Variant: highlight === */
+
+/* Flat cards with light bg, heading separator, no shadow */
+.cards.highlight > ul > li {
+  background-color: var(--wf-bg-light);
+  border: 1px solid var(--wf-bg-gray);
+  box-shadow: none;
+  border-radius: 10px;
+}
+
+.cards.highlight .cards-card-body {
+  padding: 0;
+}
+
+.cards.highlight .cards-card-body h3 {
+  font-weight: 600;
+  font-size: var(--heading-font-size-m);
+  color: var(--wf-text-primary);
+  margin: 0;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--wf-bg-gray);
+}
+
+.cards.highlight .cards-card-body p {
+  padding: 0 24px;
+  margin: 16px 0 0;
+  color: var(--wf-text-primary);
+}
+
+.cards.highlight .cards-card-body p:last-child {
+  padding: 0 24px 24px;
+  margin-top: auto;
+}
+
 /* === Variant: bg-image === */
 
 /* Cards with gradient background image */
