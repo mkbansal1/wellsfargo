@@ -1,6 +1,6 @@
 /* contact-bar block */
 .contact-bar-container {
-  background-color: #fff;
+  background-color: var(--background-color);
 }
 
 .contact-bar {
@@ -203,7 +203,7 @@
   margin: 16px 0 0;
   padding: 9px 38px;
   background-color: var(--wf-dark);
-  color: #fff;
+  color: var(--background-color);
   border: 1px solid var(--wf-dark);
   border-radius: 24px;
   font-weight: 600;
@@ -219,7 +219,7 @@
 }
 
 /* tablet and above — items in a row with wrap */
-@media (width >= 600px) {
+@media (width >= 768px) {
   .contact-bar .contact-bar-items {
     flex-flow: row wrap;
     align-items: flex-start;
@@ -245,7 +245,7 @@
 }
 
 /* desktop */
-@media (width >= 900px) {
+@media (width >= 1024px) {
   .contact-bar {
     padding: 60px 32px;
   }
@@ -258,5 +258,18 @@
   .contact-bar .contact-bar-item:last-child {
     flex: 0 1 33.33%;
     max-width: 33.33%;
+  }
+}
+
+/* wide desktop */
+@media (width >= 1400px) {
+  .contact-bar {
+    padding: 64px 40px;
+  }
+
+  .contact-bar .contact-bar-item,
+  .contact-bar .contact-bar-item:last-child {
+    flex: 0 1 25%;
+    max-width: 25%;
   }
 }
