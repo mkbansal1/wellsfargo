@@ -20,8 +20,8 @@
         {
           "name": "cards",
           "detection": ".small-promo-combined, [class*='card-background']:has(.card-container)",
-          "variant": "separator (with images), noimage (text-only), icons",
-          "notes": "Multiple h3s + images = separator; multiple h3s without images = noimage"
+          "variant": "separator (with images), icons, icons-middle, highlight, bg-light, bg-image",
+          "notes": "Images with icons (<=100px) = icons variant; larger images = separator; no images = default Cards (auto-handled)"
         },
         {
           "name": "accordion",
@@ -54,8 +54,8 @@
         {
           "name": "cards",
           "detection": ".small-promo-combined, [class*='card-background']:has(.card-container)",
-          "variant": "separator (with images), noimage (text-only)",
-          "notes": "Cards with images → separator variant; text-only cards → noimage variant"
+          "variant": "separator (with images), icons, icons-middle, highlight, bg-light, bg-image",
+          "notes": "Images with icons (<=100px) = icons variant; larger images = separator; no images = default Cards (auto-handled)"
         },
         {
           "name": "accordion",

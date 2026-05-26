@@ -3,11 +3,11 @@
 
 /**
  * Parser: contact-info / cards-no-images
- * Base block: Cards (noimage)
+ * Base block: Cards
  * Source: Wells Fargo card sections with multiple h3s and no/few images
  *
  * Block library structure (2-column rows, empty col1):
- *   | Cards (noimage) |
+ *   | Cards |
  *   | (empty) | heading + description + CTA |
  *   | (empty) | heading + description + CTA |
  *
@@ -67,7 +67,7 @@ export default function parse(element, { document }) {
   });
 
   if (cells.length > 0) {
-    const block = WebImporter.Blocks.createBlock(document, { name: 'Cards (noimage)', cells });
+    const block = WebImporter.Blocks.createBlock(document, { name: 'Cards', cells });
     element.replaceWith(block);
   }
 }
