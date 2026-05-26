@@ -76,7 +76,9 @@ export default async function decorate(block) {
       section.classList.add('footer-nav');
 
       // Some footer variants (e.g. mortgage) have only one section and place
-      // the copyright line as a <p> after the nav list within this section.
+      // the copyright line as a <p> inside the last <li> of the nav list.
+      // Detect it, mark it, then move it (and its <hr> separator) out of the
+      // <li>/<ul> so it renders as a standalone block below the nav links.
       section.querySelectorAll('p').forEach((p) => {
         const text = p.textContent.trim();
         const lower = text.toLowerCase();
@@ -84,10 +86,16 @@ export default async function decorate(block) {
           p.classList.add('footer-equal-housing');
         }
         if (text.startsWith('©') || text.startsWith('\u00A9')) {
+          p.classList.add('footer-copyright');
+
+          // Build the separator
           const hr = document.createElement('hr');
           hr.classList.add('footer-gray-line');
-          p.before(hr);
-          p.classList.add('footer-copyright');
+
+          // Find the nearest wrapper to append to (outside the ul/li)
+          const wrapper = section.querySelector('.default-content-wrapper') || section;
+          wrapper.append(hr);
+          wrapper.append(p);
         }
       });
     } else if (i === 1) {
