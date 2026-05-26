@@ -85,51 +85,56 @@
   text-decoration: underline;
 }
 
-/* Tablet: cards wrap into rows */
+/* Tablet+: default — all cards equal width in one row */
 @media (width >= 768px) {
   .cards > ul {
     flex-flow: row wrap;
   }
 
   .cards > ul > li {
-    flex: 0 0 calc(50% - 12px);
+    flex: 1 1 0;
     min-width: 0;
-  }
-}
-
-/* Desktop: default 4-up */
-@media (width >= 1024px) {
-  .cards > ul > li {
-    flex: 0 0 calc(25% - 18px);
   }
 }
 
 /* === Column count variants === */
 
-/* two-up: 2 per row on tablet and desktop */
+/* two-up: max 2 per row on tablet and desktop */
+.cards.two-up > ul > li {
+  flex: 0 0 100%;
+}
+
 @media (width >= 768px) {
   .cards.two-up > ul > li {
-    flex: 0 0 calc(50% - 12px);
+    flex: 0 0 calc((100% - 24px) / 2);
   }
 }
 
-/* three-up: 3 per row on tablet and desktop */
+/* three-up: max 3 per row on tablet and desktop */
+.cards.three-up > ul > li {
+  flex: 0 0 100%;
+}
+
 @media (width >= 768px) {
   .cards.three-up > ul > li {
-    flex: 0 0 calc(33.33% - 16px);
+    flex: 0 0 calc((100% - 48px) / 3);
   }
 }
 
-/* four-up: 2 on tablet, 4 on desktop (same as default) */
+/* four-up: 2 on tablet, 4 on desktop */
+.cards.four-up > ul > li {
+  flex: 0 0 100%;
+}
+
 @media (width >= 768px) {
   .cards.four-up > ul > li {
-    flex: 0 0 calc(50% - 12px);
+    flex: 0 0 calc((100% - 24px) / 2);
   }
 }
 
 @media (width >= 1024px) {
   .cards.four-up > ul > li {
-    flex: 0 0 calc(25% - 18px);
+    flex: 0 0 calc((100% - 72px) / 4);
   }
 }
 
