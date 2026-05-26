@@ -23,6 +23,7 @@
   display: flex;
   flex-direction: column;
   box-shadow: 0 1px 4px 0 rgb(0 0 0 / 25%);
+  box-sizing: border-box;
 }
 
 .cards .cards-card-image {
