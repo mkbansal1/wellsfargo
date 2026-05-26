@@ -158,34 +158,31 @@
 
 /* === Variant: icons-middle === */
 
-/* Text left (heading + CTA), icon right-aligned */
+/* Heading top, icon centered middle, CTA bottom */
 .cards.icons-middle > ul > li {
-  flex-direction: row;
-  align-items: stretch;
   padding: 24px;
 }
 
 .cards.icons-middle > ul > li > .cards-card-body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 0;
+  display: contents;
 }
 
 .cards.icons-middle > ul > li > .cards-card-body h3 {
+  order: 0;
   font-weight: 400;
-  font-size: 24px;
+  font-size: var(--heading-font-size-m);
   line-height: 1.33;
-  margin: 0 0 12px;
+  margin: 0;
   color: var(--wf-text-primary);
 }
 
 .cards.icons-middle .cards-card-image {
-  flex-shrink: 0;
+  order: 1;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  padding-left: 16px;
+  justify-content: center;
+  padding: 20px 0;
+  flex: 1;
 }
 
 .cards.icons-middle .cards-card-image img {
@@ -195,14 +192,8 @@
 }
 
 .cards.icons-middle > ul > li > .cards-card-body p:last-child {
-  margin-top: auto;
-  margin-bottom: 0;
-}
-
-.cards.icons-middle > ul > li > .cards-card-body a:not(.button)::after {
-  content: '>';
-  margin-left: 6px;
-  font-weight: 700;
+  order: 2;
+  margin: 0;
 }
 
 @media (width >= 768px) {
