@@ -209,7 +209,6 @@
 .cards.highlight > ul > li {
   background-color: var(--wf-bg-light);
   border: 1px solid var(--wf-bg-gray);
-  border-top: 3px solid var(--wf-bg-gray);
   box-shadow: none;
   border-radius: 10px;
   padding: 24px;
