@@ -12,7 +12,7 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 24px 20px;
 }
 
 .cards > ul > li {
@@ -22,7 +22,8 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 1px 4px 0 rgba(0, 0, 0, .25);
+  box-shadow: 0 1px 4px 0 rgb(0 0 0 / 25%);
+  box-sizing: border-box;
 }
 
 .cards .cards-card-image {
@@ -85,15 +86,64 @@
   text-decoration: underline;
 }
 
-/* Desktop: cards in a row */
+/* Tablet: default — 2 cards per row, centered */
 @media (width >= 768px) {
   .cards > ul {
     flex-flow: row wrap;
+    justify-content: center;
   }
 
   .cards > ul > li {
-    flex: 1 1 0;
+    flex: 0 1 calc((100% - 24px) / 2);
     min-width: 0;
+  }
+}
+
+/* Desktop: default — all cards equal in one row */
+@media (width >= 1024px) {
+  .cards > ul > li {
+    flex: 1 1 0;
+  }
+}
+
+/* === Column count variants === */
+
+/* two-up: max 2 per row on tablet and desktop */
+@media (width >= 768px) {
+  .cards.two-up > ul {
+    gap: 24px 20px;
+  }
+
+  .cards.two-up > ul > li {
+    flex: 0 1 calc((100% - 24px) / 2);
+  }
+}
+
+/* three-up: max 3 per row on tablet and desktop */
+@media (width >= 768px) {
+  .cards.three-up > ul {
+    gap: 24px 20px;
+  }
+
+  .cards.three-up > ul > li {
+    flex: 0 1 calc((100% - 48px) / 3);
+  }
+}
+
+/* four-up: 2 on tablet, 4 on desktop */
+@media (width >= 768px) {
+  .cards.four-up > ul {
+    gap: 24px 20px;
+  }
+
+  .cards.four-up > ul > li {
+    flex: 0 1 calc((100% - 24px) / 2);
+  }
+}
+
+@media (width >= 1024px) {
+  .cards.four-up > ul > li {
+    flex: 0 1 calc((100% - 72px) / 4);
   }
 }
 
@@ -138,23 +188,111 @@
   }
 }
 
-/* === Variant: noimage === */
+/* === Per-card no-image handling (dynamic) === */
 
-/* Text-only cards with light background */
-.cards.noimage > ul > li {
-  background-color: var(--wf-bg-light);
-}
-
-.cards.noimage .cards-card-image {
-  display: none;
-}
-
-.cards.noimage .cards-card-body {
+/* Cards without images get adjusted padding and styling */
+.cards > ul > li.no-image .cards-card-body {
   padding: 28px 24px;
 }
 
-.cards.noimage .cards-card-body h3 {
+.cards > ul > li.no-image .cards-card-body h3 {
   font-weight: 600;
+}
+
+
+/* === Variant: bg-light === */
+
+.cards.bg-light > ul > li {
+  background-color: var(--wf-bg-light);
+}
+
+/* === Variant: icons-middle === */
+
+/* Heading top, icon centered middle, CTA bottom */
+.cards.icons-middle > ul > li {
+  padding: 24px;
+}
+
+.cards.icons-middle > ul > li > .cards-card-body {
+  display: contents;
+}
+
+.cards.icons-middle > ul > li > .cards-card-body h3 {
+  order: 0;
+  font-weight: 400;
+  font-size: var(--heading-font-size-m);
+  line-height: 1.33;
+  margin: 0;
+  color: var(--wf-text-primary);
+}
+
+.cards.icons-middle .cards-card-image {
+  order: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 20px 0;
+  flex: 1;
+}
+
+.cards.icons-middle .cards-card-image img {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+}
+
+.cards.icons-middle > ul > li > .cards-card-body p:last-child {
+  order: 2;
+  margin: 0;
+}
+
+@media (width >= 768px) {
+  .cards.icons-middle .cards-card-image img {
+    width: 100px;
+    height: 100px;
+  }
+}
+
+/* === Variant: highlight === */
+
+/* Card with gradient heading area and white body */
+.cards.highlight > ul > li {
+  background-color: var(--wf-bg-white);
+  border-radius: 10px;
+  box-shadow: 0 1px 4px 0 rgb(0 0 0 / 25%);
+  border: none;
+  padding: 0;
+}
+
+.cards.highlight > ul > li > .cards-card-body {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.cards.highlight > ul > li > .cards-card-body h3 {
+  font-weight: 300;
+  font-size: 24px;
+  line-height: 1.33;
+  color: var(--wf-text-primary);
+  margin: 0;
+  padding: 20px 24px;
+  background: linear-gradient(180deg, #f9f7f6, #f4f0ed);
+  border-radius: 10px 10px 0 0;
+}
+
+.cards.highlight > ul > li > .cards-card-body p:not(:last-child) {
+  padding: 16px 24px 0;
+  margin: 0;
+  font-size: 18px;
+  color: var(--wf-text-primary);
+  line-height: 1.4;
+}
+
+.cards.highlight > ul > li > .cards-card-body p:last-child {
+  padding: 16px 24px 24px;
+  margin-top: auto;
 }
 
 /* === Variant: bg-image === */
@@ -169,8 +307,8 @@
 
 /* bg-image + icons: icons on top, text below on gradient */
 .cards.bg-image.icons .cards-card-image img {
-  width: 56px;
-  height: 56px;
+  width: 64px;
+  height: 64px;
   object-fit: contain;
 }
 
@@ -191,15 +329,3 @@
   }
 }
 
-/* bg-image + noimage: text only on gradient */
-.cards.bg-image.noimage > ul > li {
-  background-color: transparent;
-}
-
-.cards.bg-image.noimage .cards-card-image {
-  display: none;
-}
-
-.cards.bg-image.noimage .cards-card-body {
-  padding: 28px 24px;
-}
