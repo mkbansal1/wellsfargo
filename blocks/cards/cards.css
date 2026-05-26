@@ -213,11 +213,11 @@
   border-radius: 10px;
 }
 
-.cards.highlight .cards-card-body {
+.cards.highlight > ul > li > .cards-card-body {
   padding: 0;
 }
 
-.cards.highlight .cards-card-body h3 {
+.cards.highlight > ul > li > .cards-card-body h3 {
   font-weight: 600;
   font-size: var(--heading-font-size-m);
   color: var(--wf-text-primary);
@@ -226,13 +226,13 @@
   border-bottom: 1px solid var(--wf-bg-gray);
 }
 
-.cards.highlight .cards-card-body p {
+.cards.highlight > ul > li > .cards-card-body p {
   padding: 0 24px;
   margin: 16px 0 0;
   color: var(--wf-text-primary);
 }
 
-.cards.highlight .cards-card-body p:last-child {
+.cards.highlight > ul > li > .cards-card-body p:last-child {
   padding: 0 24px 24px;
   margin-top: auto;
 }
