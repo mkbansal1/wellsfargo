@@ -36,6 +36,7 @@ header .nav-top-bar {
   color: #fff;
   border-bottom: 4px solid var(--wf-yellow);
   height: 64px;
+  position: relative;
 }
 
 header .nav-top-bar-inner {
@@ -102,6 +103,71 @@ header .nav-search-btn {
 
 header .nav-search-btn:hover {
   opacity: 0.8;
+}
+
+/* desktop search overlay — replaces top bar content */
+header .nav-search-overlay {
+  display: none;
+  position: absolute;
+  inset: 0;
+  background-color: var(--wf-red);
+  z-index: 10;
+}
+
+header .nav-search-overlay[aria-hidden='false'] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+header .nav-search-overlay-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 600px;
+  padding: 0 32px;
+  color: #fff;
+}
+
+header .nav-search-overlay-inner svg {
+  flex-shrink: 0;
+  fill: #fff;
+}
+
+header .nav-search-input {
+  flex: 1;
+  border: none;
+  border-bottom: 2px solid rgb(255 255 255 / 50%);
+  background: transparent;
+  color: #fff;
+  font-family: var(--body-font-family);
+  font-size: 18px;
+  padding: 4px 0;
+  outline: none;
+}
+
+header .nav-search-input::placeholder {
+  color: rgb(255 255 255 / 70%);
+}
+
+header .nav-search-close {
+  position: absolute;
+  right: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 8px;
+  color: #fff;
+}
+
+header .nav-search-close svg {
+  fill: #fff;
+  width: 24px;
+  height: 24px;
 }
 
 header .nav-signon-btn {
@@ -374,6 +440,20 @@ header .nav-mobile-search svg {
   flex-shrink: 0;
 }
 
+header .nav-mobile-search input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-family: var(--body-font-family);
+  font-size: 16px;
+  color: var(--wf-text-primary);
+  outline: none;
+}
+
+header .nav-mobile-search input::placeholder {
+  color: var(--wf-text-secondary);
+}
+
 /* mobile nav sections */
 header .nav-mobile-section-header {
   display: flex;
@@ -433,6 +513,25 @@ header .nav-mobile-sub-links a::after {
   border-bottom: 2px solid var(--wf-link);
   transform: rotate(-45deg);
   flex-shrink: 0;
+}
+
+/* mobile utility links */
+header .nav-mobile-utils {
+  background-color: var(--wf-bg-warm);
+  padding: 8px 0;
+}
+
+header .nav-mobile-util-link {
+  display: block;
+  padding: 14px 20px;
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--wf-text-primary);
+  border-bottom: 1px solid rgb(0 0 0 / 6%);
+}
+
+header .nav-mobile-util-link:last-child {
+  border-bottom: none;
 }
 
 /* ===== RESPONSIVE ===== */

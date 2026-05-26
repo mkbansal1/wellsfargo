@@ -27,7 +27,10 @@ function buildTopBar({
   // utility links (from section-metadata)
   const utils = document.createElement('div');
   utils.className = 'nav-utilities';
+  const isSpanishPage = window.location.pathname.includes('/es/');
   utilities.forEach(({ text, href }) => {
+    if (text === 'English' && !isSpanishPage) return;
+    if (text === 'Español' && isSpanishPage) return;
     const a = document.createElement('a');
     a.className = 'nav-util-link';
     a.href = href;
@@ -35,12 +38,39 @@ function buildTopBar({
     utils.append(a);
   });
 
-  // search icon
+  // search icon + expandable search bar
   const searchBtn = document.createElement('button');
   searchBtn.className = 'nav-search-btn';
   searchBtn.setAttribute('aria-label', 'Search');
   searchBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M16.9,15.5c2.4-3.2,2.2-7.7-0.7-10.6c-3.1-3.1-8.1-3.1-11.3,0c-3.1,3.2-3.1,8.3,0,11.4c2.9,2.9,7.5,3.1,10.6,0.6c0,0.1,0,0.1,0,0.1l4.2,4.2c0.5,0.4,1.1,0.4,1.5,0c0.4-0.4,0.4-1,0-1.4L16.9,15.5C16.9,15.5,16.9,15.5,16.9,15.5L16.9,15.5z M14.8,6.3c2.3,2.3,2.3,6.1,0,8.5c-2.3,2.3-6.1,2.3-8.5,0C4,12.5,4,8.7,6.3,6.3C8.7,4,12.5,4,14.8,6.3z"/></svg>';
   utils.append(searchBtn);
+
+  const searchOverlay = document.createElement('div');
+  searchOverlay.className = 'nav-search-overlay';
+  searchOverlay.setAttribute('aria-hidden', 'true');
+  searchOverlay.innerHTML = `<div class="nav-search-overlay-inner">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M16.9,15.5c2.4-3.2,2.2-7.7-0.7-10.6c-3.1-3.1-8.1-3.1-11.3,0c-3.1,3.2-3.1,8.3,0,11.4c2.9,2.9,7.5,3.1,10.6,0.6c0,0.1,0,0.1,0,0.1l4.2,4.2c0.5,0.4,1.1,0.4,1.5,0c0.4-0.4,0.4-1,0-1.4L16.9,15.5C16.9,15.5,16.9,15.5,16.9,15.5L16.9,15.5z M14.8,6.3c2.3,2.3,2.3,6.1,0,8.5c-2.3,2.3-6.1,2.3-8.5,0C4,12.5,4,8.7,6.3,6.3C8.7,4,12.5,4,14.8,6.3z"/></svg>
+    <input type="text" class="nav-search-input" placeholder="Search" aria-label="Search">
+    <button class="nav-search-close" aria-label="Close search">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M18.3 5.7a1 1 0 0 0-1.4 0L12 10.6 7.1 5.7a1 1 0 0 0-1.4 1.4L10.6 12l-4.9 4.9a1 1 0 1 0 1.4 1.4L12 13.4l4.9 4.9a1 1 0 0 0 1.4-1.4L13.4 12l4.9-4.9a1 1 0 0 0 0-1.4z"/></svg>
+    </button>
+  </div>`;
+  topBar.append(searchOverlay);
+
+  searchBtn.addEventListener('click', () => {
+    const isOpen = searchOverlay.getAttribute('aria-hidden') === 'false';
+    searchOverlay.setAttribute('aria-hidden', isOpen ? 'true' : 'false');
+    if (!isOpen) searchOverlay.querySelector('.nav-search-input').focus();
+  });
+  searchOverlay.querySelector('.nav-search-close').addEventListener('click', () => {
+    searchOverlay.setAttribute('aria-hidden', 'true');
+  });
+  searchOverlay.querySelector('.nav-search-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      const query = e.target.value.trim();
+      if (query) window.location.href = `https://www.wellsfargo.com/search/?q=${encodeURIComponent(query)}`;
+    }
+  });
 
   // sign on button
   const signonBtn = document.createElement('a');
@@ -117,7 +147,7 @@ function buildSubNav(navLists, activeIndex = 0) {
   return subNav;
 }
 
-function buildMobileNav(navLists) {
+function buildMobileNav(navLists, utilities) {
   const mobileNav = document.createElement('div');
   mobileNav.className = 'nav-mobile-menu';
   mobileNav.setAttribute('aria-hidden', 'true');
@@ -125,10 +155,16 @@ function buildMobileNav(navLists) {
   const content = document.createElement('div');
   content.className = 'nav-mobile-content';
 
-  // search bar
+  // search bar with input
   const searchBar = document.createElement('div');
   searchBar.className = 'nav-mobile-search';
-  searchBar.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M16.9,15.5c2.4-3.2,2.2-7.7-0.7-10.6c-3.1-3.1-8.1-3.1-11.3,0c-3.1,3.2-3.1,8.3,0,11.4c2.9,2.9,7.5,3.1,10.6,0.6c0,0.1,0,0.1,0,0.1l4.2,4.2c0.5,0.4,1.1,0.4,1.5,0c0.4-0.4,0.4-1,0-1.4L16.9,15.5C16.9,15.5,16.9,15.5,16.9,15.5L16.9,15.5z M14.8,6.3c2.3,2.3,2.3,6.1,0,8.5c-2.3,2.3-6.1,2.3-8.5,0C4,12.5,4,8.7,6.3,6.3C8.7,4,12.5,4,14.8,6.3z"/></svg><span>Search</span>';
+  searchBar.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M16.9,15.5c2.4-3.2,2.2-7.7-0.7-10.6c-3.1-3.1-8.1-3.1-11.3,0c-3.1,3.2-3.1,8.3,0,11.4c2.9,2.9,7.5,3.1,10.6,0.6c0,0.1,0,0.1,0,0.1l4.2,4.2c0.5,0.4,1.1,0.4,1.5,0c0.4-0.4,0.4-1,0-1.4L16.9,15.5C16.9,15.5,16.9,15.5,16.9,15.5L16.9,15.5z M14.8,6.3c2.3,2.3,2.3,6.1,0,8.5c-2.3,2.3-6.1,2.3-8.5,0C4,12.5,4,8.7,6.3,6.3C8.7,4,12.5,4,14.8,6.3z"/></svg><input type="text" placeholder="Search" aria-label="Search">';
+  searchBar.querySelector('input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      const query = e.target.value.trim();
+      if (query) window.location.href = `https://www.wellsfargo.com/search/?q=${encodeURIComponent(query)}`;
+    }
+  });
   content.append(searchBar);
 
   // determine which section matches the current page
@@ -164,6 +200,24 @@ function buildMobileNav(navLists) {
     section.append(header, subList);
     content.append(section);
   });
+
+  // utility links at the bottom
+  if (utilities.length > 0) {
+    const utilsSection = document.createElement('div');
+    utilsSection.className = 'nav-mobile-utils';
+    const isSpanish = currentPath.includes('/es/');
+    utilities.forEach(({ text, href }) => {
+      // language logic: show opposite language
+      if (text === 'English' && !isSpanish) return;
+      if (text === 'Español' && isSpanish) return;
+      const a = document.createElement('a');
+      a.className = 'nav-mobile-util-link';
+      a.href = href;
+      a.textContent = text;
+      utilsSection.append(a);
+    });
+    content.append(utilsSection);
+  }
 
   mobileNav.append(content);
   return mobileNav;
@@ -341,7 +395,7 @@ export default async function decorate(block) {
   nav.append(subNav);
 
   // build mobile menu
-  const mobileMenu = buildMobileNav(navLists);
+  const mobileMenu = buildMobileNav(navLists, utilities);
   nav.append(mobileMenu);
 
   // hamburger (right side on mobile, with MENU label)
