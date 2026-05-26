@@ -138,23 +138,22 @@
   }
 }
 
-/* === Variant: noimage === */
+/* === Per-card no-image handling (dynamic) === */
 
-/* Text-only cards with light background */
-.cards.noimage > ul > li {
-  background-color: var(--wf-bg-light);
-}
-
-.cards.noimage .cards-card-image {
-  display: none;
-}
-
-.cards.noimage .cards-card-body {
+/* Cards without images get adjusted padding and styling */
+.cards > ul > li.no-image .cards-card-body {
   padding: 28px 24px;
 }
 
-.cards.noimage .cards-card-body h3 {
+.cards > ul > li.no-image .cards-card-body h3 {
   font-weight: 600;
+}
+
+/* === Variant: noimage (background style modifier) === */
+
+/* Applies light background to the entire cards section */
+.cards.noimage > ul > li {
+  background-color: var(--wf-bg-light);
 }
 
 /* === Variant: bg-image === */
