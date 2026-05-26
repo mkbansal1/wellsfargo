@@ -50,7 +50,7 @@
   --heading-font-size-xs: 16px;
 
   /* layout */
-  --nav-height: 64px;
+  --nav-height: 68px;
   --content-max-width: 1400px;
 }
 
@@ -78,6 +78,12 @@
     --heading-font-size-m: 22px;
     --heading-font-size-s: 20px;
     --heading-font-size-xs: 18px;
+  }
+}
+
+@media (width >= 1024px) {
+  :root {
+    --nav-height: 165px;
   }
 }
 

@@ -1,4 +1,4 @@
-/* Wells Fargo Header — 3-tier navigation */
+/* Wells Fargo Header ï¿½ 3-tier navigation */
 
 /* wrapper */
 header .nav-wrapper {
@@ -105,7 +105,7 @@ header .nav-search-btn:hover {
   opacity: 0.8;
 }
 
-/* desktop search overlay — replaces top bar content */
+/* desktop search overlay ï¿½ replaces top bar content */
 header .nav-search-overlay {
   display: none;
   position: absolute;
@@ -535,7 +535,7 @@ header .nav-mobile-util-link:last-child {
 }
 
 /* ===== RESPONSIVE ===== */
-@media (width < 1080px) {
+@media (width < 1024px) {
   header .nav-wrapper {
     position: sticky;
     top: 0;
@@ -588,7 +588,7 @@ header .nav-mobile-util-link:last-child {
   }
 }
 
-@media (width >= 1080px) {
+@media (width >= 1024px) {
   header .nav-top-bar-inner {
     padding: 0 32px;
     height: 56px;
