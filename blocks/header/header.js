@@ -131,27 +131,26 @@ function buildMobileNav(navLists) {
   searchBar.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M16.9,15.5c2.4-3.2,2.2-7.7-0.7-10.6c-3.1-3.1-8.1-3.1-11.3,0c-3.1,3.2-3.1,8.3,0,11.4c2.9,2.9,7.5,3.1,10.6,0.6c0,0.1,0,0.1,0,0.1l4.2,4.2c0.5,0.4,1.1,0.4,1.5,0c0.4-0.4,0.4-1,0-1.4L16.9,15.5C16.9,15.5,16.9,15.5,16.9,15.5L16.9,15.5z M14.8,6.3c2.3,2.3,2.3,6.1,0,8.5c-2.3,2.3-6.1,2.3-8.5,0C4,12.5,4,8.7,6.3,6.3C8.7,4,12.5,4,14.8,6.3z"/></svg><span>Search</span>';
   content.append(searchBar);
 
-  // nav sections — first one open by default
+  // determine which section matches the current page
+  const currentPath = window.location.pathname;
+  let activeIdx = 0;
+  navLists.forEach((item, i) => {
+    try {
+      const linkPath = new URL(item.link.href, window.location.origin).pathname;
+      if (linkPath !== '/' && currentPath.startsWith(linkPath)) activeIdx = i;
+    } catch { /* keep default */ }
+  });
+
+  // nav sections — active section determined by current page URL
   navLists.forEach((item, i) => {
     const section = document.createElement('div');
     section.className = 'nav-mobile-section';
-    if (i === 0) section.classList.add('active');
+    if (i === activeIdx) section.classList.add('active');
 
-    const header = document.createElement('button');
+    const header = document.createElement('a');
     header.className = 'nav-mobile-section-header';
-    header.setAttribute('aria-expanded', i === 0 ? 'true' : 'false');
+    header.href = item.link.href || '#';
     header.textContent = item.link.textContent;
-    header.addEventListener('click', () => {
-      const expanded = header.getAttribute('aria-expanded') === 'true';
-      content.querySelectorAll('.nav-mobile-section').forEach((s) => {
-        s.classList.remove('active');
-        s.querySelector('.nav-mobile-section-header')?.setAttribute('aria-expanded', 'false');
-      });
-      if (!expanded) {
-        section.classList.add('active');
-        header.setAttribute('aria-expanded', 'true');
-      }
-    });
 
     const subList = document.createElement('ul');
     subList.className = 'nav-mobile-sub-links';

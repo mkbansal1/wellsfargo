@@ -397,21 +397,6 @@ header .nav-mobile-section.active .nav-mobile-section-header {
   border-bottom: none;
 }
 
-header .nav-mobile-section-header::after {
-  content: '';
-  display: block;
-  width: 8px;
-  height: 8px;
-  border-right: 2px solid var(--wf-text-primary);
-  border-bottom: 2px solid var(--wf-text-primary);
-  transform: rotate(-45deg);
-  transition: transform 0.2s;
-  flex-shrink: 0;
-}
-
-header .nav-mobile-section.active .nav-mobile-section-header::after {
-  transform: rotate(45deg);
-}
 
 header .nav-mobile-sub-links {
   list-style: none;
