@@ -31,7 +31,7 @@ const VARIANT_RULES = {
   getCardsVariant(el) {
     const images = el.querySelectorAll('img');
     const headings = el.querySelectorAll('h3, h4');
-    if (images.length === 0) return 'Cards (noimage)';
+    if (images.length === 0) return 'Cards';
 
     // Check if images are icons (small, typically 64x64 or similar)
     let iconCount = 0;
@@ -51,7 +51,7 @@ const VARIANT_RULES = {
     if (iconCount >= headings.length) return 'Cards (icons, bg-image)';
     if (photoCount >= headings.length) return 'Cards (separator)';
     if (images.length >= 2) return 'Cards (separator)';
-    return 'Cards (noimage)';
+    return 'Cards';
   },
 
   // Hero variant: overlay-bottom if no large background image
@@ -199,7 +199,7 @@ function runParsers(main, document, url, params) {
     }
 
     // Use appropriate parser based on variant
-    if (variant === 'Cards (noimage)') {
+    if (variant === 'Cards') {
       try { parsers['cards-no-images'](el, { document, url, params }); } catch (e) { /* keep */ }
     } else {
       try { parsers['cards-with-images'](el, { document, url, params }); } catch (e) { /* keep */ }
