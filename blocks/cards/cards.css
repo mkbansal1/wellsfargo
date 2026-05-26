@@ -156,6 +156,46 @@
   background-color: var(--wf-bg-light);
 }
 
+/* === Variant: icons-middle === */
+
+/* Heading on top, icon in middle, CTA at bottom */
+.cards.icons-middle > ul > li {
+  background-color: var(--wf-bg-light);
+  padding: 24px;
+  text-align: left;
+}
+
+.cards.icons-middle .cards-card-body {
+  display: contents;
+}
+
+.cards.icons-middle .cards-card-body h3 {
+  order: 0;
+  font-weight: 400;
+  font-size: var(--heading-font-size-m);
+  margin: 0;
+}
+
+.cards.icons-middle .cards-card-image {
+  order: 1;
+  padding: 16px 0;
+}
+
+.cards.icons-middle .cards-card-image img {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+}
+
+.cards.icons-middle .cards-card-body p:last-child {
+  order: 2;
+  margin-top: auto;
+}
+
+.cards.icons-middle .cards-card-body p:not(:last-child) {
+  display: none;
+}
+
 /* === Variant: bg-image === */
 
 /* Cards with gradient background image */
