@@ -86,12 +86,9 @@
   transition: color 0.15s ease, border-color 0.15s ease;
 }
 
-/* First link — bold and underlined by default */
-.learning-navigation .learning-navigation-container ul li:first-child a:not(.active) {
-  font-weight: 700;
-  color: #1a1a1a;
-  text-decoration: underline;
-  text-underline-offset: 3px;
+.learning-navigation .learning-navigation-container ul li a:visited {
+  text-decoration: none;
+  color: #565151;
 }
 
 /* Hover state — show underline on all links */
@@ -101,10 +98,9 @@
   text-underline-offset: 3px;
 }
 
-/* Active tab — bold with dark navy underline */
+/* Active tab — underline only, no bold */
 .learning-navigation .learning-navigation-container ul li a.active,
 .learning-navigation .learning-navigation-container ul li.active > a {
-  font-weight: 700;
   color: #1a1a1a;
   text-decoration: underline;
   text-underline-offset: 3px;
