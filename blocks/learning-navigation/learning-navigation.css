@@ -126,7 +126,7 @@
     padding: 0 16px;
     overflow-x: auto;
     justify-content: flex-start;
-    max-width: calc(100% - 32px);
+    max-width: calc(100% - 100px);
   }
 
   .learning-navigation .learning-navigation-container ul {
