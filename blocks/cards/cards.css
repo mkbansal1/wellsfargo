@@ -106,7 +106,7 @@
   }
 
   .cards.two-up > ul > li {
-    flex: 0 1 calc((100% - 20px) / 2);
+    flex: 0 1 calc((100% - 24px) / 2);
   }
 }
 
@@ -117,7 +117,7 @@
   }
 
   .cards.three-up > ul > li {
-    flex: 0 1 calc((100% - 40px) / 3);
+    flex: 0 1 calc((100% - 48px) / 3);
   }
 }
 
@@ -128,13 +128,13 @@
   }
 
   .cards.four-up > ul > li {
-    flex: 0 1 calc((100% - 20px) / 2);
+    flex: 0 1 calc((100% - 24px) / 2);
   }
 }
 
 @media (width >= 1024px) {
   .cards.four-up > ul > li {
-    flex: 0 1 calc((100% - 60px) / 4);
+    flex: 0 1 calc((100% - 72px) / 4);
   }
 }
 
