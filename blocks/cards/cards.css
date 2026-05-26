@@ -205,12 +205,14 @@
 
 /* === Variant: highlight === */
 
-/* Flat cards with light bg, heading separator, no shadow */
+/* Flat cards with light bg, bold heading, no shadow */
 .cards.highlight > ul > li {
   background-color: var(--wf-bg-light);
   border: 1px solid var(--wf-bg-gray);
+  border-top: 3px solid var(--wf-bg-gray);
   box-shadow: none;
   border-radius: 10px;
+  padding: 24px;
 }
 
 .cards.highlight > ul > li > .cards-card-body {
@@ -218,24 +220,19 @@
 }
 
 .cards.highlight > ul > li > .cards-card-body h3 {
-  font-weight: 600;
+  font-weight: 700;
   font-size: var(--heading-font-size-m);
   color: var(--wf-text-primary);
-  margin: 0;
-  padding: 20px 24px;
-  border-bottom: 1px solid var(--wf-bg-gray);
+  margin: 0 0 16px;
 }
 
 .cards.highlight > ul > li > .cards-card-body p:not(:last-child) {
-  padding: 0 24px;
-  margin: 16px 0 0;
+  margin: 0 0 12px;
   color: var(--wf-text-primary);
 }
 
 .cards.highlight > ul > li > .cards-card-body p:last-child {
-  padding: 0 24px 24px;
   margin-top: auto;
-  color: var(--wf-text-primary);
 }
 
 /* === Variant: bg-image === */
