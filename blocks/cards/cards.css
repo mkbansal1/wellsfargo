@@ -100,41 +100,29 @@
 /* === Column count variants === */
 
 /* two-up: max 2 per row on tablet and desktop */
-.cards.two-up > ul > li {
-  flex: 0 0 100%;
-}
-
 @media (width >= 768px) {
   .cards.two-up > ul > li {
-    flex: 0 0 calc((100% - 24px) / 2);
+    flex: 0 1 calc((100% - 24px) / 2);
   }
 }
 
 /* three-up: max 3 per row on tablet and desktop */
-.cards.three-up > ul > li {
-  flex: 0 0 100%;
-}
-
 @media (width >= 768px) {
   .cards.three-up > ul > li {
-    flex: 0 0 calc((100% - 48px) / 3);
+    flex: 0 1 calc((100% - 48px) / 3);
   }
 }
 
 /* four-up: 2 on tablet, 4 on desktop */
-.cards.four-up > ul > li {
-  flex: 0 0 100%;
-}
-
 @media (width >= 768px) {
   .cards.four-up > ul > li {
-    flex: 0 0 calc((100% - 24px) / 2);
+    flex: 0 1 calc((100% - 24px) / 2);
   }
 }
 
 @media (width >= 1024px) {
   .cards.four-up > ul > li {
-    flex: 0 0 calc((100% - 72px) / 4);
+    flex: 0 1 calc((100% - 72px) / 4);
   }
 }
 
