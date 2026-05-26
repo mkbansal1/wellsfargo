@@ -22,7 +22,7 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 1px 4px 0 rgba(0, 0, 0, .25);
+  box-shadow: 0 1px 4px 0 rgb(0 0 0 / 25%);
 }
 
 .cards .cards-card-image {
@@ -149,12 +149,6 @@
   font-weight: 600;
 }
 
-/* === Variant: noimage (background style modifier) === */
-
-/* Applies light background to the entire cards section */
-.cards.noimage > ul > li {
-  background-color: var(--wf-bg-light);
-}
 
 /* === Variant: bg-image === */
 
@@ -190,15 +184,3 @@
   }
 }
 
-/* bg-image + noimage: text only on gradient */
-.cards.bg-image.noimage > ul > li {
-  background-color: transparent;
-}
-
-.cards.bg-image.noimage .cards-card-image {
-  display: none;
-}
-
-.cards.bg-image.noimage .cards-card-body {
-  padding: 28px 24px;
-}
