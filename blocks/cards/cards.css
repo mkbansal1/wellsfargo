@@ -158,42 +158,58 @@
 
 /* === Variant: icons-middle === */
 
-/* Heading on top, icon in middle, CTA at bottom */
+/* Text left (heading + CTA), icon right-aligned */
 .cards.icons-middle > ul > li {
-  background-color: var(--wf-bg-light);
+  flex-direction: row;
+  align-items: stretch;
   padding: 24px;
-  text-align: left;
 }
 
 .cards.icons-middle > ul > li > .cards-card-body {
-  display: contents;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
 }
 
 .cards.icons-middle > ul > li > .cards-card-body h3 {
-  order: 0;
   font-weight: 400;
-  font-size: var(--heading-font-size-m);
-  margin: 0;
+  font-size: 24px;
+  line-height: 1.33;
+  margin: 0 0 12px;
+  color: var(--wf-text-primary);
 }
 
 .cards.icons-middle .cards-card-image {
-  order: 1;
-  padding: 16px 0;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-left: 16px;
 }
 
 .cards.icons-middle .cards-card-image img {
-  width: 56px;
-  height: 56px;
+  width: 80px;
+  height: 80px;
   object-fit: contain;
 }
 
-.cards.icons-middle .cards-card-body p:last-child {
-  order: 2;
+.cards.icons-middle > ul > li > .cards-card-body p:last-child {
   margin-top: auto;
+  margin-bottom: 0;
 }
 
-.cards.icons-middle .cards-card-body p:not(:last-child) {
-  display: none;
+.cards.icons-middle > ul > li > .cards-card-body a:not(.button)::after {
+  content: '>';
+  margin-left: 6px;
+  font-weight: 700;
+}
+
+@media (width >= 768px) {
+  .cards.icons-middle .cards-card-image img {
+    width: 100px;
+    height: 100px;
+  }
 }
 
 /* === Variant: bg-image === */
@@ -208,8 +224,8 @@
 
 /* bg-image + icons: icons on top, text below on gradient */
 .cards.bg-image.icons .cards-card-image img {
-  width: 56px;
-  height: 56px;
+  width: 64px;
+  height: 64px;
   object-fit: contain;
 }
 
