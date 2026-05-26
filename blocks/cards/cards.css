@@ -85,15 +85,23 @@
   text-decoration: underline;
 }
 
-/* Tablet+: default — all cards equal width in one row */
+/* Tablet: default — 2 per row, centered */
 @media (width >= 768px) {
   .cards > ul {
     flex-flow: row wrap;
+    justify-content: center;
   }
 
   .cards > ul > li {
-    flex: 1 1 0;
+    flex: 0 1 calc((100% - 24px) / 2);
     min-width: 0;
+  }
+}
+
+/* Desktop: default — all cards equal in one row */
+@media (width >= 1024px) {
+  .cards > ul > li {
+    flex: 1 1 0;
   }
 }
 
