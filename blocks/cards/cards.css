@@ -165,11 +165,11 @@
   text-align: left;
 }
 
-.cards.icons-middle .cards-card-body {
+.cards.icons-middle > ul > li > .cards-card-body {
   display: contents;
 }
 
-.cards.icons-middle .cards-card-body h3 {
+.cards.icons-middle > ul > li > .cards-card-body h3 {
   order: 0;
   font-weight: 400;
   font-size: var(--heading-font-size-m);
