@@ -56,7 +56,7 @@ main > .section.breadcrumb-container {
 }
 
 /* Desktop: full breadcrumb trail */
-@media (width >= 900px) {
+@media (width >= 768px) {
   .breadcrumb nav ol li {
     display: inline-flex;
     align-items: center;

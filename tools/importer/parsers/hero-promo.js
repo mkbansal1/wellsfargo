@@ -86,7 +86,27 @@ export default function parse(element, { document }) {
     cellContent.push(p);
   }
 
-  const cells = [[cellContent]];
-  const block = WebImporter.Blocks.createBlock(document, { name: 'Hero', cells });
+  // Variant detection:
+  // Default hero: homepage marquee with text on left side of large image
+  // Overlay-bottom: product page marquees where text overlaps bottom of image
+  const cls = element.className || '';
+  let variant = 'Hero (overlay-bottom)';
+
+  // Homepage marquee (.marquee-container without .rsk-) uses default side-by-side hero
+  if (cls.includes('marquee-container') && !cls.includes('rsk-marquee')) {
+    variant = 'Hero';
+  }
+
+  // Create block table — single row, single cell with all content
+  const cells = [
+    [cellContent],
+  ];
+  const block = WebImporter.Blocks.createBlock(document, { name: variant, cells });
+
+  // Mark for heading-bar section metadata if overlay-bottom
+  if (variant === 'Hero (overlay-bottom)') {
+    block.setAttribute('data-section-style', 'heading-bar');
+  }
+
   element.replaceWith(block);
 }
