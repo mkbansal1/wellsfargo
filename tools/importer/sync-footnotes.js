@@ -23,7 +23,6 @@ import { resolve } from 'path';
 const DA_ORG = 'mkbansal1';
 const DA_SITE = 'wellsfargo';
 const SHEET_PREVIEW_URL = `https://main--${DA_SITE}--${DA_ORG}.aem.page/data/footnotes.json`;
-const DA_SHEET_SOURCE_URL = `https://admin.da.live/source/${DA_ORG}/${DA_SITE}/data/footnotes.json`;
 
 function parseArgs() {
   const args = {};
@@ -144,65 +143,49 @@ function cleanValue(html) {
     .trim();
 }
 
-async function pushToDASheet(entries, lang, token) {
-  // Fetch current sheet to get existing data
+async function reportMissingEntries(entries, lang) {
   const existing = await fetchExistingSheet(lang);
   const existingCids = new Set(existing.map((e) => e.cid));
 
   const newEntries = entries.filter((e) => e.cid && !existingCids.has(e.cid));
 
   if (newEntries.length === 0) {
-    console.log('All footnotes already exist in sheet. Nothing to add.');
+    console.log('✅ All footnotes already exist in sheet. Nothing to add.');
     return;
   }
 
-  console.log(`Adding ${newEntries.length} new footnote(s) to ${lang} sheet...`);
-
-  // Merge existing + new
-  const merged = [...existing, ...newEntries];
-  const sheetData = {
-    total: merged.length,
-    limit: merged.length,
-    offset: 0,
-    data: merged,
-    ':colWidths': [200, 200, 80, 600],
-    ':sheetname': lang,
-    ':type': 'sheet',
-  };
-
-  const resp = await fetch(DA_SHEET_SOURCE_URL, {
-    method: 'PUT',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(sheetData),
+  console.log(`\n⚠️  ${newEntries.length} footnote(s) MISSING from DA sheet (${lang}):`);
+  console.log(`   Add them manually at: https://da.live/sheet#/${DA_ORG}/${DA_SITE}/data/footnotes\n`);
+  console.log('┌──────────────────────────┬───────────────────────┬──────────┬─────────────────────────────────────────┐');
+  console.log('│ cid                      │ ctid                  │ numbered │ value (first 40 chars)                   │');
+  console.log('├──────────────────────────┼───────────────────────┼──────────┼─────────────────────────────────────────┤');
+  newEntries.forEach((e) => {
+    const cid = (e.cid || '').padEnd(24);
+    const ctid = (e.ctid || '').padEnd(21);
+    const num = (e.numbered || 'false').padEnd(8);
+    const val = (e.value || '').replace(/<[^>]*>/g, '').substring(0, 39).padEnd(39);
+    console.log(`│ ${cid} │ ${ctid} │ ${num} │ ${val} │`);
   });
+  console.log('└──────────────────────────┴───────────────────────┴──────────┴─────────────────────────────────────────┘');
 
-  if (resp.ok) {
-    console.log(`✅ Sheet updated. Added: ${newEntries.map((e) => e.cid).join(', ')}`);
-  } else {
-    console.error(`❌ Failed to update sheet: ${resp.status} ${resp.statusText}`);
-  }
+  // Also output as JSON for easy copy
+  console.log('\nJSON (copy to sheet):');
+  newEntries.forEach((e) => {
+    console.log(JSON.stringify(e));
+  });
 }
 
 async function main() {
   const args = parseArgs();
   const sourceUrl = args['source-url'];
   const lang = args.lang || 'en';
-  const token = process.env.DA_TOKEN;
 
   if (!sourceUrl) {
-    console.error('Usage: DA_TOKEN=<token> node sync-footnotes.js --source-url <url> [--lang en]');
+    console.error('Usage: node sync-footnotes.js --source-url <url> [--lang en]');
     process.exit(1);
   }
 
-  if (!token) {
-    console.error('Error: DA_TOKEN environment variable required');
-    process.exit(1);
-  }
-
-  console.log(`Syncing footnotes from: ${sourceUrl}`);
+  console.log(`Checking footnotes from: ${sourceUrl}`);
   console.log(`Language sheet: ${lang}`);
 
   // 1. Extract footnotes from source page
@@ -214,10 +197,8 @@ async function main() {
     return;
   }
 
-  // 2. Check existing sheet and push missing entries
-  await pushToDASheet(sourceFootnotes, lang, token);
-
-  console.log('Done.');
+  // 2. Report missing entries (manual add to DA sheet required)
+  await reportMissingEntries(sourceFootnotes, lang);
 }
 
 main();
