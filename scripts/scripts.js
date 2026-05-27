@@ -189,6 +189,10 @@ async function loadLazy(doc) {
 
   loadFooter(doc.querySelector('footer'));
 
+  // Footnotes — lazy loaded as last section
+  const { default: buildFootnotes } = await import('./footnotes.js');
+  await buildFootnotes();
+
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
   loadFonts();
 }
