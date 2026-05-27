@@ -313,6 +313,12 @@ var CustomImportScript = (() => {
         "noscript",
         "link"
       ]);
+      element.querySelectorAll("a").forEach((a) => {
+        const text = a.textContent;
+        if (/\s*>+\s*$/.test(text)) {
+          a.textContent = text.replace(/\s*>+\s*$/, "").trim();
+        }
+      });
     }
   }
 
@@ -396,6 +402,26 @@ var CustomImportScript = (() => {
   }
   function runParsers(main, document, url, params2) {
     const processed = /* @__PURE__ */ new Set();
+    const FRAGMENT_PATTERNS = [
+      { match: "Talk to a mortgage consultant", path: "/fragments/mortgage/talk-to-mortgage-consultant" },
+      { match: "Explore the mortgage learning center", path: "/fragments/mortgage/explore-learning-center" },
+      { match: "How can we help", path: "/fragments/help-cta-default" }
+    ];
+    main.querySelectorAll(':scope > div, :scope > [class*="card-background"]').forEach((el) => {
+      if (processed.has(el)) return;
+      const h2 = el.querySelector("h2");
+      if (!h2) return;
+      const headingText = h2.textContent.trim();
+      const fragmentMatch = FRAGMENT_PATTERNS.find((p) => headingText.includes(p.match));
+      if (fragmentMatch) {
+        processed.add(el);
+        const block = WebImporter.Blocks.createBlock(document, {
+          name: "Fragment",
+          cells: [[[fragmentMatch.path]]]
+        });
+        el.replaceWith(block);
+      }
+    });
     let heroCount = 0;
     main.querySelectorAll(".rsk-marquee-container, .marquee-container, .ps-large-promo-full-container").forEach((el) => {
       if (processed.has(el)) return;
@@ -498,26 +524,6 @@ var CustomImportScript = (() => {
           parsers["cards-with-images"](el, { document, url, params: params2 });
         } catch (e) {
         }
-      }
-    });
-    const FRAGMENT_PATTERNS = [
-      { match: "Talk to a mortgage consultant", path: "/fragments/mortgage/talk-to-mortgage-consultant" },
-      { match: "Explore the mortgage learning center", path: "/fragments/mortgage/explore-learning-center" },
-      { match: "How can we help", path: "/fragments/help-cta-default" }
-    ];
-    main.querySelectorAll(':scope > div, :scope > [class*="card-background"]').forEach((el) => {
-      if (processed.has(el)) return;
-      const h2 = el.querySelector("h2");
-      if (!h2) return;
-      const headingText = h2.textContent.trim();
-      const fragmentMatch = FRAGMENT_PATTERNS.find((p) => headingText.includes(p.match));
-      if (fragmentMatch) {
-        processed.add(el);
-        const block = WebImporter.Blocks.createBlock(document, {
-          name: "Fragment",
-          cells: [[[fragmentMatch.path]]]
-        });
-        el.replaceWith(block);
       }
     });
     const footnoteEl = main.querySelector(".ps-footnote");
