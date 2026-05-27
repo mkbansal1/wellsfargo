@@ -43,6 +43,6 @@ export default function parse(element, { document }) {
     }
   });
 
-  const block = WebImporter.Blocks.createBlock(document, { name: 'Accordion', cells });
+  const block = WebImporter.Blocks.createBlock(document, { name: 'Accordion (compact)', cells });
   element.replaceWith(block);
 }

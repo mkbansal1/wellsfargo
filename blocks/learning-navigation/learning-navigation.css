@@ -36,7 +36,7 @@
 .learning-navigation .learning-navigation-container {
   background: #fff;
   border-radius: 12px;
-  box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 20px 0 rgb(0 0 0 / 12%);
   display: flex;
   align-items: stretch;
   justify-content: center;
@@ -115,7 +115,7 @@
 }
 
 /* ── Responsive ─────────────────────────────────────────────── */
-@media (max-width: 1024px) {
+@media (width <= 1024px) {
   .learning-navigation-hero {
     border-radius: 8px;
   }
@@ -186,7 +186,7 @@
     position: relative;
     background: #fff;
     border-radius: 12px;
-    box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.12);
+    box-shadow: 0 4px 20px 0 rgb(0 0 0 / 12%);
     z-index: 10;
   }
 
