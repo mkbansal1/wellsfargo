@@ -87,23 +87,27 @@ export default function transform(hookName, element, payload) {
     });
 
     // Convert footnote reference links to superscript numbers
-    // <a href="...tcm:..."><sup>Opens a modal dialog for footnote N</sup></a> → <sup><a href="...">N</a></sup>
+    // Pattern 1: <a href="...tcm:..."><sup>Opens a modal dialog for footnote N</sup></a> → <sup><a href="...">N</a></sup>
+    // Pattern 2: <a href="...tcm:...">Opens a modal dialog for footnote N</a> (inside <sup>) → <a href="...">N</a>
     element.querySelectorAll('a').forEach((a) => {
-      const sup = a.querySelector('sup');
-      if (!sup) return;
-      const text = sup.textContent || '';
+      const text = a.textContent || '';
       if (!text.includes('footnote') && !text.includes('modal')) return;
       const match = text.match(/(\d+)\s*$/);
       if (!match) return;
       const num = match[1];
       const href = a.getAttribute('href') || a.href || '#';
       const doc = element.ownerDocument;
-      const newSup = doc.createElement('sup');
-      const newA = doc.createElement('a');
-      newA.setAttribute('href', href);
-      newA.textContent = num;
-      newSup.appendChild(newA);
-      a.replaceWith(newSup);
+      const sup = a.querySelector('sup');
+      if (sup) {
+        const newSup = doc.createElement('sup');
+        const newA = doc.createElement('a');
+        newA.setAttribute('href', href);
+        newA.textContent = num;
+        newSup.appendChild(newA);
+        a.replaceWith(newSup);
+      } else {
+        a.textContent = num;
+      }
     });
 
     // Convert absolute wellsfargo.com links to relative paths
