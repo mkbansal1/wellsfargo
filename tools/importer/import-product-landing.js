@@ -377,14 +377,18 @@ function buildSections(main, document) {
 
   if (current.els.length > 0) sections.push(current);
 
-  // Merge H1-only sections with the following section
+  // Merge H1-only sections with the following section (but not if next starts with a block TABLE)
   for (let i = sections.length - 2; i >= 0; i--) {
     const sec = sections[i];
     const isH1Only = sec.els.length === 1 && sec.els[0] && sec.els[0].tagName === 'H1';
     if (isH1Only && sections[i + 1]) {
-      sections[i + 1].els.unshift(sec.els[0]);
-      if (sec.style && !sections[i + 1].style) sections[i + 1].style = sec.style;
-      sections.splice(i, 1);
+      const nextFirst = sections[i + 1].els[0];
+      const nextIsBlock = nextFirst && nextFirst.tagName === 'TABLE';
+      if (!nextIsBlock) {
+        sections[i + 1].els.unshift(sec.els[0]);
+        if (sec.style && !sections[i + 1].style) sections[i + 1].style = sec.style;
+        sections.splice(i, 1);
+      }
     }
   }
 

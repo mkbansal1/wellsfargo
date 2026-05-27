@@ -20,7 +20,7 @@
  *     .marquee-img > img
  *     .marquee-content > h2, p, .ps-padding > a
  */
-export default function parse(element, { document }) {
+export default function parse(element, { document, isFirstHero }) {
   // Extract image — support both marquee variants
   const img = element.querySelector(
     '.rsk-marquee-img-container img, .marquee-img img, .marquee-wrap img, picture img, img'
@@ -90,24 +90,19 @@ export default function parse(element, { document }) {
   // overlay-bottom: only for the FIRST hero on the page
   // Default hero: all subsequent heroes + homepage marquee
   const cls = element.className || '';
-  const isFirstHero = params && params.isFirstHero;
-  let variant = isFirstHero ? 'Hero (overlay-bottom)' : 'Hero';
+  let variant = 'Hero';
 
   // Homepage marquee (.marquee-container without .rsk-) always uses default
   if (cls.includes('marquee-container') && !cls.includes('rsk-marquee')) {
     variant = 'Hero';
   }
 
-  // Create block — wrap all content in a single container div for proper serialization
-  const contentDiv = document.createElement('div');
-  cellContent.forEach((el) => contentDiv.appendChild(el));
-  const cells = [
-    [contentDiv],
-  ];
+  // Create block — each content element in its own row
+  const cells = cellContent.map((el) => [el]);
   const block = WebImporter.Blocks.createBlock(document, { name: variant, cells });
 
-  // Mark for heading-bar section metadata if overlay-bottom
-  if (variant === 'Hero (overlay-bottom)') {
+  // Mark for heading-bar section metadata for first hero
+  if (isFirstHero) {
     block.setAttribute('data-section-style', 'heading-bar');
   }
 

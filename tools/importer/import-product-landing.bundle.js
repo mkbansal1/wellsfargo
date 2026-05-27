@@ -25,7 +25,7 @@ var CustomImportScript = (() => {
   });
 
   // tools/importer/parsers/hero-promo.js
-  function parse(element, { document }) {
+  function parse(element, { document, isFirstHero }) {
     const img = element.querySelector(
       ".rsk-marquee-img-container img, .marquee-img img, .marquee-wrap img, picture img, img"
     );
@@ -74,18 +74,13 @@ var CustomImportScript = (() => {
       cellContent.push(p);
     }
     const cls = element.className || "";
-    const isFirstHero = params && params.isFirstHero;
-    let variant = isFirstHero ? "Hero (overlay-bottom)" : "Hero";
+    let variant = "Hero";
     if (cls.includes("marquee-container") && !cls.includes("rsk-marquee")) {
       variant = "Hero";
     }
-    const contentDiv = document.createElement("div");
-    cellContent.forEach((el) => contentDiv.appendChild(el));
-    const cells = [
-      [contentDiv]
-    ];
+    const cells = cellContent.map((el) => [el]);
     const block = WebImporter.Blocks.createBlock(document, { name: variant, cells });
-    if (variant === "Hero (overlay-bottom)") {
+    if (isFirstHero) {
       block.setAttribute("data-section-style", "heading-bar");
     }
     element.replaceWith(block);
@@ -400,7 +395,7 @@ var CustomImportScript = (() => {
     if (VARIANT_RULES.shouldBeNarrow(el)) styles.push("narrow-width");
     return styles.length > 0 ? styles.join(", ") : null;
   }
-  function runParsers(main, document, url, params2) {
+  function runParsers(main, document, url, params) {
     const processed = /* @__PURE__ */ new Set();
     const FRAGMENT_PATTERNS = [
       { match: "Talk to a mortgage consultant", path: "/fragments/mortgage/talk-to-mortgage-consultant" },
@@ -432,7 +427,7 @@ var CustomImportScript = (() => {
         processed.add(el);
         heroCount += 1;
         try {
-          parsers["hero"](el, { document, url, params: params2, isFirstHero: heroCount === 1 });
+          parsers["hero"](el, { document, url, params, isFirstHero: heroCount === 1 });
         } catch (e) {
         }
       }
@@ -450,7 +445,7 @@ var CustomImportScript = (() => {
         processed.add(el);
         heroCount += 1;
         try {
-          parsers["hero"](el, { document, url, params: params2, isFirstHero: heroCount === 1 });
+          parsers["hero"](el, { document, url, params, isFirstHero: heroCount === 1 });
         } catch (e) {
         }
       }
@@ -466,7 +461,7 @@ var CustomImportScript = (() => {
         if (textLen < 300) {
           processed.add(el);
           try {
-            parsers["hero"](el, { document, url, params: params2 });
+            parsers["hero"](el, { document, url, params });
           } catch (e) {
           }
         }
@@ -485,13 +480,13 @@ var CustomImportScript = (() => {
         });
         processed.add(wrapper);
         try {
-          parsers["accordion"](wrapper, { document, url, params: params2 });
+          parsers["accordion"](wrapper, { document, url, params });
         } catch (e) {
         }
       } else if (!processed.has(parent)) {
         processed.add(parent);
         try {
-          parsers["accordion"](parent, { document, url, params: params2 });
+          parsers["accordion"](parent, { document, url, params });
         } catch (e) {
         }
       }
@@ -516,12 +511,12 @@ var CustomImportScript = (() => {
       }
       if (variant === "Cards") {
         try {
-          parsers["cards-no-images"](el, { document, url, params: params2 });
+          parsers["cards-no-images"](el, { document, url, params });
         } catch (e) {
         }
       } else {
         try {
-          parsers["cards-with-images"](el, { document, url, params: params2 });
+          parsers["cards-with-images"](el, { document, url, params });
         } catch (e) {
         }
       }
@@ -625,9 +620,13 @@ var CustomImportScript = (() => {
       const sec = sections[i];
       const isH1Only = sec.els.length === 1 && sec.els[0] && sec.els[0].tagName === "H1";
       if (isH1Only && sections[i + 1]) {
-        sections[i + 1].els.unshift(sec.els[0]);
-        if (sec.style && !sections[i + 1].style) sections[i + 1].style = sec.style;
-        sections.splice(i, 1);
+        const nextFirst = sections[i + 1].els[0];
+        const nextIsBlock = nextFirst && nextFirst.tagName === "TABLE";
+        if (!nextIsBlock) {
+          sections[i + 1].els.unshift(sec.els[0]);
+          if (sec.style && !sections[i + 1].style) sections[i + 1].style = sec.style;
+          sections.splice(i, 1);
+        }
       }
     }
     while (main.firstChild) main.removeChild(main.firstChild);
@@ -658,11 +657,11 @@ var CustomImportScript = (() => {
   }
   var import_product_landing_default = {
     transform: (payload) => {
-      const { document, url, params: params2 } = payload;
+      const { document, url, params } = payload;
       const main = document.querySelector("main") || document.body;
       transform("beforeTransform", main, payload);
       transform("afterTransform", main, payload);
-      runParsers(main, document, url, params2);
+      runParsers(main, document, url, params);
       buildSections(main, document);
       const hr = document.createElement("hr");
       main.appendChild(hr);
@@ -688,9 +687,9 @@ var CustomImportScript = (() => {
       main.removeAttribute("data-footnotes");
       main.removeAttribute("data-pageid");
       WebImporter.rules.transformBackgroundImages(main, document);
-      WebImporter.rules.adjustImageUrls(main, url, params2.originalURL);
+      WebImporter.rules.adjustImageUrls(main, url, params.originalURL);
       const path = WebImporter.FileUtils.sanitizePath(
-        new URL(params2.originalURL).pathname.replace(/\/$/, "").replace(/\.html$/, "") || "/index"
+        new URL(params.originalURL).pathname.replace(/\/$/, "").replace(/\.html$/, "") || "/index"
       );
       return [{
         element: main,
