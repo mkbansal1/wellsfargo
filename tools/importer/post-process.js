@@ -43,13 +43,16 @@ function postProcess(filePath) {
   }
   html = result.join('\n');
 
-  // 5. Wrap bare text in block cells with <p> tags
+  // 5. Separate fragment blocks into their own sections
+  html = html.replace(/(<\/div>)<div class="fragment">/g, '$1</div>\n<div><div class="fragment">');
+
+  // 7. Wrap bare text in block cells with <p> tags
   html = html.replace(/<div>([^<]+)<\/div>/g, (match, text) => {
     if (text.length < 200) return '<div><p>' + text + '</p></div>';
     return match;
   });
 
-  // 6. Fix div balance per line
+  // 8. Fix div balance per line
   const finalLines = html.split('\n');
   finalLines.forEach((line, idx) => {
     const opens = (line.match(/<div/g) || []).length;
