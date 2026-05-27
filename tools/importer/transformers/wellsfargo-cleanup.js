@@ -78,7 +78,7 @@ export default function transform(hookName, element, payload) {
       'link',
     ]);
 
-    // Fix footnote references: restructure to <sup><a><span.hidden>text</span>N</a></sup>
+    // Fix footnote references: simplify to <sup><a href="#tcm:...">N</a></sup>
     element.querySelectorAll('a[href*="tcm:"] sup, sup a[href*="tcm:"]').forEach((el) => {
       const a = el.tagName === 'A' ? el : el.closest('a');
       const sup = el.tagName === 'SUP' ? el : el.querySelector('sup') || el.closest('sup');
@@ -95,11 +95,7 @@ export default function transform(hookName, element, payload) {
       const newSup = doc.createElement('sup');
       const newA = doc.createElement('a');
       newA.setAttribute('href', href);
-      const span = doc.createElement('span');
-      span.className = 'hidden';
-      span.textContent = 'Opens a modal dialog for footnote ';
-      newA.appendChild(span);
-      newA.appendChild(doc.createTextNode(num));
+      newA.textContent = num;
       newSup.appendChild(newA);
 
       const parent = a.parentElement || sup.parentElement;
