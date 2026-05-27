@@ -435,22 +435,26 @@ export default {
     wellsfargoCleanup('afterTransform', main, payload);
 
     // Convert footnote reference links to superscript numbers
-    // <a ...><sup>Opens a modal dialog for footnote N</sup></a> → <sup><a href="#tcm:...">N</a></sup>
+    // Pattern 1: <a><sup>Opens a modal...</sup></a> → <sup><a>N</a></sup>
+    // Pattern 2: <a>Opens a modal...</a> (inside sup) → just set text to N
     main.querySelectorAll('a').forEach((a) => {
-      const sup = a.querySelector('sup');
-      if (!sup) return;
-      const text = sup.textContent || '';
+      const text = a.textContent || '';
       if (!text.includes('footnote') && !text.includes('modal')) return;
       const match = text.match(/(\d+)\s*$/);
       if (!match) return;
       const num = match[1];
       const href = a.getAttribute('href') || a.href || '#';
-      const newSup = document.createElement('sup');
-      const newA = document.createElement('a');
-      newA.setAttribute('href', href);
-      newA.textContent = num;
-      newSup.appendChild(newA);
-      a.replaceWith(newSup);
+      const sup = a.querySelector('sup');
+      if (sup) {
+        const newSup = document.createElement('sup');
+        const newA = document.createElement('a');
+        newA.setAttribute('href', href);
+        newA.textContent = num;
+        newSup.appendChild(newA);
+        a.replaceWith(newSup);
+      } else {
+        a.textContent = num;
+      }
     });
 
     // Convert absolute wellsfargo.com links to relative paths

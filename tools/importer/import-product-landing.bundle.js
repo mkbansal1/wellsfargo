@@ -312,21 +312,24 @@ var CustomImportScript = (() => {
         }
       });
       element.querySelectorAll("a").forEach((a) => {
-        const sup = a.querySelector("sup");
-        if (!sup) return;
-        const text = sup.textContent || "";
+        const text = a.textContent || "";
         if (!text.includes("footnote") && !text.includes("modal")) return;
         const match = text.match(/(\d+)\s*$/);
         if (!match) return;
         const num = match[1];
         const href = a.getAttribute("href") || a.href || "#";
         const doc = element.ownerDocument;
-        const newSup = doc.createElement("sup");
-        const newA = doc.createElement("a");
-        newA.setAttribute("href", href);
-        newA.textContent = num;
-        newSup.appendChild(newA);
-        a.replaceWith(newSup);
+        const sup = a.querySelector("sup");
+        if (sup) {
+          const newSup = doc.createElement("sup");
+          const newA = doc.createElement("a");
+          newA.setAttribute("href", href);
+          newA.textContent = num;
+          newSup.appendChild(newA);
+          a.replaceWith(newSup);
+        } else {
+          a.textContent = num;
+        }
       });
       element.querySelectorAll("a").forEach((a) => {
         const href = a.getAttribute("href") || "";
@@ -682,20 +685,23 @@ var CustomImportScript = (() => {
       transform("beforeTransform", main, payload);
       transform("afterTransform", main, payload);
       main.querySelectorAll("a").forEach((a) => {
-        const sup = a.querySelector("sup");
-        if (!sup) return;
-        const text = sup.textContent || "";
+        const text = a.textContent || "";
         if (!text.includes("footnote") && !text.includes("modal")) return;
         const match = text.match(/(\d+)\s*$/);
         if (!match) return;
         const num = match[1];
         const href = a.getAttribute("href") || a.href || "#";
-        const newSup = document.createElement("sup");
-        const newA = document.createElement("a");
-        newA.setAttribute("href", href);
-        newA.textContent = num;
-        newSup.appendChild(newA);
-        a.replaceWith(newSup);
+        const sup = a.querySelector("sup");
+        if (sup) {
+          const newSup = document.createElement("sup");
+          const newA = document.createElement("a");
+          newA.setAttribute("href", href);
+          newA.textContent = num;
+          newSup.appendChild(newA);
+          a.replaceWith(newSup);
+        } else {
+          a.textContent = num;
+        }
       });
       main.querySelectorAll("a").forEach((a) => {
         const href = a.getAttribute("href") || "";
