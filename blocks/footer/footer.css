@@ -8,6 +8,8 @@ footer {
   font-family: var(--body-font-family, 'Wells Fargo Sans', arial, helvetica, sans-serif);
   font-size: 13px;
   line-height: 1.5;
+  border-top: 1px solid #b5adad;
+  padding-bottom: 20px;
 }
 
 footer a {

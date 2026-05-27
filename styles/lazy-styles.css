@@ -9,7 +9,7 @@
   font-size: var(--body-font-size-xs);
   line-height: 1.6;
   color: var(--wf-text-primary);
-  margin: 0 0 20px;
+  margin: 0 0 10px;
   display: flex;
   align-items: baseline;
   gap: 8px;

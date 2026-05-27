@@ -105,6 +105,10 @@ header {
   height: var(--nav-height);
 }
 
+header.no-subnav {
+  height: 140px;
+}
+
 header .header,
 footer .footer {
   visibility: hidden;
@@ -131,6 +135,8 @@ h6 {
 }
 
 h1 { font-size: var(--heading-font-size-xl); }
+
+h1:first-of-type { margin: 0; }
 
 h2 { 
   font-size: var(--heading-font-size-xxl);
@@ -325,6 +331,12 @@ main > .section.breadcrumb-container + div.section {
 @media (width >= 768px) {
   main > .section > div {
     padding: 0 32px 20px;
+  }
+
+  main > .section > div.breadcrumb-wrapper,
+  main > .section > div.default-content-wrapper:has(h1:first-of-type),
+  main > .section:has(h1:first-of-type) {
+    padding-bottom: 0;
   }
 
   main > .section.narrow-width > div {
