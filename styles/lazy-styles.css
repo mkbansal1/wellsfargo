@@ -3,25 +3,33 @@
 /* === Footnotes === */
 .footnotes-wrapper {
   padding: 24px 0;
-  border-top: 1px solid var(--wf-bg-gray);
 }
 
 .footnotes-wrapper .footnote-item {
-  font-size: 12px;
-  line-height: 1.5;
-  color: var(--wf-text-secondary);
-  margin: 0 0 10px;
+  font-size: var(--body-font-size-xs);
+  line-height: 1.6;
+  color: var(--wf-text-primary);
+  margin: 0 0 20px;
   display: flex;
-  gap: 4px;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.footnotes-wrapper .footnote-item > span:last-child {
+  flex: 1;
+}
+
+.footnotes-wrapper .footnote-item > span:last-child p {
+  margin: 0 0 12px;
 }
 
 .footnotes-wrapper .footnote-number {
-  font-weight: 700;
-  margin-right: 4px;
+  flex-shrink: 0;
+  min-width: 20px;
 }
 
 .footnotes-wrapper .footnote-pageid {
-  font-size: 12px;
+  font-size: var(--body-font-size-xs);
   line-height: 1.5;
   color: var(--wf-text-secondary);
   margin: 16px 0 0;

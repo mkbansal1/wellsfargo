@@ -46,9 +46,14 @@ export default async function buildFootnotes(footnotesAttr, pageid) {
 
       const item = document.createElement('div');
       item.className = 'footnote-item';
+      item.setAttribute('data-cid', entry.cid || '');
+      item.setAttribute('data-ctid', entry.ctid || '');
+      item.setAttribute('data-numbered', entry.numbered || 'false');
 
-      if (entry.numbered === 'true' || entry.numbered === true) {
+      const isNumbered = entry.numbered === 'true' || entry.numbered === true;
+      if (isNumbered) {
         numberCounter += 1;
+        item.id = cid;
         const numSpan = document.createElement('span');
         numSpan.className = 'footnote-number';
         numSpan.textContent = `${numberCounter}.`;
