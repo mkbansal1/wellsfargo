@@ -113,13 +113,17 @@ function extractFootnotesFromHTML(html) {
 }
 
 function cleanValue(html) {
-  // Strip outer tags, clean whitespace
-  return html
-    .replace(/<\/?p[^>]*>/gi, '')
+  // Clean whitespace but preserve <p> and inline tags (sup, a, strong)
+  let cleaned = html
     .replace(/<\/?div[^>]*>/gi, '')
     .replace(/<\/?span[^>]*>/gi, '')
     .replace(/\s+/g, ' ')
     .trim();
+  // Ensure wrapped in <p> if not already
+  if (!cleaned.startsWith('<p')) {
+    cleaned = `<p>${cleaned}</p>`;
+  }
+  return cleaned;
 }
 
 async function reportMissingEntries(entries, lang) {
