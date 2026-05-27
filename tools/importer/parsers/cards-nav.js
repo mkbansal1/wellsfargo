@@ -63,6 +63,7 @@ export default function parse(element, { document }) {
     if (!labelText) {
       labelText = anchor.textContent.trim();
     }
+    labelText = labelText.replace(/\s*>+\s*$/, '').trim();
 
     const link = document.createElement('a');
     link.setAttribute('href', linkHref);

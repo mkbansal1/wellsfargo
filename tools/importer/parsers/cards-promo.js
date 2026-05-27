@@ -66,7 +66,13 @@ export default function parse(element, { document }) {
     const col2 = [];
     if (heading) col2.push(heading);
     descriptionParagraphs.forEach((p) => col2.push(p));
-    ctaParagraphs.forEach((p) => col2.push(p));
+    ctaParagraphs.forEach((p) => {
+      const link = p.querySelector('a');
+      if (link) {
+        link.textContent = link.textContent.replace(/\s*>+\s*$/, '').trim();
+      }
+      col2.push(p);
+    });
 
     cells.push([col1, col2]);
   });
