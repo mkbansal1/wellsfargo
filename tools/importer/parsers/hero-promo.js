@@ -97,9 +97,11 @@ export default function parse(element, { document }) {
     variant = 'Hero';
   }
 
-  // Create block table — single row, single cell with all content
+  // Create block — wrap all content in a single container div for proper serialization
+  const contentDiv = document.createElement('div');
+  cellContent.forEach((el) => contentDiv.appendChild(el));
   const cells = [
-    [cellContent],
+    [contentDiv],
   ];
   const block = WebImporter.Blocks.createBlock(document, { name: variant, cells });
 
