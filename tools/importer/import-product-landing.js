@@ -228,11 +228,40 @@ function runParsers(main, document, url, params) {
     }
   });
 
-  // DISCLAIMERS
+  // FOOTNOTES: Extract cids for page metadata instead of inline rendering
   const footnoteEl = main.querySelector('.ps-footnote');
   if (footnoteEl && !processed.has(footnoteEl)) {
     processed.add(footnoteEl);
-    try { parsers['disclaimers'](footnoteEl, { document, url, params }); } catch (e) { /* keep as-is */ }
+    // Extract footnote cids and pageid
+    const cids = [];
+    let pageid = '';
+    footnoteEl.querySelectorAll('[data-cid]').forEach((item) => {
+      const cid = item.getAttribute('data-cid');
+      if (cid) cids.push(cid);
+    });
+    // Fallback: extract from numbered items if no data-cid
+    if (cids.length === 0) {
+      footnoteEl.querySelectorAll(':scope > p, :scope > div').forEach((item) => {
+        const numEl = item.querySelector('[class*="footnote-number"], :scope > span:first-child');
+        if (numEl) {
+          const cidLink = item.querySelector('a[href*="tcm:"]');
+          if (cidLink) {
+            const href = cidLink.getAttribute('href') || '';
+            const cid = href.replace('#', '');
+            if (cid) cids.push(cid);
+          }
+        }
+      });
+    }
+    // Find pageid (DT... pattern)
+    const allText = footnoteEl.textContent;
+    const dtMatch = allText.match(/(DT\d+-\d+-\d+-\d+-[\d.]+)/);
+    if (dtMatch) pageid = dtMatch[1];
+    // Store for metadata (used in Phase 3)
+    main.setAttribute('data-footnotes', cids.join(', '));
+    if (pageid) main.setAttribute('data-pageid', pageid);
+    // Remove the footnote section from DOM
+    footnoteEl.remove();
   }
 }
 
@@ -389,6 +418,29 @@ export default {
     const hr = document.createElement('hr');
     main.appendChild(hr);
     WebImporter.rules.createMetadata(main, document);
+
+    // Add footnotes and pageid to metadata block
+    const footnoteCids = main.getAttribute('data-footnotes');
+    const footnotePageid = main.getAttribute('data-pageid');
+    if (footnoteCids || footnotePageid) {
+      const metaTable = main.querySelector('table:last-of-type');
+      if (metaTable) {
+        const tbody = metaTable.querySelector('tbody') || metaTable;
+        if (footnoteCids) {
+          const row = document.createElement('tr');
+          row.innerHTML = `<td>footnotes</td><td>${footnoteCids}</td>`;
+          tbody.appendChild(row);
+        }
+        if (footnotePageid) {
+          const row = document.createElement('tr');
+          row.innerHTML = `<td>pageid</td><td>${footnotePageid}</td>`;
+          tbody.appendChild(row);
+        }
+      }
+    }
+    main.removeAttribute('data-footnotes');
+    main.removeAttribute('data-pageid');
+
     WebImporter.rules.transformBackgroundImages(main, document);
     WebImporter.rules.adjustImageUrls(main, url, params.originalURL);
 
