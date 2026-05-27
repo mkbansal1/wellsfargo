@@ -142,6 +142,25 @@ function runParsers(main, document, url, params) {
     }
   });
 
+  // HERO (content-based): detect by large landscape image pattern
+  // Matches sections with large images (1600x, 1700x, lpromo, marquee) + h2 + CTA, not cards
+  main.querySelectorAll(':scope > div').forEach((el) => {
+    if (processed.has(el)) return;
+    const img = el.querySelector('img, picture img');
+    if (!img) return;
+    const src = (img.src || img.getAttribute('src') || '').toLowerCase();
+    const isLargeHeroImage = src.includes('1600x') || src.includes('1700x')
+      || src.includes('lpromo') || src.includes('marquee');
+    if (!isLargeHeroImage) return;
+    const hasH2 = el.querySelector('h2');
+    const h3Count = el.querySelectorAll('h3').length;
+    if (hasH2 && h3Count <= 1) {
+      processed.add(el);
+      heroCount += 1;
+      try { parsers['hero'](el, { document, url, params, isFirstHero: heroCount === 1 }); } catch (e) { /* keep as-is */ }
+    }
+  });
+
   // HERO (overlay-bottom): sections with h2 + description + CTA but NO image
   // Pattern: centered text block that acts as a hero without background image
   main.querySelectorAll(':scope > [class*="enhanced-txt-cm"], :scope > div:not([class*="card"]):not([class*="promo"]):not([class*="footnote"])').forEach((el) => {
