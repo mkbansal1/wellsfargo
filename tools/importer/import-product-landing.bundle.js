@@ -311,19 +311,28 @@ var CustomImportScript = (() => {
           a.textContent = text.replace(/\s*>+\s*$/, "").trim();
         }
       });
-      element.querySelectorAll('a[href*="tcm:"]').forEach((a) => {
+      element.querySelectorAll("a").forEach((a) => {
         const sup = a.querySelector("sup");
         if (!sup) return;
-        const match = sup.textContent.match(/(\d+)\s*$/);
+        const text = sup.textContent || "";
+        if (!text.includes("footnote") && !text.includes("modal")) return;
+        const match = text.match(/(\d+)\s*$/);
         if (!match) return;
         const num = match[1];
-        const href = a.getAttribute("href");
-        const newSup = element.ownerDocument.createElement("sup");
-        const newA = element.ownerDocument.createElement("a");
+        const href = a.getAttribute("href") || a.href || "#";
+        const doc = element.ownerDocument;
+        const newSup = doc.createElement("sup");
+        const newA = doc.createElement("a");
         newA.setAttribute("href", href);
         newA.textContent = num;
         newSup.appendChild(newA);
         a.replaceWith(newSup);
+      });
+      element.querySelectorAll("a").forEach((a) => {
+        const href = a.getAttribute("href") || "";
+        if (href.startsWith("https://www.wellsfargo.com/")) {
+          a.setAttribute("href", href.replace("https://www.wellsfargo.com", ""));
+        }
       });
     }
   }
@@ -687,6 +696,12 @@ var CustomImportScript = (() => {
         newA.textContent = num;
         newSup.appendChild(newA);
         a.replaceWith(newSup);
+      });
+      main.querySelectorAll("a").forEach((a) => {
+        const href = a.getAttribute("href") || "";
+        if (href.startsWith("https://www.wellsfargo.com/")) {
+          a.setAttribute("href", href.replace("https://www.wellsfargo.com", ""));
+        }
       });
       runParsers(main, document, url, params);
       buildSections(main, document);

@@ -453,6 +453,14 @@ export default {
       a.replaceWith(newSup);
     });
 
+    // Convert absolute wellsfargo.com links to relative paths
+    main.querySelectorAll('a').forEach((a) => {
+      const href = a.getAttribute('href') || '';
+      if (href.startsWith('https://www.wellsfargo.com/')) {
+        a.setAttribute('href', href.replace('https://www.wellsfargo.com', ''));
+      }
+    });
+
     // Phase 1: Run block parsers with variant heuristics
     runParsers(main, document, url, params);
 
