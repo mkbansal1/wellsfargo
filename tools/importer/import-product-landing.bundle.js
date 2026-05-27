@@ -48,20 +48,21 @@ var CustomImportScript = (() => {
     const ctaLink = element.querySelector(
       'a.ps-btn-primary, a.ps-btn-secondary, a[class*="ps-btn"], .ps-padding a'
     );
-    const cellContent = [];
+    const cells = [];
     if (img) {
       const picture = img.closest("picture") || img;
-      cellContent.push(picture.cloneNode(true));
+      cells.push([picture.cloneNode(true)]);
     }
+    const textContent = [];
     if (heading) {
       const h2 = document.createElement("h2");
       h2.innerHTML = heading.innerHTML;
-      cellContent.push(h2);
+      textContent.push(h2);
     }
     if (description) {
       const p = document.createElement("p");
       p.innerHTML = description.innerHTML;
-      cellContent.push(p);
+      textContent.push(p);
     }
     if (ctaLink) {
       const p = document.createElement("p");
@@ -71,14 +72,13 @@ var CustomImportScript = (() => {
       const strong = document.createElement("strong");
       strong.appendChild(a);
       p.appendChild(strong);
-      cellContent.push(p);
+      textContent.push(p);
+    }
+    if (textContent.length > 0) {
+      cells.push([textContent]);
     }
     const cls = element.className || "";
-    let variant = "Hero";
-    if (cls.includes("marquee-container") && !cls.includes("rsk-marquee")) {
-      variant = "Hero";
-    }
-    const cells = cellContent.map((el) => [el]);
+    const variant = "Hero";
     const block = WebImporter.Blocks.createBlock(document, { name: variant, cells });
     if (isFirstHero) {
       block.setAttribute("data-section-style", "heading-bar");

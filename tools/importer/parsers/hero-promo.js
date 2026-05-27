@@ -53,55 +53,45 @@ export default function parse(element, { document, isFirstHero }) {
     'a.ps-btn-primary, a.ps-btn-secondary, a[class*="ps-btn"], .ps-padding a'
   );
 
-  // Build single-cell content matching block library pattern:
-  // One row, one cell containing: image + heading + description + CTA
-  const cellContent = [];
+  // Block library structure: row 1 = image, row 2 = heading + description + CTA in one cell
+  const cells = [];
 
+  // Row 1: Background image
   if (img) {
     const picture = img.closest('picture') || img;
-    cellContent.push(picture.cloneNode(true));
+    cells.push([picture.cloneNode(true)]);
   }
 
+  // Row 2: Text content (heading + description + CTA) all in one cell
+  const textContent = [];
   if (heading) {
     const h2 = document.createElement('h2');
     h2.innerHTML = heading.innerHTML;
-    cellContent.push(h2);
+    textContent.push(h2);
   }
-
   if (description) {
     const p = document.createElement('p');
     p.innerHTML = description.innerHTML;
-    cellContent.push(p);
+    textContent.push(p);
   }
-
   if (ctaLink) {
     const p = document.createElement('p');
     const a = document.createElement('a');
     a.href = ctaLink.href;
     a.textContent = ctaLink.textContent.trim();
-    // Wrap in <strong> for primary button styling in EDS
     const strong = document.createElement('strong');
     strong.appendChild(a);
     p.appendChild(strong);
-    cellContent.push(p);
+    textContent.push(p);
+  }
+  if (textContent.length > 0) {
+    cells.push([textContent]);
   }
 
-  // Variant detection:
-  // overlay-bottom: only for the FIRST hero on the page
-  // Default hero: all subsequent heroes + homepage marquee
   const cls = element.className || '';
-  let variant = 'Hero';
-
-  // Homepage marquee (.marquee-container without .rsk-) always uses default
-  if (cls.includes('marquee-container') && !cls.includes('rsk-marquee')) {
-    variant = 'Hero';
-  }
-
-  // Create block — each content element in its own row
-  const cells = cellContent.map((el) => [el]);
+  const variant = 'Hero';
   const block = WebImporter.Blocks.createBlock(document, { name: variant, cells });
 
-  // Mark for heading-bar section metadata for first hero
   if (isFirstHero) {
     block.setAttribute('data-section-style', 'heading-bar');
   }
