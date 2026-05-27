@@ -262,8 +262,18 @@ var CustomImportScript = (() => {
 
   // tools/importer/transformers/wellsfargo-cleanup.js
   var H = { before: "beforeTransform", after: "afterTransform" };
+  var TAG_MAPPINGS = [
+    { selector: "div.title2-SemiBold", tag: "h3" }
+  ];
   function transform(hookName, element, payload) {
     if (hookName === H.before) {
+      TAG_MAPPINGS.forEach(({ selector, tag }) => {
+        element.querySelectorAll(selector).forEach((el) => {
+          const replacement = element.ownerDocument.createElement(tag);
+          replacement.innerHTML = el.innerHTML;
+          el.replaceWith(replacement);
+        });
+      });
       WebImporter.DOMUtils.remove(element, [
         "#onetrust-consent-sdk"
       ]);

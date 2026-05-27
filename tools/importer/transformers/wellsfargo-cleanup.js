@@ -9,8 +9,22 @@
  */
 const H = { before: 'beforeTransform', after: 'afterTransform' };
 
+// Map source CSS classes to semantic HTML tags (add new mappings as needed)
+const TAG_MAPPINGS = [
+  { selector: 'div.title2-SemiBold', tag: 'h3' },
+];
+
 export default function transform(hookName, element, payload) {
   if (hookName === H.before) {
+    // Convert non-semantic elements to proper HTML tags based on class mappings
+    TAG_MAPPINGS.forEach(({ selector, tag }) => {
+      element.querySelectorAll(selector).forEach((el) => {
+        const replacement = element.ownerDocument.createElement(tag);
+        replacement.innerHTML = el.innerHTML;
+        el.replaceWith(replacement);
+      });
+    });
+
     // Remove cookie consent / OneTrust overlay (blocks parsing if present)
     // Found in cleaned.html line 1863: <div id="onetrust-consent-sdk">
     WebImporter.DOMUtils.remove(element, [
