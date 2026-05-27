@@ -230,6 +230,7 @@ function runParsers(main, document, url, params) {
   // FRAGMENTS: Detect known shared content patterns and replace with Fragment block
   const FRAGMENT_PATTERNS = [
     { match: 'Talk to a mortgage consultant', path: '/fragments/mortgage/talk-to-mortgage-consultant' },
+    { match: 'Explore the mortgage learning center', path: '/fragments/mortgage/explore-learning-center' },
     { match: 'How can we help', path: '/fragments/help-cta-default' },
   ];
 
