@@ -20,7 +20,7 @@
  *     .marquee-img > img
  *     .marquee-content > h2, p, .ps-padding > a
  */
-export default function parse(element, { document }) {
+export default function parse(element, { document, isFirstHero }) {
   // Extract image — support both marquee variants
   const img = element.querySelector(
     '.rsk-marquee-img-container img, .marquee-img img, .marquee-wrap img, picture img, img'
@@ -53,61 +53,40 @@ export default function parse(element, { document }) {
     'a.ps-btn-primary, a.ps-btn-secondary, a[class*="ps-btn"], .ps-padding a'
   );
 
-  // Build single-cell content matching block library pattern:
-  // One row, one cell containing: image + heading + description + CTA
+  // Block library structure: single row, single cell with image + heading + description + CTA
   const cellContent = [];
 
   if (img) {
     const picture = img.closest('picture') || img;
     cellContent.push(picture.cloneNode(true));
   }
-
   if (heading) {
     const h2 = document.createElement('h2');
     h2.innerHTML = heading.innerHTML;
     cellContent.push(h2);
   }
-
   if (description) {
     const p = document.createElement('p');
     p.innerHTML = description.innerHTML;
     cellContent.push(p);
   }
-
   if (ctaLink) {
     const p = document.createElement('p');
     const a = document.createElement('a');
     a.href = ctaLink.href;
     a.textContent = ctaLink.textContent.trim();
-    // Wrap in <strong> for primary button styling in EDS
     const strong = document.createElement('strong');
     strong.appendChild(a);
     p.appendChild(strong);
     cellContent.push(p);
   }
 
-  // Variant detection:
-  // overlay-bottom: only for the FIRST hero on the page
-  // Default hero: all subsequent heroes + homepage marquee
   const cls = element.className || '';
-  const isFirstHero = params && params.isFirstHero;
-  let variant = isFirstHero ? 'Hero (overlay-bottom)' : 'Hero';
-
-  // Homepage marquee (.marquee-container without .rsk-) always uses default
-  if (cls.includes('marquee-container') && !cls.includes('rsk-marquee')) {
-    variant = 'Hero';
-  }
-
-  // Create block — wrap all content in a single container div for proper serialization
-  const contentDiv = document.createElement('div');
-  cellContent.forEach((el) => contentDiv.appendChild(el));
-  const cells = [
-    [contentDiv],
-  ];
+  const variant = 'Hero';
+  const cells = [[cellContent]];
   const block = WebImporter.Blocks.createBlock(document, { name: variant, cells });
 
-  // Mark for heading-bar section metadata if overlay-bottom
-  if (variant === 'Hero (overlay-bottom)') {
+  if (isFirstHero) {
     block.setAttribute('data-section-style', 'heading-bar');
   }
 

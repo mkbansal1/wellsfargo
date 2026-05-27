@@ -385,6 +385,12 @@ main .section.center-align .default-content-wrapper {
   text-align: center;
 }
 
+main .section.center-align .default-content-wrapper h4 {
+  font-size: 48px;
+  font-weight: 300;
+  line-height: 1.2;
+}
+
 main .section.heading-bar h2::before {
   content: "";
   display: block;

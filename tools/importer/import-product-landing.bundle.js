@@ -25,7 +25,7 @@ var CustomImportScript = (() => {
   });
 
   // tools/importer/parsers/hero-promo.js
-  function parse(element, { document }) {
+  function parse(element, { document, isFirstHero }) {
     const img = element.querySelector(
       ".rsk-marquee-img-container img, .marquee-img img, .marquee-wrap img, picture img, img"
     );
@@ -74,18 +74,10 @@ var CustomImportScript = (() => {
       cellContent.push(p);
     }
     const cls = element.className || "";
-    const isFirstHero = params && params.isFirstHero;
-    let variant = isFirstHero ? "Hero (overlay-bottom)" : "Hero";
-    if (cls.includes("marquee-container") && !cls.includes("rsk-marquee")) {
-      variant = "Hero";
-    }
-    const contentDiv = document.createElement("div");
-    cellContent.forEach((el) => contentDiv.appendChild(el));
-    const cells = [
-      [contentDiv]
-    ];
+    const variant = "Hero";
+    const cells = [[cellContent]];
     const block = WebImporter.Blocks.createBlock(document, { name: variant, cells });
-    if (variant === "Hero (overlay-bottom)") {
+    if (isFirstHero) {
       block.setAttribute("data-section-style", "heading-bar");
     }
     element.replaceWith(block);
@@ -270,8 +262,20 @@ var CustomImportScript = (() => {
 
   // tools/importer/transformers/wellsfargo-cleanup.js
   var H = { before: "beforeTransform", after: "afterTransform" };
+  var TAG_MAPPINGS = [
+    { selector: "div.title2-SemiBold", tag: "h3" },
+    { selector: "div.headline", tag: "h4" }
+  ];
   function transform(hookName, element, payload) {
     if (hookName === H.before) {
+      TAG_MAPPINGS.forEach(({ selector, tag, className }) => {
+        element.querySelectorAll(selector).forEach((el) => {
+          const replacement = element.ownerDocument.createElement(tag);
+          replacement.innerHTML = el.innerHTML;
+          if (className) replacement.className = className;
+          el.replaceWith(replacement);
+        });
+      });
       WebImporter.DOMUtils.remove(element, [
         "#onetrust-consent-sdk"
       ]);
@@ -317,6 +321,32 @@ var CustomImportScript = (() => {
         const text = a.textContent;
         if (/\s*>+\s*$/.test(text)) {
           a.textContent = text.replace(/\s*>+\s*$/, "").trim();
+        }
+      });
+      element.querySelectorAll("a").forEach((a) => {
+        const text = a.textContent || "";
+        if (!text.includes("footnote") && !text.includes("modal")) return;
+        const match = text.match(/(\d+)\s*$/);
+        if (!match) return;
+        const num = match[1];
+        const href = a.getAttribute("href") || a.href || "#";
+        const doc = element.ownerDocument;
+        const sup = a.querySelector("sup");
+        if (sup) {
+          const newSup = doc.createElement("sup");
+          const newA = doc.createElement("a");
+          newA.setAttribute("href", href);
+          newA.textContent = num;
+          newSup.appendChild(newA);
+          a.replaceWith(newSup);
+        } else {
+          a.textContent = num;
+        }
+      });
+      element.querySelectorAll("a").forEach((a) => {
+        const href = a.getAttribute("href") || "";
+        if (href.startsWith("https://www.wellsfargo.com/")) {
+          a.setAttribute("href", href.replace("https://www.wellsfargo.com", ""));
         }
       });
     }
@@ -400,7 +430,7 @@ var CustomImportScript = (() => {
     if (VARIANT_RULES.shouldBeNarrow(el)) styles.push("narrow-width");
     return styles.length > 0 ? styles.join(", ") : null;
   }
-  function runParsers(main, document, url, params2) {
+  function runParsers(main, document, url, params) {
     const processed = /* @__PURE__ */ new Set();
     const FRAGMENT_PATTERNS = [
       { match: "Talk to a mortgage consultant", path: "/fragments/mortgage/talk-to-mortgage-consultant" },
@@ -432,7 +462,7 @@ var CustomImportScript = (() => {
         processed.add(el);
         heroCount += 1;
         try {
-          parsers["hero"](el, { document, url, params: params2, isFirstHero: heroCount === 1 });
+          parsers["hero"](el, { document, url, params, isFirstHero: heroCount === 1 });
         } catch (e) {
         }
       }
@@ -450,7 +480,7 @@ var CustomImportScript = (() => {
         processed.add(el);
         heroCount += 1;
         try {
-          parsers["hero"](el, { document, url, params: params2, isFirstHero: heroCount === 1 });
+          parsers["hero"](el, { document, url, params, isFirstHero: heroCount === 1 });
         } catch (e) {
         }
       }
@@ -466,7 +496,7 @@ var CustomImportScript = (() => {
         if (textLen < 300) {
           processed.add(el);
           try {
-            parsers["hero"](el, { document, url, params: params2 });
+            parsers["hero"](el, { document, url, params });
           } catch (e) {
           }
         }
@@ -485,13 +515,13 @@ var CustomImportScript = (() => {
         });
         processed.add(wrapper);
         try {
-          parsers["accordion"](wrapper, { document, url, params: params2 });
+          parsers["accordion"](wrapper, { document, url, params });
         } catch (e) {
         }
       } else if (!processed.has(parent)) {
         processed.add(parent);
         try {
-          parsers["accordion"](parent, { document, url, params: params2 });
+          parsers["accordion"](parent, { document, url, params });
         } catch (e) {
         }
       }
@@ -516,12 +546,12 @@ var CustomImportScript = (() => {
       }
       if (variant === "Cards") {
         try {
-          parsers["cards-no-images"](el, { document, url, params: params2 });
+          parsers["cards-no-images"](el, { document, url, params });
         } catch (e) {
         }
       } else {
         try {
-          parsers["cards-with-images"](el, { document, url, params: params2 });
+          parsers["cards-with-images"](el, { document, url, params });
         } catch (e) {
         }
       }
@@ -611,8 +641,14 @@ var CustomImportScript = (() => {
         if (blockStyle && !current.style) current.style = blockStyle;
         else if (blockStyle) current.style = current.style + ", " + blockStyle;
       }
+      const isSectionBoundary = cls.includes("card-background-") || cls.includes("enhanced-txt-cm") && current.els.length > 0;
+      if (isSectionBoundary) {
+        if (current.els.length > 0) sections.push(current);
+        const style2 = getStyle(el);
+        current = { els: [], style: style2 };
+      }
       const style = getStyle(el);
-      if (style && !current.style) current.style = style;
+      if (!isSectionBoundary && style && !current.style) current.style = style;
       current.els.push(el);
       const isBlock = el.tagName === "TABLE" || cls.includes("block") && !cls.includes("card-background");
       if (isBlock) {
@@ -625,9 +661,13 @@ var CustomImportScript = (() => {
       const sec = sections[i];
       const isH1Only = sec.els.length === 1 && sec.els[0] && sec.els[0].tagName === "H1";
       if (isH1Only && sections[i + 1]) {
-        sections[i + 1].els.unshift(sec.els[0]);
-        if (sec.style && !sections[i + 1].style) sections[i + 1].style = sec.style;
-        sections.splice(i, 1);
+        const nextFirst = sections[i + 1].els[0];
+        const nextIsBlock = nextFirst && nextFirst.tagName === "TABLE";
+        if (!nextIsBlock) {
+          sections[i + 1].els.unshift(sec.els[0]);
+          if (sec.style && !sections[i + 1].style) sections[i + 1].style = sec.style;
+          sections.splice(i, 1);
+        }
       }
     }
     while (main.firstChild) main.removeChild(main.firstChild);
@@ -658,11 +698,36 @@ var CustomImportScript = (() => {
   }
   var import_product_landing_default = {
     transform: (payload) => {
-      const { document, url, params: params2 } = payload;
+      const { document, url, params } = payload;
       const main = document.querySelector("main") || document.body;
       transform("beforeTransform", main, payload);
       transform("afterTransform", main, payload);
-      runParsers(main, document, url, params2);
+      main.querySelectorAll("a").forEach((a) => {
+        const text = a.textContent || "";
+        if (!text.includes("footnote") && !text.includes("modal")) return;
+        const match = text.match(/(\d+)\s*$/);
+        if (!match) return;
+        const num = match[1];
+        const href = a.getAttribute("href") || a.href || "#";
+        const sup = a.querySelector("sup");
+        if (sup) {
+          const newSup = document.createElement("sup");
+          const newA = document.createElement("a");
+          newA.setAttribute("href", href);
+          newA.textContent = num;
+          newSup.appendChild(newA);
+          a.replaceWith(newSup);
+        } else {
+          a.textContent = num;
+        }
+      });
+      main.querySelectorAll("a").forEach((a) => {
+        const href = a.getAttribute("href") || "";
+        if (href.startsWith("https://www.wellsfargo.com/")) {
+          a.setAttribute("href", href.replace("https://www.wellsfargo.com", ""));
+        }
+      });
+      runParsers(main, document, url, params);
       buildSections(main, document);
       const hr = document.createElement("hr");
       main.appendChild(hr);
@@ -688,9 +753,9 @@ var CustomImportScript = (() => {
       main.removeAttribute("data-footnotes");
       main.removeAttribute("data-pageid");
       WebImporter.rules.transformBackgroundImages(main, document);
-      WebImporter.rules.adjustImageUrls(main, url, params2.originalURL);
+      WebImporter.rules.adjustImageUrls(main, url, params.originalURL);
       const path = WebImporter.FileUtils.sanitizePath(
-        new URL(params2.originalURL).pathname.replace(/\/$/, "").replace(/\.html$/, "") || "/index"
+        new URL(params.originalURL).pathname.replace(/\/$/, "").replace(/\.html$/, "") || "/index"
       );
       return [{
         element: main,

@@ -361,13 +361,22 @@ function buildSections(main, document) {
       else if (blockStyle) current.style = current.style + ', ' + blockStyle;
     }
 
+    // Source section boundary: top-level containers with distinct background/layout classes
+    // start a new section (unless they're the first element or follow a heading-only section)
+    const isSectionBoundary = cls.includes('card-background-')
+      || (cls.includes('enhanced-txt-cm') && current.els.length > 0);
+    if (isSectionBoundary) {
+      if (current.els.length > 0) sections.push(current);
+      const style = getStyle(el);
+      current = { els: [], style };
+    }
+
     // Default: add to current section
     const style = getStyle(el);
-    if (style && !current.style) current.style = style;
+    if (!isSectionBoundary && style && !current.style) current.style = style;
     current.els.push(el);
 
     // After a block table, start a new section
-    // BUT: keep H1 together with the first block (they belong in same section)
     const isBlock = el.tagName === 'TABLE' || (cls.includes('block') && !cls.includes('card-background'));
     if (isBlock) {
       sections.push(current);
@@ -377,14 +386,18 @@ function buildSections(main, document) {
 
   if (current.els.length > 0) sections.push(current);
 
-  // Merge H1-only sections with the following section
+  // Merge H1-only sections with the following section (but not if next starts with a block TABLE)
   for (let i = sections.length - 2; i >= 0; i--) {
     const sec = sections[i];
     const isH1Only = sec.els.length === 1 && sec.els[0] && sec.els[0].tagName === 'H1';
     if (isH1Only && sections[i + 1]) {
-      sections[i + 1].els.unshift(sec.els[0]);
-      if (sec.style && !sections[i + 1].style) sections[i + 1].style = sec.style;
-      sections.splice(i, 1);
+      const nextFirst = sections[i + 1].els[0];
+      const nextIsBlock = nextFirst && nextFirst.tagName === 'TABLE';
+      if (!nextIsBlock) {
+        sections[i + 1].els.unshift(sec.els[0]);
+        if (sec.style && !sections[i + 1].style) sections[i + 1].style = sec.style;
+        sections.splice(i, 1);
+      }
     }
   }
 
@@ -429,6 +442,37 @@ export default {
     // Phase 0: Clean up non-content (nav, footer, modals)
     wellsfargoCleanup('beforeTransform', main, payload);
     wellsfargoCleanup('afterTransform', main, payload);
+
+    // Convert footnote reference links to superscript numbers
+    // Pattern 1: <a><sup>Opens a modal...</sup></a> → <sup><a>N</a></sup>
+    // Pattern 2: <a>Opens a modal...</a> (inside sup) → just set text to N
+    main.querySelectorAll('a').forEach((a) => {
+      const text = a.textContent || '';
+      if (!text.includes('footnote') && !text.includes('modal')) return;
+      const match = text.match(/(\d+)\s*$/);
+      if (!match) return;
+      const num = match[1];
+      const href = a.getAttribute('href') || a.href || '#';
+      const sup = a.querySelector('sup');
+      if (sup) {
+        const newSup = document.createElement('sup');
+        const newA = document.createElement('a');
+        newA.setAttribute('href', href);
+        newA.textContent = num;
+        newSup.appendChild(newA);
+        a.replaceWith(newSup);
+      } else {
+        a.textContent = num;
+      }
+    });
+
+    // Convert absolute wellsfargo.com links to relative paths
+    main.querySelectorAll('a').forEach((a) => {
+      const href = a.getAttribute('href') || '';
+      if (href.startsWith('https://www.wellsfargo.com/')) {
+        a.setAttribute('href', href.replace('https://www.wellsfargo.com', ''));
+      }
+    });
 
     // Phase 1: Run block parsers with variant heuristics
     runParsers(main, document, url, params);
