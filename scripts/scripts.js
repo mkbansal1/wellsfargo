@@ -194,7 +194,7 @@ async function loadLazy(doc) {
   const pageid = getMetadata('pageid');
   if (footnotesAttr || pageid) {
     const { default: buildFootnotes } = await import('./footnotes.js');
-    await buildFootnotes();
+    await buildFootnotes(footnotesAttr, pageid);
   }
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);

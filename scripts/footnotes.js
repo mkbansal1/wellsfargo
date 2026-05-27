@@ -1,5 +1,4 @@
-import { getMetadata } from './aem.js';
-import { decorateIcons } from './aem.js';
+import { decorateIcons, getMetadata } from './aem.js';
 
 const FOOTNOTES_SHEET_URL = '/data/footnotes.json';
 
@@ -26,10 +25,7 @@ function renderFootnoteValue(value) {
   return wrapper;
 }
 
-export default async function buildFootnotes() {
-  const footnotesAttr = getMetadata('footnotes');
-  const pageid = getMetadata('pageid');
-
+export default async function buildFootnotes(footnotesAttr, pageid) {
   if (!footnotesAttr && !pageid) return;
 
   const sheetData = await fetchFootnotes();
