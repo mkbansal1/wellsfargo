@@ -11,6 +11,8 @@
   line-height: 1.5;
   color: var(--wf-text-secondary);
   margin: 0 0 10px;
+  display: flex;
+  gap: 4px;
 }
 
 .footnotes-wrapper .footnote-number {

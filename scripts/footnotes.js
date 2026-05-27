@@ -32,6 +32,7 @@ export default async function buildFootnotes(footnotesAttr, pageid) {
   if (!sheetData.length && !pageid) return;
 
   const section = document.createElement('div');
+  section.className = 'section';
   const wrapper = document.createElement('div');
   wrapper.className = 'footnotes-wrapper';
 
@@ -43,20 +44,20 @@ export default async function buildFootnotes(footnotesAttr, pageid) {
       const entry = sheetData.find((row) => row.cid === cid);
       if (!entry) return;
 
-      const p = document.createElement('p');
-      p.className = 'footnote-item';
+      const item = document.createElement('div');
+      item.className = 'footnote-item';
 
       if (entry.numbered === 'true' || entry.numbered === true) {
         numberCounter += 1;
         const numSpan = document.createElement('span');
         numSpan.className = 'footnote-number';
         numSpan.textContent = `${numberCounter}.`;
-        p.appendChild(numSpan);
+        item.appendChild(numSpan);
       }
 
       const valueSpan = renderFootnoteValue(entry.value || '');
-      p.appendChild(valueSpan);
-      wrapper.appendChild(p);
+      item.appendChild(valueSpan);
+      wrapper.appendChild(item);
     });
   }
 
