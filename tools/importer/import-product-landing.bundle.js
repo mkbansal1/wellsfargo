@@ -311,6 +311,20 @@ var CustomImportScript = (() => {
           a.textContent = text.replace(/\s*>+\s*$/, "").trim();
         }
       });
+      element.querySelectorAll('a[href*="tcm:"]').forEach((a) => {
+        const sup = a.querySelector("sup");
+        if (!sup) return;
+        const match = sup.textContent.match(/(\d+)\s*$/);
+        if (!match) return;
+        const num = match[1];
+        const href = a.getAttribute("href");
+        const newSup = element.ownerDocument.createElement("sup");
+        const newA = element.ownerDocument.createElement("a");
+        newA.setAttribute("href", href);
+        newA.textContent = num;
+        newSup.appendChild(newA);
+        a.replaceWith(newSup);
+      });
     }
   }
 
@@ -658,6 +672,22 @@ var CustomImportScript = (() => {
       const main = document.querySelector("main") || document.body;
       transform("beforeTransform", main, payload);
       transform("afterTransform", main, payload);
+      main.querySelectorAll("a").forEach((a) => {
+        const sup = a.querySelector("sup");
+        if (!sup) return;
+        const text = sup.textContent || "";
+        if (!text.includes("footnote") && !text.includes("modal")) return;
+        const match = text.match(/(\d+)\s*$/);
+        if (!match) return;
+        const num = match[1];
+        const href = a.getAttribute("href") || a.href || "#";
+        const newSup = document.createElement("sup");
+        const newA = document.createElement("a");
+        newA.setAttribute("href", href);
+        newA.textContent = num;
+        newSup.appendChild(newA);
+        a.replaceWith(newSup);
+      });
       runParsers(main, document, url, params);
       buildSections(main, document);
       const hr = document.createElement("hr");

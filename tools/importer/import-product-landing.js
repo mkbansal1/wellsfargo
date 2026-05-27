@@ -434,6 +434,25 @@ export default {
     wellsfargoCleanup('beforeTransform', main, payload);
     wellsfargoCleanup('afterTransform', main, payload);
 
+    // Convert footnote reference links to superscript numbers
+    // <a ...><sup>Opens a modal dialog for footnote N</sup></a> → <sup><a href="#tcm:...">N</a></sup>
+    main.querySelectorAll('a').forEach((a) => {
+      const sup = a.querySelector('sup');
+      if (!sup) return;
+      const text = sup.textContent || '';
+      if (!text.includes('footnote') && !text.includes('modal')) return;
+      const match = text.match(/(\d+)\s*$/);
+      if (!match) return;
+      const num = match[1];
+      const href = a.getAttribute('href') || a.href || '#';
+      const newSup = document.createElement('sup');
+      const newA = document.createElement('a');
+      newA.setAttribute('href', href);
+      newA.textContent = num;
+      newSup.appendChild(newA);
+      a.replaceWith(newSup);
+    });
+
     // Phase 1: Run block parsers with variant heuristics
     runParsers(main, document, url, params);
 

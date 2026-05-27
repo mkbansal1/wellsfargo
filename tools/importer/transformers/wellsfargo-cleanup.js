@@ -85,5 +85,22 @@ export default function transform(hookName, element, payload) {
         a.textContent = text.replace(/\s*>+\s*$/, '').trim();
       }
     });
+
+    // Convert footnote reference links: <a href="#tcm:..."><sup>Opens a modal dialog for footnote N</sup></a>
+    // into: <sup><a href="#tcm:...">N</a></sup>
+    element.querySelectorAll('a[href*="tcm:"]').forEach((a) => {
+      const sup = a.querySelector('sup');
+      if (!sup) return;
+      const match = sup.textContent.match(/(\d+)\s*$/);
+      if (!match) return;
+      const num = match[1];
+      const href = a.getAttribute('href');
+      const newSup = element.ownerDocument.createElement('sup');
+      const newA = element.ownerDocument.createElement('a');
+      newA.setAttribute('href', href);
+      newA.textContent = num;
+      newSup.appendChild(newA);
+      a.replaceWith(newSup);
+    });
   }
 }
