@@ -296,12 +296,12 @@ function buildSections(main, document) {
     const el = children[i];
     const cls = el.className || '';
 
-    // Divider: own section
+    // Divider: skip desktop-hidden, place in next section (not its own)
     if (cls.includes('divider') && !cls.includes('__accordion')) {
+      if (cls.includes('desktop-hidden')) continue;
       if (current.els.length > 0) sections.push(current);
       const divBlock = WebImporter.Blocks.createBlock(document, { name: 'Divider', cells: [] });
-      sections.push({ els: [divBlock], style: null });
-      current = { els: [], style: null };
+      current = { els: [divBlock], style: null };
       continue;
     }
 
