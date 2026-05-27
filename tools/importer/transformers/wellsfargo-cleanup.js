@@ -77,5 +77,13 @@ export default function transform(hookName, element, payload) {
       'noscript',
       'link',
     ]);
+
+    // Strip trailing ">" or ">>" from link text — CSS adds chevrons via ::after
+    element.querySelectorAll('a').forEach((a) => {
+      const text = a.textContent;
+      if (/\s*>+\s*$/.test(text)) {
+        a.textContent = text.replace(/\s*>+\s*$/, '').trim();
+      }
+    });
   }
 }

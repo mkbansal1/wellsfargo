@@ -322,6 +322,11 @@ main > .section > div {
   padding: 0 24px 16px;
 }
 
+main > .section > div.divider-wrapper {
+  padding-left: 0;
+  padding-right: 0;
+}
+
 main > .section:first-of-type,
 main > .section.breadcrumb-container + div.section {
   margin-top: 0;
