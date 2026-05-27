@@ -361,13 +361,22 @@ function buildSections(main, document) {
       else if (blockStyle) current.style = current.style + ', ' + blockStyle;
     }
 
+    // Source section boundary: top-level containers with distinct background/layout classes
+    // start a new section (unless they're the first element or follow a heading-only section)
+    const isSectionBoundary = cls.includes('card-background-')
+      || (cls.includes('enhanced-txt-cm') && current.els.length > 0);
+    if (isSectionBoundary) {
+      if (current.els.length > 0) sections.push(current);
+      const style = getStyle(el);
+      current = { els: [], style };
+    }
+
     // Default: add to current section
     const style = getStyle(el);
-    if (style && !current.style) current.style = style;
+    if (!isSectionBoundary && style && !current.style) current.style = style;
     current.els.push(el);
 
     // After a block table, start a new section
-    // BUT: keep H1 together with the first block (they belong in same section)
     const isBlock = el.tagName === 'TABLE' || (cls.includes('block') && !cls.includes('card-background'));
     if (isBlock) {
       sections.push(current);

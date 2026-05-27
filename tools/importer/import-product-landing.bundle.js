@@ -639,8 +639,14 @@ var CustomImportScript = (() => {
         if (blockStyle && !current.style) current.style = blockStyle;
         else if (blockStyle) current.style = current.style + ", " + blockStyle;
       }
+      const isSectionBoundary = cls.includes("card-background-") || cls.includes("enhanced-txt-cm") && current.els.length > 0;
+      if (isSectionBoundary) {
+        if (current.els.length > 0) sections.push(current);
+        const style2 = getStyle(el);
+        current = { els: [], style: style2 };
+      }
       const style = getStyle(el);
-      if (style && !current.style) current.style = style;
+      if (!isSectionBoundary && style && !current.style) current.style = style;
       current.els.push(el);
       const isBlock = el.tagName === "TABLE" || cls.includes("block") && !cls.includes("card-background");
       if (isBlock) {
