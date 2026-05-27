@@ -125,7 +125,8 @@ function buildPrimaryNav(navLists, activeIndex = 0) {
       ul.querySelectorAll('.nav-primary-tab').forEach((tab) => tab.classList.remove('active'));
       li.classList.add('active');
       const subNav = primaryNav.closest('nav').querySelector('.nav-sub');
-      if (subNav) {
+      const template = getMetadata('template');
+      if (template === 'product-landing' && subNav) {
         buildSubNavContent(subNav, item.children);
       }
     });
@@ -391,8 +392,13 @@ export default async function decorate(block) {
   nav.append(primaryNav);
 
   // build sub-nav for active tab
-  const subNav = buildSubNav(navLists, 0);
-  nav.append(subNav);
+  const template = getMetadata('template');
+  if (template === 'product-landing') {
+    const subNav = buildSubNav(navLists, 0);
+    nav.append(subNav);
+  } else {
+    document.getElementsByTagName('header')[0]?.classList.add('no-subnav');
+  }
 
   // build mobile menu
   const mobileMenu = buildMobileNav(navLists, utilities);

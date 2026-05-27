@@ -7,7 +7,6 @@ header .nav-wrapper {
   position: sticky;
   top: 0;
   background-color: var(--background-color);
-  box-shadow: 0 2px 4px rgb(0 0 0 / 8%);
 }
 
 header nav {
@@ -35,7 +34,7 @@ header .nav-top-bar {
   background-color: var(--wf-red);
   color: #fff;
   border-bottom: 4px solid var(--wf-yellow);
-  height: 64px;
+  height: 75px;
   position: relative;
 }
 
@@ -53,7 +52,7 @@ header .nav-logo {
   display: flex;
   align-items: center;
   color: #fff;
-  margin-left: 16px;
+  margin-left: 32px;
 }
 
 header .nav-logo svg {
@@ -76,6 +75,7 @@ header .nav-utilities {
   display: flex;
   align-items: center;
   gap: 24px;
+  padding-right: 32px;
 }
 
 header .nav-util-link {
@@ -192,8 +192,6 @@ header .nav-signon-btn:hover {
 
 /* ===== PRIMARY NAV (tabs) ===== */
 header .nav-primary {
-  background-color: var(--background-color);
-  border-bottom: 1px solid #e2dede;
   color: var(--wf-text-primary);
 }
 
@@ -210,6 +208,7 @@ header .nav-primary-tabs {
   padding: 0;
   gap: 0;
   overflow-x: auto;
+  background-color: var(--light-color);
 }
 
 header .nav-primary-tab {
@@ -249,8 +248,6 @@ header .nav-primary-tab.active::after {
 
 /* ===== SUB NAV ===== */
 header .nav-sub {
-  background-color: var(--background-color);
-  border-bottom: 1px solid #e2dede;
   color: var(--wf-text-primary);
 }
 
@@ -589,17 +586,19 @@ header .nav-mobile-util-link:last-child {
 }
 
 @media (width >= 1024px) {
-  header .nav-top-bar-inner {
-    padding: 0 32px;
-    height: 56px;
-  }
-
   header .nav-primary-inner {
-    padding: 0 32px;
+    padding: 0;
+  }
+  header .nav-primary-inner .nav-primary-tabs {
+    padding: 0 12px;
   }
 
   header .nav-sub-inner {
-    padding: 0 32px;
+    padding: 0;
+  }
+
+  header .nav-sub-inner .nav-sub-links {
+    padding-left: 18px;
   }
 
   header .nav-primary-link {
