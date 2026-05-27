@@ -48,21 +48,20 @@ var CustomImportScript = (() => {
     const ctaLink = element.querySelector(
       'a.ps-btn-primary, a.ps-btn-secondary, a[class*="ps-btn"], .ps-padding a'
     );
-    const cells = [];
+    const cellContent = [];
     if (img) {
       const picture = img.closest("picture") || img;
-      cells.push([picture.cloneNode(true)]);
+      cellContent.push(picture.cloneNode(true));
     }
-    const textContent = [];
     if (heading) {
       const h2 = document.createElement("h2");
       h2.innerHTML = heading.innerHTML;
-      textContent.push(h2);
+      cellContent.push(h2);
     }
     if (description) {
       const p = document.createElement("p");
       p.innerHTML = description.innerHTML;
-      textContent.push(p);
+      cellContent.push(p);
     }
     if (ctaLink) {
       const p = document.createElement("p");
@@ -72,13 +71,11 @@ var CustomImportScript = (() => {
       const strong = document.createElement("strong");
       strong.appendChild(a);
       p.appendChild(strong);
-      textContent.push(p);
-    }
-    if (textContent.length > 0) {
-      cells.push([textContent]);
+      cellContent.push(p);
     }
     const cls = element.className || "";
     const variant = "Hero";
+    const cells = [[cellContent]];
     const block = WebImporter.Blocks.createBlock(document, { name: variant, cells });
     if (isFirstHero) {
       block.setAttribute("data-section-style", "heading-bar");

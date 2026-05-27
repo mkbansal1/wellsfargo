@@ -53,26 +53,22 @@ export default function parse(element, { document, isFirstHero }) {
     'a.ps-btn-primary, a.ps-btn-secondary, a[class*="ps-btn"], .ps-padding a'
   );
 
-  // Block library structure: row 1 = image, row 2 = heading + description + CTA in one cell
-  const cells = [];
+  // Block library structure: single row, single cell with image + heading + description + CTA
+  const cellContent = [];
 
-  // Row 1: Background image
   if (img) {
     const picture = img.closest('picture') || img;
-    cells.push([picture.cloneNode(true)]);
+    cellContent.push(picture.cloneNode(true));
   }
-
-  // Row 2: Text content (heading + description + CTA) all in one cell
-  const textContent = [];
   if (heading) {
     const h2 = document.createElement('h2');
     h2.innerHTML = heading.innerHTML;
-    textContent.push(h2);
+    cellContent.push(h2);
   }
   if (description) {
     const p = document.createElement('p');
     p.innerHTML = description.innerHTML;
-    textContent.push(p);
+    cellContent.push(p);
   }
   if (ctaLink) {
     const p = document.createElement('p');
@@ -82,14 +78,12 @@ export default function parse(element, { document, isFirstHero }) {
     const strong = document.createElement('strong');
     strong.appendChild(a);
     p.appendChild(strong);
-    textContent.push(p);
-  }
-  if (textContent.length > 0) {
-    cells.push([textContent]);
+    cellContent.push(p);
   }
 
   const cls = element.className || '';
   const variant = 'Hero';
+  const cells = [[cellContent]];
   const block = WebImporter.Blocks.createBlock(document, { name: variant, cells });
 
   if (isFirstHero) {
