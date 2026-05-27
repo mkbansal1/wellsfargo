@@ -68,24 +68,36 @@ function extractFootnotesFromHTML(html) {
 
   const footnoteHTML = footnoteMatch[1];
 
-  // Extract individual footnote entries with data-cid
-  const cidPattern = /data-cid="([^"]+)"[^>]*data-ctid="([^"]*)"[^>]*>([\s\S]*?)(?=<\/(?:p|div)>\s*(?:<(?:p|div)[^>]*data-cid|$))/gi;
+  // Extract ALL entries with data-cid (both numbered and non-numbered)
+  const cidPattern = /data-cid="([^"]*)"[^>]*data-ctid="([^"]*)"[^>]*>([\s\S]*?)(?=<\/(?:p|div)>\s*(?:<(?:p|div)[^>]*data-cid|<div[^>]*class="[^"]*ps-|$))/gi;
   let match;
 
   // eslint-disable-next-line no-cond-assign
   while ((match = cidPattern.exec(footnoteHTML)) !== null) {
+    const cid = match[1];
+    const ctid = match[2];
+    const rawValue = match[3];
+
+    // Skip if value looks like modal/overlay content
+    if (rawValue.includes('You are leaving') || rawValue.includes('ps-btn-secondary')) continue;
+    // Skip pageid entries (DT pattern)
+    if (/^DT\d+-/.test(cleanValue(rawValue))) continue;
+
+    // Determine if numbered: check if content starts with a number prefix
+    const isNumbered = /^\s*(<[^>]*>)?\s*\d+\./.test(rawValue) || rawValue.includes('footnote-number');
+
     footnotes.push({
-      cid: match[1],
-      ctid: match[2],
-      numbered: 'true',
-      value: cleanValue(match[3]),
+      cid,
+      ctid,
+      numbered: isNumbered ? 'true' : 'false',
+      value: cleanValue(rawValue),
     });
   }
 
-  // Fallback: parse numbered footnotes without data-cid attributes
+  // Fallback if no data-cid attributes found: parse by structure
   if (footnotes.length === 0) {
-    // Pattern: number span followed by content
-    const numPattern = /<(?:span|div)[^>]*>\s*(\d+)\.\s*<\/(?:span|div)>\s*([\s\S]*?)(?=<(?:span|div)[^>]*>\s*\d+\.|<div[^>]*class="[^"]*(?:equal-housing|footer)|$)/gi;
+    // Match numbered paragraphs: <span>N.</span> followed by content
+    const numPattern = /<(?:span|div)[^>]*class="[^"]*footnote-number[^"]*"[^>]*>\s*(\d+)\.\s*<\/(?:span|div)>\s*([\s\S]*?)(?=<(?:span|div)[^>]*class="[^"]*footnote-number|$)/gi;
     // eslint-disable-next-line no-cond-assign
     while ((match = numPattern.exec(footnoteHTML)) !== null) {
       footnotes.push({
@@ -95,39 +107,6 @@ function extractFootnotesFromHTML(html) {
         value: cleanValue(match[2]),
       });
     }
-
-    // Try to extract cids from tcm links in the page
-    const tcmLinks = footnoteHTML.match(/href="#(tcm:[^"]+)"/g) || [];
-    const pageHTML = footnoteHTML;
-    const allTcms = [...new Set(tcmLinks.map((l) => l.match(/tcm:[^"]+/)[0]))];
-
-    // Map tcm cids to footnotes in order
-    allTcms.forEach((tcm, idx) => {
-      if (footnotes[idx]) {
-        footnotes[idx].cid = tcm;
-      }
-    });
-  }
-
-  // Extract non-numbered items (Equal Housing Lender, division text, pageid)
-  const equalHousing = footnoteHTML.match(/Equal Housing Lender/i);
-  if (equalHousing) {
-    footnotes.push({
-      cid: 'equal-housing-lender',
-      ctid: '',
-      numbered: 'false',
-      value: ':home: **Equal Housing Lender**',
-    });
-  }
-
-  const divisionMatch = footnoteHTML.match(/Wells Fargo Home Mortgage is a division of Wells Fargo Bank, N\.A\./);
-  if (divisionMatch) {
-    footnotes.push({
-      cid: 'wf-home-mortgage-division',
-      ctid: '',
-      numbered: 'false',
-      value: 'Wells Fargo Home Mortgage is a division of Wells Fargo Bank, N.A.',
-    });
   }
 
   return footnotes;
