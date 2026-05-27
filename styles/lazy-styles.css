@@ -1,1 +1,42 @@
 /* add global styles that can be loaded post LCP here */
+
+/* === Footnotes === */
+.footnotes-wrapper {
+  padding: 24px 0;
+}
+
+.footnotes-wrapper .footnote-item {
+  font-size: var(--body-font-size-xs);
+  line-height: 1.6;
+  color: var(--wf-text-primary);
+  margin: 0 0 20px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.footnotes-wrapper .footnote-item > span:last-child {
+  flex: 1;
+}
+
+.footnotes-wrapper .footnote-item > span:last-child p {
+  margin: 0 0 12px;
+}
+
+.footnotes-wrapper .footnote-number {
+  flex-shrink: 0;
+  min-width: 20px;
+}
+
+.footnotes-wrapper .footnote-pageid {
+  font-size: var(--body-font-size-xs);
+  line-height: 1.5;
+  color: var(--wf-text-secondary);
+  margin: 16px 0 0;
+}
+
+.footnotes-wrapper .icon {
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
+}

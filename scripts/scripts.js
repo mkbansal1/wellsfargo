@@ -189,6 +189,14 @@ async function loadLazy(doc) {
 
   loadFooter(doc.querySelector('footer'));
 
+  // Footnotes — only load JS if metadata exists
+  const footnotesAttr = getMetadata('footnotes');
+  const pageid = getMetadata('pageid');
+  if (footnotesAttr || pageid) {
+    const { default: buildFootnotes } = await import('./footnotes.js');
+    await buildFootnotes(footnotesAttr, pageid);
+  }
+
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
   loadFonts();
 }
