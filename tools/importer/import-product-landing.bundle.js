@@ -263,14 +263,16 @@ var CustomImportScript = (() => {
   // tools/importer/transformers/wellsfargo-cleanup.js
   var H = { before: "beforeTransform", after: "afterTransform" };
   var TAG_MAPPINGS = [
-    { selector: "div.title2-SemiBold", tag: "h3" }
+    { selector: "div.title2-SemiBold", tag: "h3" },
+    { selector: "div.headline", tag: "p", className: "headline" }
   ];
   function transform(hookName, element, payload) {
     if (hookName === H.before) {
-      TAG_MAPPINGS.forEach(({ selector, tag }) => {
+      TAG_MAPPINGS.forEach(({ selector, tag, className }) => {
         element.querySelectorAll(selector).forEach((el) => {
           const replacement = element.ownerDocument.createElement(tag);
           replacement.innerHTML = el.innerHTML;
+          if (className) replacement.className = className;
           el.replaceWith(replacement);
         });
       });

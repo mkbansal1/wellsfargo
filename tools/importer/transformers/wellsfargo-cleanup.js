@@ -10,17 +10,20 @@
 const H = { before: 'beforeTransform', after: 'afterTransform' };
 
 // Map source CSS classes to semantic HTML tags (add new mappings as needed)
+// Use `className` to preserve a class on the replacement element
 const TAG_MAPPINGS = [
   { selector: 'div.title2-SemiBold', tag: 'h3' },
+  { selector: 'div.headline', tag: 'p', className: 'headline' },
 ];
 
 export default function transform(hookName, element, payload) {
   if (hookName === H.before) {
     // Convert non-semantic elements to proper HTML tags based on class mappings
-    TAG_MAPPINGS.forEach(({ selector, tag }) => {
+    TAG_MAPPINGS.forEach(({ selector, tag, className }) => {
       element.querySelectorAll(selector).forEach((el) => {
         const replacement = element.ownerDocument.createElement(tag);
         replacement.innerHTML = el.innerHTML;
+        if (className) replacement.className = className;
         el.replaceWith(replacement);
       });
     });

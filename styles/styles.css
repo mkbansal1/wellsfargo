@@ -194,6 +194,15 @@ a:hover {
   text-decoration: underline;
 }
 
+/* headline — large display text for callout values (rates, percentages) */
+p.headline {
+  font-size: 48px;
+  font-weight: 300;
+  line-height: 1.2;
+  color: var(--wf-text-primary);
+  margin: 16px 0;
+}
+
 /* buttons — pill-shaped per source site (24px radius) */
 p.button-wrapper {
   margin: 12px 0;
