@@ -77,5 +77,35 @@ export default function transform(hookName, element, payload) {
       'noscript',
       'link',
     ]);
+
+    // Fix footnote references: restructure to <sup><a><span.hidden>text</span>N</a></sup>
+    element.querySelectorAll('a[href*="tcm:"] sup, sup a[href*="tcm:"]').forEach((el) => {
+      const a = el.tagName === 'A' ? el : el.closest('a');
+      const sup = el.tagName === 'SUP' ? el : el.querySelector('sup') || el.closest('sup');
+      if (!a || !sup) return;
+
+      const text = (a.textContent || sup.textContent || '').trim();
+      const numMatch = text.match(/(\d+)\s*$/);
+      if (!numMatch) return;
+
+      const num = numMatch[1];
+      const href = a.getAttribute('href');
+      const doc = element.ownerDocument || document;
+
+      const newSup = doc.createElement('sup');
+      const newA = doc.createElement('a');
+      newA.setAttribute('href', href);
+      const span = doc.createElement('span');
+      span.className = 'hidden';
+      span.textContent = 'Opens a modal dialog for footnote ';
+      newA.appendChild(span);
+      newA.appendChild(doc.createTextNode(num));
+      newSup.appendChild(newA);
+
+      const parent = a.parentElement || sup.parentElement;
+      if (parent) {
+        parent.replaceChild(newSup, a.contains(sup) ? a : sup);
+      }
+    });
   }
 }
