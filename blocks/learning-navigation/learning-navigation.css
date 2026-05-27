@@ -1,0 +1,282 @@
+/* ============================================================
+   Learning Navigation Block
+   Matches the internal-navigation-wrapper style on
+   https://www.wellsfargo.com/mortgage/learn/
+   ============================================================ */
+
+.learning-navigation-wrapper {
+  margin-bottom: 40px;
+}
+
+.learning-navigation {
+  position: relative;
+  width: 100%;
+}
+
+/* ── Hero image ─────────────────────────────────────────────── */
+.learning-navigation-hero {
+  width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  line-height: 0;
+}
+
+.learning-navigation-hero-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+  border-radius: 16px;
+}
+
+/* ── Tab strip — white rounded card overlapping hero bottom ─── */
+.learning-navigation .learning-navigation-container {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.12);
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  margin: -40px auto 0;
+  max-width: 1150px;
+  padding: 0 40px;
+  position: relative;
+  z-index: 2;
+}
+
+/* Tab list — horizontal, no bullets */
+.learning-navigation .learning-navigation-container ul {
+  list-style: none;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  justify-content: center;
+  gap: 0;
+}
+
+.learning-navigation .learning-navigation-container ul li {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  list-style: none;
+  padding: 0 28px;
+}
+
+/* Remove default bullet markers */
+.learning-navigation .learning-navigation-container ul li::marker {
+  content: '';
+}
+
+/* Tab links */
+.learning-navigation .learning-navigation-container ul li a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 22px 0 18px;
+  font-family: var(--body-font-family, 'Wells Fargo Sans', arial, helvetica, sans-serif);
+  font-size: 16px;
+  font-weight: 400;
+  color: #565151;
+  text-decoration: none;
+  white-space: nowrap;
+  border-bottom: 3px solid transparent;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.learning-navigation .learning-navigation-container ul li a:visited {
+  text-decoration: none;
+  color: #565151;
+}
+
+/* Hover state — show underline on all links */
+.learning-navigation .learning-navigation-container ul li a:hover {
+  color: #1a1a1a;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Active tab — underline only, no bold */
+.learning-navigation .learning-navigation-container ul li a.active,
+.learning-navigation .learning-navigation-container ul li.active > a {
+  color: #1a1a1a;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ── Mobile dropdown (hidden on desktop) ────────────────────── */
+.learning-navigation-dropdown {
+  display: none;
+}
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .learning-navigation-hero {
+    border-radius: 8px;
+  }
+
+  .learning-navigation-hero-img {
+    border-radius: 8px;
+  }
+
+  .learning-navigation .learning-navigation-container {
+    margin: -28px auto 0;
+    padding: 0 16px;
+    overflow-x: auto;
+    justify-content: flex-start;
+    max-width: calc(100% - 100px);
+  }
+
+  .learning-navigation .learning-navigation-container ul {
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    min-width: max-content;
+  }
+
+  .learning-navigation .learning-navigation-container ul li {
+    flex: 0 0 auto;
+    padding: 0 16px;
+  }
+
+  .learning-navigation .learning-navigation-container ul li a {
+    font-size: 14px;
+    padding: 16px 0 14px;
+  }
+}
+
+/* ── Mobile: full-width hero image ─────────────────────────── */
+@media (max-width: 767px) {
+  .learning-navigation-hero {
+    border-radius: 0;
+    width: 100vw;
+    margin-left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .learning-navigation-hero-img {
+    border-radius: 0;
+  }
+}
+
+/* ── Mobile: switch tab strip to dropdown ───────────────────── */
+@media (width < 768px){
+  .learning-navigation .learning-navigation-container {
+    display: block;
+    overflow-x: visible;
+    padding: 0;
+    box-shadow: none;
+    background: transparent;
+    margin: -20px auto 0;
+    border-radius: 0;
+  }
+
+  /* Hide the horizontal tab list */
+  .learning-navigation .learning-navigation-container ul {
+    display: none;
+  }
+
+  /* Show the dropdown */
+  .learning-navigation-dropdown {
+    display: block;
+    position: relative;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.12);
+    z-index: 10;
+  }
+
+  /* Dropdown trigger button */
+  .learning-navigation-dropdown-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 18px 20px;
+    background: #fff;
+    border: none;
+    border-radius: 12px;
+    font-family: var(--body-font-family, 'Wells Fargo Sans', arial, helvetica, sans-serif);
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1a1a;
+    cursor: pointer;
+    text-align: left;
+  }
+
+  /* Chevron icon */
+  .learning-navigation-dropdown-chevron {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231a1a1a' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='18 15 12 9 6 15'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: contain;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+  }
+
+  .learning-navigation-dropdown-trigger[aria-expanded='false'] .learning-navigation-dropdown-chevron {
+    transform: rotate(180deg);
+  }
+
+  /* Dropdown panel */
+  .learning-navigation-dropdown-panel {
+    display: none;
+    flex-direction: column;
+    background: #fff;
+    border-radius: 12px;
+    border: 2px solid #1b1464;
+    overflow: hidden;
+    margin-top: 8px;
+  }
+
+  .learning-navigation-dropdown.open .learning-navigation-dropdown-panel {
+    display: flex;
+  }
+
+  /* Dropdown option buttons */
+  .learning-navigation-dropdown-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 18px 20px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #e8e8e8;
+    font-family: var(--body-font-family, 'Wells Fargo Sans', arial, helvetica, sans-serif);
+    font-size: 16px;
+    font-weight: 400;
+    color: #1a1a1a;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .learning-navigation-dropdown-option:last-child {
+    border-bottom: none;
+  }
+
+  .learning-navigation-dropdown-option:hover {
+    background: #f5f5f5;
+  }
+
+  /* Active option — lavender highlight + checkmark */
+  .learning-navigation-dropdown-option.active {
+    background: #eeeaf8;
+    font-weight: 600;
+  }
+
+  .learning-navigation-dropdown-option.active::after {
+    content: '';
+    display: inline-block;
+    width: 22px;
+    height: 22px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231b1464' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 11.08V12a10 10 0 1 1-5.93-9.14'%3E%3C/path%3E%3Cpolyline points='22 4 12 14.01 9 11.01'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: contain;
+    flex-shrink: 0;
+  }
+}

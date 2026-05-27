@@ -1,20 +1,307 @@
+/* ============================================================
+   Wells Fargo Footer — styled to match wellsfargo.com design
+   ============================================================ */
+
 footer {
-  background-color: var(--light-color);
-  font-size: var(--body-font-size-xs);
+  background-color: #f4f0ed;
+  color: #f4f0ed;
+  font-family: var(--body-font-family, 'Wells Fargo Sans', arial, helvetica, sans-serif);
+  font-size: 13px;
+  line-height: 1.5;
 }
 
+footer a {
+  color: #f4f0ed;
+  text-decoration: none;
+}
+
+footer a:hover {
+  text-decoration: underline;
+  color: #f4f0ed;
+}
+
+/* ── Wrapper ───────────────────────────────────────────────── */
 footer .footer > div {
-  margin: auto;
-  max-width: 1200px;
-  padding: 40px 24px 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 24px;
 }
 
-footer .footer p {
+/* ── Footer Nav Links ─────────────────────────────────────── */
+footer .footer-nav {
+  padding: 24px 0 20px;
+}
+
+footer .footer-nav ul {
+  list-style: none;
   margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0;
 }
 
-@media (width >= 900px) {
+footer .footer-nav ul li {
+  display: flex;
+  align-items: center;
+}
+
+/* pipe separator between items — placed after each item so no line starts with a pipe */
+footer .footer-nav ul li::after {
+  content: '|';
+  color: #787070;
+  margin: 0 8px;
+  font-size: 12px;
+  line-height: 1;
+}
+
+footer .footer-nav ul li:last-child::after {
+  display: none;
+}
+
+footer .footer-nav ul li a {
+  color: #141414;
+  font-family: 'Wells Fargo Sans Regular', arial, helvetica, sans-serif;
+  font-size: 0.7647rem;
+  letter-spacing: 0;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+footer .footer-nav a:hover {
+  text-decoration: underline;
+}
+
+/* ── Social Icons ─────────────────────────────────────────── */
+footer .footer-social {
+  padding: 16px 0;
+}
+
+footer .footer-social ul {
+  list-style: none;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fill, 25px);
+  margin: 0;
+  padding: 0;
+}
+
+footer .footer-social ul li {
+  display: flex;
+}
+
+footer .footer-social-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #5a5250;
+  transition: background-color 0.2s ease;
+  text-decoration: none;
+}
+
+footer .footer-social-icon:hover {
+  background-color: #787070;
+  text-decoration: none;
+}
+
+footer .footer-social-icon .icon {
+  width: 18px;
+  height: 18px;
+  filter: brightness(0) invert(1);
+}
+
+/* ── Disclaimers (Investment/Insurance Warning) ───────────── */
+footer .footer-disclaimers {
+  padding: 20px 0 16px;
+  color: #141414;
+}
+
+footer .footer-disclaimers .default-content-wrapper {
+  border: 1px solid #141414;
+  padding: 16px 20px;
+  display: inline-block;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+footer .footer-disclaimers p {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: #141414;
+  font-weight: 700;
+}
+
+footer .footer-disclaimers p:first-child {
+  font-weight: 700;
+  color: #141414;
+  font-size: 13px;
+}
+
+footer .footer-disclaimers ul {
+  list-style: disc;
+  margin: 0;
+  padding: 0 0 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* stylelint-disable no-descending-specificity */
+footer .footer-disclaimers li {
+  font-size: 13px;
+  color: #141414;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+footer .footer-disclaimers li p {
+  margin: 0;
+  font-weight: 700;
+  color: #141414;
+}
+/* stylelint-enable no-descending-specificity */
+
+/* ── Legal / Footnote Paragraphs ──────────────────────────── */
+footer .footer-legal {
+  padding: 16px 0 0;
+  color: #141414;
+}
+
+/* stylelint-disable no-descending-specificity */
+footer .footer-legal p {
+  margin: 0 0 10px;
+  font-size: 12px;
+  color: #141414;
+  line-height: 1.5;
+}
+
+footer .footer-legal a {
+  color: #141414;
+  text-decoration: underline;
+}
+/* stylelint-enable no-descending-specificity */
+
+footer .footer-legal a:hover {
+  color: #141414;
+}
+
+/* Equal Housing Lender row */
+footer .footer-legal .footer-equal-housing {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+  font-size: 12px;
+  color: #141414;
+}
+
+/* Gray separator line above copyright */
+footer .footer-legal .footer-gray-line {
+  border: none;
+  margin: 16px 0 12px;
+}
+
+/* Copyright */
+footer .footer-legal .footer-copyright,
+footer .footer-nav .footer-copyright {
+  font-size: 12px;
+  color: #141414;
+  margin: 0 0 24px;
+}
+
+/* Gray separator line above copyright in nav-only footers */
+footer .footer-nav .footer-gray-line {
+  border: none;
+  margin: 16px 0 12px;
+}
+
+/* Equal Housing Lender in nav-only footers */
+footer .footer-nav .footer-equal-housing {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+  font-size: 12px;
+  color: #141414;
+}
+
+/* ── Mobile: 2-column grid, no pipes, divider above copyright ── */
+@media (max-width: 767px) {
+  footer .footer-nav ul {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 16px;
+    align-items: start;
+  }
+
+  footer .footer-nav ul li {
+    align-items: unset;
+  }
+
+  /* Allow link text to wrap inside grid cells */
+  footer .footer-nav ul li a {
+    white-space: normal;
+  }
+
+  /* Remove all pipe separators */
+  footer .footer-nav ul li::after {
+    display: none;
+  }
+
+  /* Divider line above copyright (sibling of ul, outside the grid) */
+  footer .footer-nav .footer-gray-line {
+    display: block;
+    border: none;
+    border-top: 1px solid #c8c1bc;
+    margin: 32px 0 16px;
+  }
+}
+
+/* ── Responsive: tablet and below ────────────────────────── */
+@media (max-width: 1024px) {
+  footer .footer-nav ul {
+    justify-content: flex-start;
+    align-items: flex-start;
+  }
+
+  footer .footer-nav ul li {
+    align-items: center;
+  }
+
+  /* Align pipe separator vertically with text */
+  footer .footer-nav ul li::after {
+    vertical-align: middle;
+    line-height: inherit;
+  }
+}
+
+/* ── Responsive ───────────────────────────────────────────── */
+@media (width >= 1024px) {
   footer .footer > div {
-    padding: 40px 32px 24px;
+    padding: 0 32px;
+  }
+
+  footer .footer-nav {
+    padding: 28px 0 22px;
+  }
+
+  footer .footer-nav ul {
+    gap: 0;
+  }
+
+  footer .footer-nav a {
+    font-size: 13px;
+  }
+
+  footer .footer-social {
+    padding: 18px 0;
+  }
+
+  footer .footer-social ul {
+    gap: 14px;
   }
 }

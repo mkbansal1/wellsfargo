@@ -19,7 +19,7 @@
   display: block;
 }
 
-@media (width >= 900px) {
+@media (width >= 768px) {
   .columns > div {
     align-items: center;
     flex-direction: unset;
@@ -29,5 +29,29 @@
   .columns > div > div {
     flex: 1;
     order: unset;
+  }
+}
+
+/* --- Variant: contact --- */
+
+/* Authored as | Columns (contact) | — multi-column contact info */
+.columns.contact > div {
+  gap: 24px;
+}
+
+.columns.contact > div > div h3 {
+  font-size: var(--heading-font-size-s);
+  font-weight: 600;
+  margin-top: 0;
+}
+
+.columns.contact > div > div p {
+  font-size: var(--body-font-size-s);
+  line-height: 1.5;
+}
+
+@media (width >= 768px) {
+  .columns.contact > div {
+    align-items: flex-start;
   }
 }

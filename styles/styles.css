@@ -7,6 +7,7 @@
   /* brand colors — default theme */
   --wf-red: #D71E28;
   --wf-yellow: #FCC60A;
+  --wf-dark-yellow: #ffcd41;
   --wf-dark: #141414;
   --wf-text-primary: #3B3331;
   --wf-text-secondary: #787070;
@@ -15,7 +16,7 @@
   --wf-link-hover: #6048AD;
   --wf-bg-warm: #F4F0ED;
   --wf-bg-light: #F9F7F6;
-  --wf-bg-white: #FFFFFF;
+  --wf-bg-white: #FFF;
   --wf-bg-gray: #E2DEDE;
   --wf-bg-offwhite: #F8F8F8;
   --wf-green: #468254;
@@ -28,6 +29,7 @@
   --text-color: var(--wf-text-primary);
   --link-color: var(--wf-link);
   --link-hover-color: var(--wf-link-hover);
+  --heading-bar-color: var(--wf-dark-yellow);
 
   /* fonts */
   --body-font-family: 'Wells Fargo Sans', arial, helvetica, sans-serif;
@@ -40,15 +42,15 @@
   --body-font-size-xs: 13px;
 
   /* heading sizes */
-  --heading-font-size-xxl: 34px;
-  --heading-font-size-xl: 28px;
+  --heading-font-size-xxl: 32px;
+  --heading-font-size-xl: 24px;
   --heading-font-size-l: 22px;
   --heading-font-size-m: 20px;
   --heading-font-size-s: 18px;
   --heading-font-size-xs: 16px;
 
   /* layout */
-  --nav-height: 64px;
+  --nav-height: 68px;
   --content-max-width: 1400px;
 }
 
@@ -59,19 +61,29 @@
   src: local('Arial');
 }
 
-@media (width >= 900px) {
+@media (width >= 768px) {
   :root {
-    /* body sizes */
+    --heading-font-size-xxl: 38px;
+    --heading-font-size-xl: 30px;
+    --heading-font-size-l: 24px;
+  }
+}
+
+@media (width >= 1024px) {
+  :root {
     --body-font-size-xl: 24px;
-    --body-font-size-m: 17px;
-    --body-font-size-s: 15px;
-    --body-font-size-xs: 13px;
-    --heading-font-size-xxl: 56px;
-    --heading-font-size-xl: 32px;
+    --heading-font-size-xxl: 42px;
+    --heading-font-size-xl: 34px;
     --heading-font-size-l: 26px;
     --heading-font-size-m: 22px;
     --heading-font-size-s: 20px;
     --heading-font-size-xs: 18px;
+  }
+}
+
+@media (width >= 1024px) {
+  :root {
+    --nav-height: 165px;
   }
 }
 
@@ -118,8 +130,12 @@ h6 {
   color: var(--wf-text-primary);
 }
 
-h1 { font-size: var(--heading-font-size-xxl); }
-h2 { font-size: var(--heading-font-size-xl); }
+h1 { font-size: var(--heading-font-size-xl); }
+
+h2 { 
+  font-size: var(--heading-font-size-xxl);
+  font-weight: 300;
+}
 h3 { font-size: var(--heading-font-size-l); }
 h4 { font-size: var(--heading-font-size-m); }
 h5 { font-size: var(--heading-font-size-s); }
@@ -183,7 +199,7 @@ button.button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 208px;
+  min-width: 177px;
   max-width: 100%;
   margin: 0;
   border: 1px solid transparent;
@@ -191,7 +207,7 @@ button.button {
   padding: 0.6em 1.4em;
   font: inherit;
   font-weight: 600;
-  font-size: var(--body-font-size-s);
+  font-size: var(--body-font-size-m);
   line-height: 1;
   text-decoration: none;
   cursor: pointer;
@@ -293,19 +309,26 @@ main img {
 main > .section {
   max-width: var(--content-max-width);
   margin: 0 auto;
+  padding: 18px 0;
 }
 
 main > .section > div {
-  padding: 0 24px;
+  padding: 0 24px 16px;
 }
 
-main > .section:first-of-type {
+main > .section:first-of-type,
+main > .section.breadcrumb-container + div.section {
   margin-top: 0;
+  padding-top: 0;
 }
 
-@media (width >= 900px) {
+@media (width >= 768px) {
   main > .section > div {
-    padding: 0 32px;
+    padding: 0 32px 20px;
+  }
+
+  main > .section.narrow-width > div {
+    padding: 0 134px 20px;
   }
 }
 
@@ -313,21 +336,15 @@ main > .section:first-of-type {
 main .section.light,
 main .section.highlight {
   background-color: var(--wf-bg-light);
-  margin: 0;
-  padding: 40px 0;
 }
 
 main .section.warm {
   background-color: var(--wf-bg-warm);
-  margin: 0;
-  padding: 40px 0;
 }
 
 main .section.dark {
   background-color: var(--wf-dark);
   color: var(--background-color);
-  margin: 0;
-  padding: 40px 0;
 }
 
 main .section.dark h1,
@@ -345,14 +362,19 @@ main .section.dark a:any-link {
 
 main .section.cream {
   background-color: var(--wf-cream);
-  margin: 0;
-  padding: 40px 0;
 }
 
-/* wealth theme override (via page/section metadata) */
-.theme-wealth {
-  --wf-link: #1a5276;
-  --wf-link-hover: #154360;
-  --link-color: var(--wf-link);
-  --link-hover-color: var(--wf-link-hover);
+main .section.center-align .default-content-wrapper {
+  text-align: center;
 }
+
+main .section.heading-bar h2::before {
+  content: "";
+  display: block;
+  width: 96px;
+  height: 2px;
+  margin: 0 auto 25px;
+  background-color: var(--heading-bar-color);
+}
+
+/* wealth theme — loaded from /styles/themes/wealth.css via scripts.js */
