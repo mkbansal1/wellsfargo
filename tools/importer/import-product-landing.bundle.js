@@ -264,7 +264,7 @@ var CustomImportScript = (() => {
   var H = { before: "beforeTransform", after: "afterTransform" };
   var TAG_MAPPINGS = [
     { selector: "div.title2-SemiBold", tag: "h3" },
-    { selector: "div.headline", tag: "p", className: "headline" }
+    { selector: "div.headline", tag: "h4" }
   ];
   function transform(hookName, element, payload) {
     if (hookName === H.before) {

@@ -13,7 +13,7 @@ const H = { before: 'beforeTransform', after: 'afterTransform' };
 // Use `className` to preserve a class on the replacement element
 const TAG_MAPPINGS = [
   { selector: 'div.title2-SemiBold', tag: 'h3' },
-  { selector: 'div.headline', tag: 'p', className: 'headline' },
+  { selector: 'div.headline', tag: 'h4' },
 ];
 
 export default function transform(hookName, element, payload) {
