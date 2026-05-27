@@ -87,12 +87,13 @@ export default function parse(element, { document }) {
   }
 
   // Variant detection:
-  // Default hero: homepage marquee with text on left side of large image
-  // Overlay-bottom: product page marquees where text overlaps bottom of image
+  // overlay-bottom: only for the FIRST hero on the page
+  // Default hero: all subsequent heroes + homepage marquee
   const cls = element.className || '';
-  let variant = 'Hero (overlay-bottom)';
+  const isFirstHero = params && params.isFirstHero;
+  let variant = isFirstHero ? 'Hero (overlay-bottom)' : 'Hero';
 
-  // Homepage marquee (.marquee-container without .rsk-) uses default side-by-side hero
+  // Homepage marquee (.marquee-container without .rsk-) always uses default
   if (cls.includes('marquee-container') && !cls.includes('rsk-marquee')) {
     variant = 'Hero';
   }

@@ -129,6 +129,7 @@ function runParsers(main, document, url, params) {
   const processed = new Set();
 
   // HERO: marquee/promo containers with images
+  let heroCount = 0;
   main.querySelectorAll('.rsk-marquee-container, .marquee-container, .ps-large-promo-full-container').forEach((el) => {
     if (processed.has(el)) return;
     const hasImg = el.querySelector('img, picture');
@@ -136,7 +137,8 @@ function runParsers(main, document, url, params) {
     const h3Count = el.querySelectorAll('h3').length;
     if (hasImg && hasHeading && h3Count <= 1) {
       processed.add(el);
-      try { parsers['hero'](el, { document, url, params }); } catch (e) { /* keep as-is */ }
+      heroCount += 1;
+      try { parsers['hero'](el, { document, url, params, isFirstHero: heroCount === 1 }); } catch (e) { /* keep as-is */ }
     }
   });
 
