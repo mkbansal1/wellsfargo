@@ -10,7 +10,7 @@
   border-radius: 8px;
 }
 
-@media (width >= 900px) {
+@media (width >= 768px) {
   .iframe {
     min-height: 500px;
   }

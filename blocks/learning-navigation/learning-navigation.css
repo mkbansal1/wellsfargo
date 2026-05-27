@@ -15,8 +15,10 @@
 
 /* ── Hero image ─────────────────────────────────────────────── */
 .learning-navigation-hero {
-  width: 100%;
-  border-radius: 16px;
+  width: 100vw;
+  margin-left: 50%;
+  transform: translateX(-50%);
+  border-radius: 0;
   overflow: hidden;
   line-height: 0;
 }
@@ -26,6 +28,7 @@
   height: auto;
   display: block;
   object-fit: cover;
+  border-radius: 0;
   border-radius: 16px;
 }
 
@@ -146,17 +149,17 @@
   }
 }
 
-/* ── Mobile: full-width hero image ─────────────────────────── */
-@media (max-width: 767px) {
+/* ── Tablet+: constrained hero with border-radius ─────────── */
+@media (width >= 768px) {
   .learning-navigation-hero {
-    border-radius: 0;
-    width: 100vw;
-    margin-left: 50%;
-    transform: translateX(-50%);
+    width: 100%;
+    margin-left: 0;
+    transform: none;
+    border-radius: 16px;
   }
 
   .learning-navigation-hero-img {
-    border-radius: 0;
+    border-radius: 16px;
   }
 }
 
