@@ -278,6 +278,94 @@ export default {
       el.remove();
     });
 
+    // Phase 0.7: Hero detection
+    // HERO: Detect #contentTop image + first content section (H2 + desc + standalone CTA)
+    const contentTopImg = main.querySelector('#contentTop img, [id*="contentTop"] img');
+    const firstContentDiv = main.querySelector(':scope > div > div > h2, :scope > div > h2');
+    if (firstContentDiv) {
+      const container = firstContentDiv.closest('div');
+      const parent = container ? container.parentElement : null;
+      // Look for standalone CTA <a> as next sibling of the container or its parent
+      let ctaLink = null;
+      if (container && container.nextElementSibling && container.nextElementSibling.tagName === 'A') {
+        ctaLink = container.nextElementSibling;
+      } else if (parent && parent.nextElementSibling && parent.nextElementSibling.tagName === 'A') {
+        ctaLink = parent.nextElementSibling;
+      }
+
+      if (ctaLink) {
+        const cellContent = [];
+        // Add image
+        if (contentTopImg) {
+          const pic = contentTopImg.closest('picture') || contentTopImg;
+          cellContent.push(pic.cloneNode(true));
+          const imgContainer = contentTopImg.closest('#contentTop, [id*="contentTop"]') || contentTopImg.parentElement;
+          if (imgContainer) imgContainer.remove();
+        }
+        // Add H2
+        const h2 = document.createElement('h2');
+        h2.textContent = firstContentDiv.textContent.trim();
+        cellContent.push(h2);
+        // Add description paragraphs
+        const desc = container.querySelectorAll('p');
+        desc.forEach((p) => { if (p.textContent.trim()) cellContent.push(p.cloneNode(true)); });
+        // Add CTA as bold link
+        const ctaP = document.createElement('p');
+        const strong = document.createElement('strong');
+        const a = document.createElement('a');
+        a.setAttribute('href', ctaLink.getAttribute('href') || '');
+        a.textContent = ctaLink.textContent.trim();
+        strong.appendChild(a);
+        ctaP.appendChild(strong);
+        cellContent.push(ctaP);
+
+        const block = WebImporter.Blocks.createBlock(document, { name: 'Hero', cells: [[cellContent]] });
+        const replaceTarget = parent || container;
+        replaceTarget.replaceWith(block);
+        ctaLink.remove();
+      }
+    }
+
+    // Phase 0.8: Cards from div.c60
+    // CARDS from div.c60: variant depends on image size (icons ≤100px vs separator for large images)
+    const processed = new Set();
+    main.querySelectorAll('.c60').forEach((c60) => {
+      if (processed.has(c60)) return;
+      const childDivs = Array.from(c60.querySelectorAll(':scope > div'));
+      if (childDivs.length < 2) return;
+
+      // Determine variant by first image
+      const firstImg = c60.querySelector('img');
+      const src = (firstImg && (firstImg.getAttribute('src') || '')).toLowerCase();
+      const width = parseInt(firstImg && firstImg.getAttribute('width') || '0', 10);
+      const isIcon = (width > 0 && width <= 100) || src.includes('64x64') || src.includes('icon') || src.includes('gradient-64') || src.includes('-64x');
+      const variant = isIcon ? 'Cards (icons, bg-image)' : 'Cards (separator)';
+
+      const cells = [];
+      childDivs.forEach((div) => {
+        const img = div.querySelector('img');
+        const heading = div.querySelector('h2, h3, h4');
+        const contentCell = [];
+        if (heading) {
+          const h3 = document.createElement('h3');
+          h3.textContent = heading.textContent.trim();
+          contentCell.push(h3);
+        }
+        div.querySelectorAll('p').forEach((p) => {
+          if (p.querySelector('img')) return;
+          if (p.textContent.trim()) contentCell.push(p.cloneNode(true));
+        });
+        if (img || contentCell.length > 0) {
+          cells.push([img || '', contentCell]);
+        }
+      });
+
+      if (cells.length > 0) {
+        const block = WebImporter.Blocks.createBlock(document, { name: variant, cells });
+        c60.replaceWith(block);
+      }
+    });
+
     // Phase 1: Parsers
 
     // 1a. Rebranded show-hide accordion: group .rebranded-show-hide items, break on H3
