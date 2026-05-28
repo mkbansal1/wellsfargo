@@ -323,7 +323,7 @@ function parseCardsNoImage(element, { document }) {
 /**
  * Parse accordion/FAQ section.
  * Source: details.show-hide-content-wrapper elements
- * Output: Accordion (faq) block
+ * Output: Accordion (compact) block
  */
 function parseAccordion(element, { document }) {
   const detailsList = element.tagName === 'DETAILS'
@@ -356,7 +356,7 @@ function parseAccordion(element, { document }) {
     }
   });
 
-  const block = WebImporter.Blocks.createBlock(document, { name: 'Accordion (faq)', cells });
+  const block = WebImporter.Blocks.createBlock(document, { name: 'Accordion (compact)', cells });
   element.replaceWith(block);
 }
 

@@ -113,6 +113,24 @@ var CustomImportScript = (() => {
           a.setAttribute("href", href.replace("https://www.wellsfargo.com", ""));
         }
       });
+      element.querySelectorAll('a.ps-btn-primary, a.ps-btn, a[class*="ps-btn-primary"]').forEach((a) => {
+        const doc = element.ownerDocument;
+        const strong = doc.createElement("strong");
+        const newA = doc.createElement("a");
+        newA.setAttribute("href", a.getAttribute("href") || "");
+        newA.textContent = a.textContent.trim();
+        strong.appendChild(newA);
+        a.replaceWith(strong);
+      });
+      element.querySelectorAll('a.ps-btn-secondary, a[class*="ps-btn-secondary"]').forEach((a) => {
+        const doc = element.ownerDocument;
+        const em = doc.createElement("em");
+        const newA = doc.createElement("a");
+        newA.setAttribute("href", a.getAttribute("href") || "");
+        newA.textContent = a.textContent.trim();
+        em.appendChild(newA);
+        a.replaceWith(em);
+      });
     }
   }
 
@@ -358,7 +376,7 @@ var CustomImportScript = (() => {
         cells.push([[questionCell], bodyContent.length ? bodyContent : [""]]);
       }
     });
-    const block = WebImporter.Blocks.createBlock(document, { name: "Accordion (faq)", cells });
+    const block = WebImporter.Blocks.createBlock(document, { name: "Accordion (compact)", cells });
     element.replaceWith(block);
   }
   function parseColumns(element, { document }) {
