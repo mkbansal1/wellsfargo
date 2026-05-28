@@ -89,7 +89,7 @@ const PAGE_TEMPLATE = {
     {
       id: 'section-5-guidance',
       name: 'Financial Guidance and Support',
-      selector: '.ps-body-wrapper > .card-background-white:nth-of-type(1)',
+      selector: 'main >.card-background-white:nth-of-type(1)',
       style: null,
       blocks: ['cards-feature'],
       defaultContent: ['.ps-mid-page-title-wrapper:nth-of-type(1)'],
@@ -105,7 +105,7 @@ const PAGE_TEMPLATE = {
     {
       id: 'section-7-community',
       name: 'Serving Our Communities',
-      selector: '.ps-body-wrapper > .card-background-white:nth-of-type(2)',
+      selector: 'main >.card-background-white:nth-of-type(2)',
       style: null,
       blocks: ['cards-feature'],
       defaultContent: ['.ps-mid-page-title-wrapper:nth-of-type(2)'],

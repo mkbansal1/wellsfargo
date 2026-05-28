@@ -55,7 +55,7 @@ export default function parse(element, { document }) {
     const image = card.querySelector('img');
 
     // --- Col 2: Content (heading + description + CTA) ---
-    const textBody = card.querySelector('.enhanced-txt-body') || card;
+    const textBody = card.querySelector('.enhanced-txt-body, .ps-marketing-text') || card;
 
     // Heading: h3 is primary from source, fallback h2/h4 for variation
     const heading = textBody.querySelector('h3, h2, h4')
@@ -98,7 +98,8 @@ export default function parse(element, { document }) {
       const p = document.createElement('p');
       const link = document.createElement('a');
       link.href = ctaLink.href;
-      link.textContent = ctaLink.textContent;
+      // Strip trailing ">" arrows — the block CSS adds these via ::after
+      link.textContent = ctaLink.textContent.replace(/\s*>\s*$/, '').trim();
       p.appendChild(link);
       contentCell.push(p);
     }
@@ -109,6 +110,17 @@ export default function parse(element, { document }) {
     }
   });
 
-  const block = WebImporter.Blocks.createBlock(document, { name: 'Cards (feature)', cells });
+  // Determine variant: icons if images are small (64x64 icon-size), separator if photos
+  let variant = 'Cards (separator)';
+  const firstImg = element.querySelector('img');
+  if (firstImg) {
+    const src = (firstImg.src || firstImg.getAttribute('src') || '').toLowerCase();
+    const w = parseInt(firstImg.getAttribute('width') || '0', 10);
+    if (w > 0 && w <= 100 || src.includes('64x64') || src.includes('icon') || src.includes('-64x') || src.includes('gradient-64')) {
+      variant = 'Cards (icons, bg-image)';
+    }
+  }
+
+  const block = WebImporter.Blocks.createBlock(document, { name: variant, cells });
   element.replaceWith(block);
 }

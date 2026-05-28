@@ -9,8 +9,25 @@
  */
 const H = { before: 'beforeTransform', after: 'afterTransform' };
 
+// Map source CSS classes to semantic HTML tags (add new mappings as needed)
+// Use `className` to preserve a class on the replacement element
+const TAG_MAPPINGS = [
+  { selector: 'div.title2-SemiBold', tag: 'h3' },
+  { selector: 'div.headline', tag: 'h4' },
+];
+
 export default function transform(hookName, element, payload) {
   if (hookName === H.before) {
+    // Convert non-semantic elements to proper HTML tags based on class mappings
+    TAG_MAPPINGS.forEach(({ selector, tag, className }) => {
+      element.querySelectorAll(selector).forEach((el) => {
+        const replacement = element.ownerDocument.createElement(tag);
+        replacement.innerHTML = el.innerHTML;
+        if (className) replacement.className = className;
+        el.replaceWith(replacement);
+      });
+    });
+
     // Remove cookie consent / OneTrust overlay (blocks parsing if present)
     // Found in cleaned.html line 1863: <div id="onetrust-consent-sdk">
     WebImporter.DOMUtils.remove(element, [
@@ -34,15 +51,10 @@ export default function transform(hookName, element, payload) {
   if (hookName === H.after) {
     // --- Remove non-authorable site shell elements ---
 
-    // Header/masthead - Found in cleaned.html line 6: <header class="ps-masthead ...">
-    // Support dropdown overlay - Found in cleaned.html lines 44-46
-    // Fat nav overlay - Found in cleaned.html line 153: <div class="ps-fat-nav-overlay">
-    // Fat nav outer - Found in cleaned.html line 155: <div class="ps-fat-nav-outer ...">
-    // Container L3 mobile - Found in cleaned.html line 1096: <div class="container-l3-mobile" ...>
-    // Emergency message - Found in cleaned.html line 4: <div class="ps-emergency-message">
-    // Skip link - Found in cleaned.html line 2: <a href="#skip" class="hidden">
+    // Header/masthead/nav - all header variants across page types
     WebImporter.DOMUtils.remove(element, [
-      'header.ps-masthead',
+      'header',
+      '.ps-masthead',
       '.ps-support-dropdown-overlay-container',
       '.ps-support-dropdown-overlay',
       '.ps-fat-nav-overlay',
@@ -50,11 +62,17 @@ export default function transform(hookName, element, payload) {
       '#containerL3Mobile',
       '.ps-emergency-message',
       'a.hidden[href="#skip"]',
+      'nav[aria-label="Breadcrumb"]',
+      '.breadcrumb',
+      '#feedbackSurvey',
+      '.feedback-survey',
     ]);
 
-    // Footer - Found in cleaned.html line 1700: <footer class="ps-footer-homepage">
+    // Footer - all footer variants (homepage uses .ps-footer-homepage, other pages use footer tag)
     WebImporter.DOMUtils.remove(element, [
-      'footer.ps-footer-homepage',
+      'footer',
+      '.ps-footer-homepage',
+      '.ps-footer-wrapper',
     ]);
 
     // Remove iframes (tracking, font detection, challenge)
@@ -76,5 +94,71 @@ export default function transform(hookName, element, payload) {
       'noscript',
       'link',
     ]);
+
+    // Strip trailing ">" or ">>" from link text — CSS adds chevrons via ::after
+    element.querySelectorAll('a').forEach((a) => {
+      const text = a.textContent;
+      if (/\s*>+\s*$/.test(text)) {
+        a.textContent = text.replace(/\s*>+\s*$/, '').trim();
+      }
+    });
+
+    // Convert footnote reference links to superscript numbers
+    // Pattern 1: <a href="...tcm:..."><sup>Opens a modal dialog for footnote N</sup></a> → <sup><a href="...">N</a></sup>
+    // Pattern 2: <a href="...tcm:...">Opens a modal dialog for footnote N</a> (inside <sup>) → <a href="...">N</a>
+    element.querySelectorAll('a').forEach((a) => {
+      const text = a.textContent || '';
+      if (!text.includes('footnote') && !text.includes('modal')) return;
+      const match = text.match(/(\d+)\s*$/);
+      if (!match) return;
+      const num = match[1];
+      const href = a.getAttribute('href') || a.href || '#';
+      const doc = element.ownerDocument;
+      const sup = a.querySelector('sup');
+      if (sup) {
+        const newSup = doc.createElement('sup');
+        const newA = doc.createElement('a');
+        newA.setAttribute('href', href);
+        newA.textContent = num;
+        newSup.appendChild(newA);
+        a.replaceWith(newSup);
+      } else {
+        a.textContent = num;
+      }
+    });
+
+    // Convert absolute wellsfargo.com links to relative paths and strip trailing slash
+    element.querySelectorAll('a').forEach((a) => {
+      let href = a.getAttribute('href') || '';
+      if (href.startsWith('https://www.wellsfargo.com/')) {
+        href = href.replace('https://www.wellsfargo.com', '');
+      }
+      if (href.length > 1 && href.endsWith('/')) {
+        href = href.slice(0, -1);
+      }
+      if (href !== (a.getAttribute('href') || '')) {
+        a.setAttribute('href', href);
+      }
+    });
+
+    // Convert button links: primary → bold, secondary → italic
+    element.querySelectorAll('a.ps-btn-primary, a.ps-btn, a[class*="ps-btn-primary"]').forEach((a) => {
+      const doc = element.ownerDocument;
+      const strong = doc.createElement('strong');
+      const newA = doc.createElement('a');
+      newA.setAttribute('href', a.getAttribute('href') || '');
+      newA.textContent = a.textContent.trim();
+      strong.appendChild(newA);
+      a.replaceWith(strong);
+    });
+    element.querySelectorAll('a.ps-btn-secondary, a[class*="ps-btn-secondary"]').forEach((a) => {
+      const doc = element.ownerDocument;
+      const em = doc.createElement('em');
+      const newA = doc.createElement('a');
+      newA.setAttribute('href', a.getAttribute('href') || '');
+      newA.textContent = a.textContent.trim();
+      em.appendChild(newA);
+      a.replaceWith(em);
+    });
   }
 }

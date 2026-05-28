@@ -1,0 +1,126 @@
+/*
+ * Wealth Theme — /investing-wealth/ pages only
+ * Applied via page metadata: theme: wealth
+ * Scoped to .wealth per Rule 2
+ */
+
+.wealth {
+  /* Wealth palette */
+  --wf-wealth-primary: #0C2340;
+  --wf-wealth-accent: #946E3A;
+  --wf-wealth-accent-deep: #8B6F3F;
+  --wf-wealth-bg: #F5EFE6;
+  --wf-wealth-text: #1C2533;
+  --wf-wealth-button: #352B6B;
+  --wf-wealth-button-hover: #2A2256;
+  --wf-wealth-link: #5A469B;
+  --wf-wealth-link-hover: #6048AD;
+
+  /* Override semantic tokens */
+  --text-color: var(--wf-wealth-text);
+  --link-color: var(--wf-wealth-link);
+  --link-hover-color: var(--wf-wealth-link-hover);
+}
+
+/* Typography */
+.wealth h1,
+.wealth h2,
+.wealth h3,
+.wealth h4,
+.wealth h5,
+.wealth h6 {
+  color: var(--wf-wealth-text);
+  font-weight: 400;
+}
+
+.wealth h2 {
+  font-weight: 600;
+}
+
+/* Links */
+.wealth a:any-link {
+  color: var(--wf-wealth-link);
+}
+
+.wealth a:hover {
+  color: var(--wf-wealth-link-hover);
+}
+
+/* Primary button — deep purple */
+.wealth a.button.primary,
+.wealth button.button.primary {
+  background-color: var(--wf-wealth-button);
+  border-color: var(--wf-wealth-button);
+  color: #fff;
+  font-weight: 400;
+}
+
+.wealth a.button.primary:hover,
+.wealth a.button.primary:focus-visible,
+.wealth button.button.primary:hover,
+.wealth button.button.primary:focus-visible {
+  background-color: var(--wf-wealth-button-hover);
+  border-color: var(--wf-wealth-button-hover);
+}
+
+/* Secondary button — outlined */
+.wealth a.button.secondary,
+.wealth button.button.secondary {
+  background-color: transparent;
+  border-color: var(--wf-wealth-button);
+  color: var(--wf-wealth-button);
+  font-weight: 400;
+}
+
+.wealth a.button.secondary:hover,
+.wealth a.button.secondary:focus-visible,
+.wealth button.button.secondary:hover,
+.wealth button.button.secondary:focus-visible {
+  background-color: var(--wf-wealth-button);
+  color: #fff;
+}
+
+/* Accent button — gold/bronze */
+.wealth a.button.accent,
+.wealth button.button.accent {
+  background-color: var(--wf-wealth-accent);
+  border-color: var(--wf-wealth-accent);
+  color: #fff;
+  font-weight: 400;
+}
+
+.wealth a.button.accent:hover,
+.wealth a.button.accent:focus-visible,
+.wealth button.button.accent:hover,
+.wealth button.button.accent:focus-visible {
+  background-color: var(--wf-wealth-accent-deep);
+  border-color: var(--wf-wealth-accent-deep);
+}
+
+/* Header — gold/bronze nav bar */
+.wealth header {
+  background-color: var(--wf-wealth-accent);
+}
+
+/* Cards — subtle refinements for wealth */
+.wealth .cards.separator .cards-card-body {
+  border-top-color: var(--wf-wealth-accent);
+}
+
+.wealth .cards .cards-card-body a:not(.button) {
+  color: var(--wf-wealth-link);
+}
+
+/* Section overrides */
+.wealth main .section.light,
+.wealth main .section.highlight {
+  background-color: var(--wf-wealth-bg);
+}
+
+.wealth main .section.dark {
+  background-color: var(--wf-wealth-primary);
+}
+
+.wealth main .section.dark a:any-link {
+  color: #fff;
+}

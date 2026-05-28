@@ -1,21 +1,29 @@
+/* Cards block — mobile first */
+
+/* === Base / Default: image on top, text below === */
+.section.cards-container .cards-wrapper {
+  padding-top: 40px;
+  padding-bottom: 40px;
+}
+
 .cards > ul {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(257px, 1fr));
-  gap: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px 20px;
 }
 
 .cards > ul > li {
   border: 1px solid var(--wf-bg-gray);
   background-color: var(--background-color);
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
-}
-
-.cards .cards-card-body {
-  margin: 16px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 1px 4px 0 rgb(0 0 0 / 25%);
+  box-sizing: border-box;
 }
 
 .cards .cards-card-image {
@@ -24,80 +32,306 @@
 
 .cards > ul > li img {
   width: 100%;
-  aspect-ratio: 4 / 3;
+  height: auto;
   object-fit: cover;
 }
 
-/* --- Variant: feature --- */
-
-/* Authored as | Cards (feature) | — feature highlight cards with large images */
-.cards.feature > ul {
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 32px;
+.cards .cards-card-body {
+  padding: 20px 24px 28px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
-.cards.feature > ul > li {
-  border: none;
-  background: transparent;
-  border-radius: 12px;
-  overflow: hidden;
+.cards.separator .cards-card-body {
+  border-top: 3px solid var(--wf-yellow);
 }
 
-.cards.feature > ul > li img {
-  aspect-ratio: 16 / 9;
-  border-radius: 12px;
+.cards .cards-card-body h3 {
+  font-size: var(--heading-font-size-m);
+  font-weight: 400;
+  line-height: 1.3;
+  margin: 0 0 12px;
+  color: var(--wf-text-primary);
 }
 
-.cards.feature .cards-card-body {
-  margin: 16px 0;
+.cards .cards-card-body p {
+  font-size: var(--body-font-size-m);
+  line-height: 1.5;
+  margin: 0 0 12px;
+  color: var(--wf-text-primary);
 }
 
-.cards.feature .cards-card-body h3 {
-  font-size: var(--heading-font-size-l);
-  margin-top: 8px;
+.cards .cards-card-body p:last-child {
+  margin-top: auto;
+  margin-bottom: 0;
 }
 
-.cards.feature .cards-card-body a {
+.cards .cards-card-body a:not(.button) {
+  color: var(--wf-link);
+  font-weight: 600;
+  text-decoration: none;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-weight: 600;
+  gap: 6px;
 }
 
-/* --- Variant: promo --- */
-
-/* Authored as | Cards (promo) | — promotional tiles with icons */
-.cards.promo > ul {
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 16px;
+.cards .cards-card-body p:last-child a:not(.button)::after {
+  content: '>';
+  font-size: 14px;
+  font-weight: 700;
 }
 
-.cards.promo > ul > li {
-  border: none;
-  background: var(--wf-bg-light);
-  border-radius: 12px;
-  padding: 20px;
-  display: flex;
-  gap: 16px;
+.cards .cards-card-body a:not(.button):hover {
+  text-decoration: underline;
+}
+
+/* Tablet: default — 2 cards per row, centered */
+@media (width >= 768px) {
+  .cards > ul {
+    flex-flow: row wrap;
+    justify-content: center;
+  }
+
+  .cards > ul > li {
+    flex: 0 1 calc((100% - 24px) / 2);
+    min-width: 0;
+  }
+}
+
+/* Desktop: default — all cards equal in one row */
+@media (width >= 1024px) {
+  .cards > ul > li {
+    flex: 1 1 0;
+  }
+}
+
+/* === Column count variants === */
+
+/* two-up: max 2 per row on tablet and desktop */
+@media (width >= 768px) {
+  .cards.two-up > ul {
+    gap: 24px 20px;
+  }
+
+  .cards.two-up > ul > li {
+    flex: 0 1 calc((100% - 24px) / 2);
+  }
+}
+
+/* three-up: max 3 per row on tablet and desktop */
+@media (width >= 768px) {
+  .cards.three-up > ul {
+    gap: 24px 20px;
+  }
+
+  .cards.three-up > ul > li {
+    flex: 0 1 calc((100% - 48px) / 3);
+  }
+}
+
+/* four-up: 2 on tablet, 4 on desktop */
+@media (width >= 768px) {
+  .cards.four-up > ul {
+    gap: 24px 20px;
+  }
+
+  .cards.four-up > ul > li {
+    flex: 0 1 calc((100% - 24px) / 2);
+  }
+}
+
+@media (width >= 1024px) {
+  .cards.four-up > ul > li {
+    flex: 0 1 calc((100% - 72px) / 4);
+  }
+}
+
+/* === Variant: icons === */
+
+/* Mobile: icons left, text right with yellow left border */
+.cards.icons > ul > li {
+  flex-direction: row;
   align-items: flex-start;
 }
 
-.cards.promo .cards-card-image {
+.cards.icons .cards-card-image {
+  padding: 24px 0 24px 24px;
   flex-shrink: 0;
 }
 
-.cards.promo .cards-card-image img {
-  width: 48px;
-  height: 48px;
-  aspect-ratio: 1;
+.cards.icons .cards-card-image img {
+  width: 64px;
+  height: 64px;
   object-fit: contain;
 }
 
-.cards.promo .cards-card-body {
+.cards.icons .cards-card-body {
+  padding: 24px 24px 28px 16px;
+}
+
+/* Desktop: icons on top, yellow top border, text below */
+@media (width >= 768px) {
+  .cards.icons > ul > li {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cards.icons .cards-card-image {
+    padding: 32px 28px 0;
+    text-align: center;
+  }
+
+  .cards.icons .cards-card-body {
+    margin-left: 0;
+    padding: 10px 28px 32px;
+  }
+}
+
+/* === Per-card no-image handling (dynamic) === */
+
+/* Cards without images get adjusted padding and styling */
+.cards > ul > li.no-image .cards-card-body {
+  padding: 28px 24px;
+}
+
+.cards > ul > li.no-image .cards-card-body h3 {
+  font-weight: 600;
+}
+
+
+/* === Variant: bg-light === */
+
+.cards.bg-light > ul > li {
+  background-color: var(--wf-bg-light);
+}
+
+/* === Variant: icons-middle === */
+
+/* Heading top, icon centered middle, CTA bottom */
+.cards.icons-middle > ul > li {
+  padding: 24px;
+}
+
+.cards.icons-middle > ul > li > .cards-card-body {
+  display: contents;
+}
+
+.cards.icons-middle > ul > li > .cards-card-body h3 {
+  order: 0;
+  font-weight: 400;
+  font-size: var(--heading-font-size-m);
+  line-height: 1.33;
+  margin: 0;
+  color: var(--wf-text-primary);
+}
+
+.cards.icons-middle .cards-card-image {
+  order: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 20px 0;
+  flex: 1;
+}
+
+.cards.icons-middle .cards-card-image img {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+}
+
+.cards.icons-middle > ul > li > .cards-card-body p:last-child {
+  order: 2;
   margin: 0;
 }
 
-.cards.promo .cards-card-body h2 {
-  font-size: var(--heading-font-size-xs);
-  margin-top: 0;
+@media (width >= 768px) {
+  .cards.icons-middle .cards-card-image img {
+    width: 100px;
+    height: 100px;
+  }
+}
+
+/* === Variant: highlight === */
+
+/* Card with gradient heading area and white body */
+.cards.highlight > ul > li {
+  background-color: var(--wf-bg-white);
+  border-radius: 10px;
+  box-shadow: 0 1px 4px 0 rgb(0 0 0 / 25%);
+  border: none;
+  padding: 0;
+}
+
+.cards.highlight > ul > li > .cards-card-body {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.cards.highlight > ul > li > .cards-card-body h3 {
+  font-weight: 300;
+  font-size: 24px;
+  line-height: 1.33;
+  color: var(--wf-text-primary);
+  margin: 0;
+  padding: 20px 24px;
+  background: linear-gradient(180deg, #f9f7f6, #f4f0ed);
+  border-radius: 10px 10px 0 0;
+}
+
+.cards.highlight > ul > li > .cards-card-body p:not(:last-child) {
+  padding: 16px 24px 0;
+  margin: 0;
+  font-size: 18px;
+  color: var(--wf-text-primary);
+  line-height: 1.4;
+}
+
+.cards.highlight > ul > li > .cards-card-body p:last-child {
+  padding: 16px 24px 24px;
+  margin-top: auto;
+}
+
+/* === Variant: bg-image === */
+
+/* Cards with gradient background image */
+.cards.bg-image > ul > li {
+  background-image: url('/assets/card-background-gradient.jpg');
+  background-size: cover;
+  background-position: top center;
+  background-repeat: no-repeat;
+}
+
+/* bg-image + icons: icons on top, text below on gradient */
+.cards.bg-image.icons .cards-card-image img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+}
+
+.cards.bg-image.icons .cards-card-body {
+  margin-left: 0;
+  margin-top: 16px;
+  padding: 0 24px 28px;
+}
+
+@media (width >= 768px) {
+  .cards.bg-image.icons .cards-card-image {
+    padding: 32px 28px 0;
+  }
+
+  .cards.bg-image.icons .cards-card-body {
+    margin-top: 20px;
+    padding: 0 28px 32px;
+  }
+}
+
+/* === Variant: no-border === */
+
+.cards.no-border > ul > li {
+    border: none;
+    box-shadow: none;
 }

@@ -2,60 +2,93 @@
 /* global WebImporter */
 
 /**
- * Parser for hero-promo
- * Base block: hero
- * Source selectors: .marquee-container, .ps-large-promo-full-container
- * Source: https://www.wellsfargo.com/
- * Generated: 2026-05-17
+ * Parser: hero-promo
+ * Base block: Hero (default variant from block library)
+ * Source selectors: .marquee-container, .rsk-marquee-container, .ps-large-promo-full-container
+ * Source: https://www.wellsfargo.com/mortgage/buying-a-house/
  *
- * Source HTML structure:
- *   div.marquee-container > div.marquee-container-wrap > div.marquee-wrap
- *     div.marquee-img > img (background image)
- *     div.marquee-content > h2 (heading), p (description), div.ps-padding > a (CTA)
+ * Block library structure (single cell with all content):
+ *   | Hero |
+ *   | image + heading + description + CTA button |
  *
- * Target table structure (from library example + description):
- *   Row 1: block name (hero-promo)
- *   Row 2: background image
- *   Row 3: heading
- *   Row 4: description text
- *   Row 5: CTA link
+ * Source structures:
+ *   .rsk-marquee-container (product pages):
+ *     .rsk-marquee-img-container > picture > img
+ *     .rsk-marquee-content > .rsk-marquee-inner-content > h2, p, a.ps-btn-primary
+ *
+ *   .marquee-container (homepage):
+ *     .marquee-img > img
+ *     .marquee-content > h2, p, .ps-padding > a
  */
-export default function parse(element, { document }) {
-  // Extract background image from .marquee-img or fallback selectors
-  const bgImage = element.querySelector('.marquee-img img, .marquee-wrap img, img[class*="hero"], img[class*="banner"]');
+export default function parse(element, { document, isFirstHero }) {
+  // Extract image — support both marquee variants
+  const img = element.querySelector(
+    '.rsk-marquee-img-container img, .marquee-img img, .marquee-wrap img, picture img, img'
+  );
 
-  // Extract heading from .marquee-content h2 or fallback heading levels
-  const heading = element.querySelector('.marquee-content h2, .marquee-content h1, .marquee-content h3, h2, h1, h3');
+  // Extract heading
+  const heading = element.querySelector(
+    '.rsk-marquee-inner-content h2, .rsk-marquee-content h2, .marquee-content h2, .marquee-content h1, h2, h1'
+  );
 
-  // Extract description paragraph from .marquee-content p
-  const description = element.querySelector('.marquee-content p, .marquee-content .description, p');
+  // Extract description paragraph (first <p> inside content area, not the CTA paragraph)
+  const contentArea = element.querySelector(
+    '.rsk-marquee-inner-content, .rsk-marquee-content, .marquee-content'
+  ) || element;
 
-  // Extract CTA link from .ps-padding a or fallback anchor selectors
-  const ctaLink = element.querySelector('.marquee-content .ps-padding a, .marquee-content a.ps-btn-secondary, .marquee-content a.ps-btn-primary, .marquee-content a[class*="btn"], .marquee-content a');
-
-  // Build cells array matching target table structure
-  const cells = [];
-
-  // Row 2: background image (optional - add only if present)
-  if (bgImage) {
-    cells.push([bgImage]);
+  let description = null;
+  const paragraphs = contentArea.querySelectorAll('p');
+  for (const p of paragraphs) {
+    // Skip paragraphs that only contain a button/CTA link
+    const btnLink = p.querySelector('a.ps-btn-primary, a.ps-btn-secondary, a[class*="btn"]');
+    if (btnLink && p.textContent.trim() === btnLink.textContent.trim()) continue;
+    if (p.textContent.trim()) {
+      description = p;
+      break;
+    }
   }
 
-  // Row 3: heading
+  // Extract CTA link (button-styled link or wrapped in strong/em by cleanup transformer)
+  const ctaLink = element.querySelector(
+    'a.ps-btn-primary, a.ps-btn-secondary, a[class*="ps-btn"], .ps-padding a, strong > a, em > a'
+  );
+
+  // Block library structure: single row, single cell with image + heading + description + CTA
+  const cellContent = [];
+
+  if (img) {
+    const picture = img.closest('picture') || img;
+    cellContent.push(picture.cloneNode(true));
+  }
   if (heading) {
-    cells.push([heading]);
+    const h2 = document.createElement('h2');
+    h2.innerHTML = heading.innerHTML;
+    cellContent.push(h2);
   }
-
-  // Row 4: description text (optional - some hero variants may not have description)
   if (description) {
-    cells.push([description]);
+    const p = document.createElement('p');
+    p.innerHTML = description.innerHTML;
+    cellContent.push(p);
   }
-
-  // Row 5: CTA link (optional - some hero variants may not have CTA)
   if (ctaLink) {
-    cells.push([ctaLink]);
+    const p = document.createElement('p');
+    const a = document.createElement('a');
+    a.href = ctaLink.href;
+    a.textContent = ctaLink.textContent.trim();
+    const strong = document.createElement('strong');
+    strong.appendChild(a);
+    p.appendChild(strong);
+    cellContent.push(p);
   }
 
-  const block = WebImporter.Blocks.createBlock(document, { name: 'Hero (promo)', cells });
+  const cls = element.className || '';
+  const variant = 'Hero';
+  const cells = [[cellContent]];
+  const block = WebImporter.Blocks.createBlock(document, { name: variant, cells });
+
+  if (isFirstHero) {
+    block.setAttribute('data-section-style', 'heading-bar');
+  }
+
   element.replaceWith(block);
 }

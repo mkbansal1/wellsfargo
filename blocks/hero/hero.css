@@ -1,111 +1,194 @@
+/* Hero block — mobile first */
+.hero-container {
+  max-width: unset;
+}
+
 .hero-container .hero-wrapper {
   max-width: unset;
   padding: 0;
 }
 
+/* === Default variant — mobile: image top, text below === */
 .hero {
   position: relative;
-  padding: 40px 24px;
-  min-height: 300px;
-}
-
-.hero h1,
-.hero h2 {
-  max-width: var(--content-max-width);
-  margin-left: auto;
-  margin-right: auto;
-  color: var(--background-color);
-}
-
-.hero picture {
-  position: absolute;
-  z-index: -1;
-  inset: 0;
-  object-fit: cover;
-  box-sizing: border-box;
-}
-
-.hero img {
-  object-fit: cover;
-  width: 100%;
-}
-
-@media (width >= 900px) {
-  .hero {
-    padding: 40px 32px;
-  }
-}
-
-/* --- Variant: promo --- */
-
-/* Authored as | Hero (promo) | — promotional marquee banners */
-.hero.promo {
-  min-height: 420px;
-  padding: 40px 24px;
-  background: var(--wf-bg-warm);
-  color: var(--wf-dark);
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
 }
 
-.hero.promo .hero-promo-content {
+.hero.no-image {
+  background-color: var(--wf-bg-light);
+}
+
+.hero .hero-bg {
   position: relative;
-  z-index: 1;
-  max-width: 620px;
+  width: 100%;
+  line-height: 0;
 }
 
-.hero.promo h1,
-.hero.promo h2 {
-  font-size: var(--heading-font-size-xxl);
-  margin: 0;
-  line-height: 1.25;
-  color: var(--wf-dark);
-}
-
-.hero.promo h2 {
-  font-weight: lighter;
-}
-
-.hero.promo p:not(.button-wrapper) {
-  margin: 24px 0 0;
-  color: var(--wf-dark);
-  font-size: var(--body-font-size-xl);
-  line-height: 1.3;
-}
-
-.hero.promo p.button-wrapper {
-  margin-top: 28px;
-}
-
-.hero.promo a.button:any-link {
-  font-size: var(--body-font-size-m);
-}
-
-.hero.promo .hero-promo-media {
-  position: absolute;
-  z-index: 0;
-  inset: 0;
-}
-
-.hero.promo picture {
-  z-index: 0;
+.hero .hero-bg picture {
   display: block;
   width: 100%;
-  height: 100%;
+}
+
+.hero .hero-bg img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+.hero .hero-content {
+  position: relative;
+  padding: 24px 20px 32px;
+  text-align: center;
+}
+
+.hero .hero-content h1,
+.hero .hero-content h2 {
+  font-size: var(--heading-font-size-xxl);
+  font-weight: 300;
+  line-height: 1.2;
+  color: var(--wf-dark);
+  margin: 0 0 16px;
+}
+
+.hero .hero-content p {
+  font-size: var(--body-font-size-xl);
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--wf-text-primary);
+  margin: 0 0 16px;
+}
+
+.hero .hero-content .button-wrapper {
+  margin-top: 24px;
+}
+
+.hero .hero-content .button-wrapper a.button {
+  width: 100%;
+}
+
+/* === Default variant — desktop: background image with text overlay === */
+@media (width >= 1024px) {
+  .hero {
+    flex-direction: row;
+    min-height: 420px;
+    height: 650px;
+    align-items: flex-start;
+  }
+
+  .hero .hero-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    line-height: normal;
+  }
+
+  .hero .hero-bg picture {
+    height: 100%;
+  }
+
+  .hero .hero-bg img {
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .hero .hero-content {
+    position: relative;
+    z-index: 1;
+    max-width: 50%;
+    padding: 78px 114px;
+    text-align: left;
+  }
+
+  .hero .hero-content h1,
+  .hero .hero-content h2 {
+    font-size: 44px;
+  }
+
+  .hero:not(.overlay-bottom) .hero-content h2::before {
+    margin: 0 0 25px;
+  }
+
+  .hero .hero-content p {
+    max-width: 540px;
+  }
+
+  .hero .hero-content .button-wrapper a.button {
+    width: auto;
+  }
+
+  .hero.no-image {
+    min-height: 300px;
+    height: auto;
+  }
+}
+
+/* === Variant: overlay-bottom — mobile === */
+
+/* Authored as | Hero (overlay-bottom) | — text centered at bottom, overlapping image */
+.hero.overlay-bottom {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.hero.overlay-bottom .hero-bg {
+  position: relative;
+}
+
+.hero.overlay-bottom .hero-bg img {
+  min-height: 200px;
+  max-height: 350px;
+}
+
+.hero.overlay-bottom .hero-content {
+  margin-top: -32px;
+  margin-left: 20px;
+  margin-right: 20px;
+  padding: 32px 32px 40px;
+  text-align: center;
+  background-color: var(--wf-bg-light);
+  border-radius: 12px;
+}
+
+.hero.overlay-bottom .hero-content h1,
+.hero.overlay-bottom .hero-content h2 {
+  font-size: 40px;
+  font-weight: 400;
+  line-height: 1.25;
+  color: var(--wf-text-primary);
   margin: 0;
 }
 
-.hero.promo.no-media {
-  min-height: auto;
+.hero.overlay-bottom .hero-content p {
+  max-width: none;
+  text-align: center;
 }
 
-@media (width >= 900px) {
-  .hero.promo {
-    min-height: 423px;
-    padding: 112px 64px 80px;
+/* === Variant: overlay-bottom — desktop === */
+@media (width >= 1024px) {
+  .hero.overlay-bottom {
+    flex-direction: column;
+    height: auto;
+    min-height: auto;
   }
 
-  .hero.promo.no-media {
-    min-height: auto;
-    padding: 72px 64px;
+  .hero.overlay-bottom .hero-bg {
+    position: relative;
+    inset: auto;
+  }
+
+  .hero.overlay-bottom .hero-bg img {
+    min-height: 282px;
+    max-height: 554px;
+  }
+
+  .hero.overlay-bottom .hero-content {
+    margin-top: -48px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 75%;
+    max-width: none;
+    padding: 40px 80px 48px;
   }
 }

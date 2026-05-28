@@ -39,14 +39,16 @@ Good: Authoring | Cards (icon-belt) | and adding .cards.icon-belt CSS rules
 
 `theme: wealth` applies **only** to pages under `/investing-wealth/`. NEVER apply it to Premier, CIB, Biz, or any consumer LOB.
 
-- Set via section/page metadata only: `theme: wealth`
+- Set via page metadata only: `theme: wealth`
+- The EDS framework (`decorateTemplateAndTheme`) adds a `wealth` class to `<body>`
+- The wealth theme CSS is loaded conditionally from `/styles/themes/wealth.css`
 - All other pages use the Default palette (no `theme` key needed)
-- NEVER scope the Wealth palette by URL path in CSS or JS — always use the metadata/CSS-variable mechanism
-- NEVER place `--wf-wealth-*` variables outside a `[data-theme="wealth"]` selector
+- NEVER scope the Wealth palette by URL path in CSS or JS — always use the body class mechanism
+- NEVER place `--wf-wealth-*` variables outside a `.wealth` selector
 
 ```
 Bad:  .ps-wealth-wrapper { color: #0C2340; }  (path-scoped in shared CSS)
-Good: [data-theme="wealth"] { --wf-text-primary: #1C2533; }  (token-scoped)
+Good: .wealth { --wf-wealth-text: #1C2533; }  (class-scoped via page metadata)
 ```
 
 ### Rule 3: Navigation — Four Variants, Always Selected by Metadata
@@ -71,6 +73,8 @@ locale: en
 
 When editing nav/footer code, changes to one variant must never affect another. Test all four variants after any nav/footer change.
 
+**Locale:** Locale is controlled by the metadata sheet (not page-level metadata). Do NOT add `locale` to individual page metadata — it is determined by path prefix (e.g., `/es/` pages are Spanish).
+
 ### Rule 4: Design Tokens — Use Confirmed Values, Never Approximate
 
 All color, type, and spacing values are confirmed from the live Wells Fargo CSS. NEVER pick hex values from screenshots or use approximations.
@@ -91,13 +95,15 @@ All color, type, and spacing values are confirmed from the live Wells Fargo CSS.
 --wf-cream: #FFF7E2;
 ```
 
-**Wealth palette — only inside `[data-theme="wealth"]`:**
+**Wealth palette — only inside `.wealth` (body class set by page metadata):**
 ```css
 --wf-wealth-primary: #0C2340;
---wf-wealth-accent: #B89060;
+--wf-wealth-accent: #946E3A;
 --wf-wealth-accent-deep: #8B6F3F;
 --wf-wealth-bg: #F5EFE6;
 --wf-wealth-text: #1C2533;
+--wf-wealth-button: #352B6B;
+--wf-wealth-button-hover: #2A2256;
 ```
 
 **Typography (confirmed):**
@@ -111,6 +117,21 @@ All color, type, and spacing values are confirmed from the live Wells Fargo CSS.
 | `--fs-body` | 17px | 1.5 | 400 | Body copy |
 | `--fs-small` | 14px | 1.45 | 400 | Captions, footnotes |
 | `--fs-micro` | 12px | 1.4 | 500 | Disclosures, legal |
+
+**Responsive Breakpoints (confirmed):**
+
+| Viewport | Range | Media Query |
+|---|---|---|
+| Mobile | 0 – 767px | Default (no query) |
+| Tablet | 768px – 1023px | `@media (width >= 768px)` |
+| Desktop | 1024px – 1399px | `@media (width >= 1024px)` |
+| Wide Desktop | 1400px+ | `@media (width >= 1400px)` |
+
+- Declare styles mobile-first, use `min-width` media queries
+- Cards, Columns, Footer go side-by-side at **768px** (tablet)
+- Hero side-by-side layout and full Header nav activate at **1024px** (desktop)
+- Content max-width caps at **1400px** (wide desktop)
+- NEVER use `max-width` media queries or `600px`/`900px` breakpoints
 
 **Layout (confirmed):**
 - Max content width: `1400px` (centered, `0 auto`)
@@ -236,7 +257,7 @@ Run through this checklist before completing any task. Fix every failure before 
 - Follow Stylelint standard configuration
 - Use modern CSS features (CSS Grid, Flexbox, CSS Custom Properties)
 - Maintain responsive design principles
-  - Declare styles mobile first, use `min-width` media queries at 600px/900px/1200px for tablet and desktop
+  - Declare styles mobile first, use `min-width` media queries at 768px/1024px/1400px for tablet, desktop, and wide desktop
 - Ensure all selectors are scoped to the block.
   - Bad: `.item-list`
   - Good: `.{blockname} .item-list`   

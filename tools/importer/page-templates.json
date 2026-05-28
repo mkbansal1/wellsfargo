@@ -1,6 +1,7 @@
 {
   "metadata": {
-    "projectType": "da"
+    "projectType": "da",
+    "detectionMode": "auto"
   },
   "templates": [
     {
@@ -11,111 +12,62 @@
       "description": "Wells Fargo consumer homepage with hero promo, product navigation, promo tile carousel, feature highlights, app promo, community columns, help-cta, and disclaimers",
       "blocks": [
         {
-          "name": "hero-promo",
-          "instances": [
-            ".marquee-container",
-            ".ps-large-promo-full-container"
-          ]
+          "name": "hero",
+          "detection": ".rsk-marquee-container, .marquee-container, .ps-large-promo-full-container",
+          "variant": "default or overlay-bottom",
+          "notes": "Image + heading + CTA, no multiple h3s"
         },
         {
-          "name": "cards-nav",
-          "instances": [
-            ".alt-nav-container"
-          ]
+          "name": "cards",
+          "detection": ".small-promo-combined, [class*='card-background']:has(.card-container)",
+          "variant": "separator (with images), icons, icons-middle, highlight, bg-light, bg-image",
+          "notes": "Images with icons (<=100px) = icons variant; larger images = separator; no images = default Cards (auto-handled)"
         },
         {
-          "name": "cards-promo",
-          "instances": [
-            ".ps-marketing-small-promo-items"
-          ]
+          "name": "accordion",
+          "detection": "details.show-hide-content-wrapper",
+          "variant": "default",
+          "notes": "Groups consecutive <details> siblings into one block"
         },
         {
-          "name": "cards-feature",
-          "instances": [
-            ".card-background-white.text-aligned-center .ps-promo-full-items",
-            ".card-background-white.text-aligned-center .ps-promo-full-content"
-          ]
-        },
-        {
-          "name": "fragment",
-          "instances": [
-            ".ps-native-app-container",
-            ".contact-bar-container"
-          ]
+          "name": "disclaimers",
+          "detection": ".ps-footnote",
+          "variant": "default",
+          "notes": "Numbered footnotes section"
         }
+      ]
+    },
+    {
+      "name": "product-landing",
+      "urls": [
+        "https://www.wellsfargo.com/mortgage/",
+        "https://www.wellsfargo.com/mortgage/buying-a-house/"
       ],
-      "sections": [
+      "description": "Wells Fargo product landing pages — uses smart auto-detection for block mapping. Supports multiple heroes, cards with/without images, accordion FAQs, and disclaimers.",
+      "blocks": [
         {
-          "id": "section-1-hero",
-          "name": "Hero Marquee Banner",
-          "selector": ".marquee-container",
-          "style": null,
-          "blocks": ["hero-promo"],
-          "defaultContent": []
+          "name": "hero",
+          "detection": ".rsk-marquee-container, .marquee-container, .ps-large-promo-full-container",
+          "variant": "default",
+          "notes": "Multiple heroes per page supported. Detected by: image + heading + optional CTA, not multiple h3s"
         },
         {
-          "id": "section-2-nav",
-          "name": "Product Navigation Bar",
-          "selector": ".alt-nav-container",
-          "style": null,
-          "blocks": ["cards-nav"],
-          "defaultContent": []
+          "name": "cards",
+          "detection": ".small-promo-combined, [class*='card-background']:has(.card-container)",
+          "variant": "separator (with images), icons, icons-middle, highlight, bg-light, bg-image",
+          "notes": "Images with icons (<=100px) = icons variant; larger images = separator; no images = default Cards (auto-handled)"
         },
         {
-          "id": "section-3-promo-tiles",
-          "name": "Promotional Tiles Strip",
-          "selector": ".ps-marketing-small-promo-items",
-          "style": null,
-          "blocks": ["cards-promo"],
-          "defaultContent": []
+          "name": "accordion",
+          "detection": "details.show-hide-content-wrapper",
+          "variant": "default",
+          "notes": "Groups consecutive <details> siblings. FAQ questions use <h3> in col1, answer in col2"
         },
         {
-          "id": "section-4-large-promo",
-          "name": "Secondary Promotional Banner",
-          "selector": ".ps-large-promo-full-container",
-          "style": null,
-          "blocks": ["hero-promo"],
-          "defaultContent": []
-        },
-        {
-          "id": "section-5-guidance",
-          "name": "Financial Guidance and Support",
-          "selector": ".ps-body-wrapper > .card-background-white:nth-of-type(1)",
-          "style": null,
-          "blocks": ["cards-feature"],
-          "defaultContent": [".ps-mid-page-title-wrapper:nth-of-type(1)"]
-        },
-        {
-          "id": "section-6-app",
-          "name": "App Promo - Ask Fargo",
-          "selector": ".ps-native-app-container",
-          "style": "grey",
-          "blocks": ["fragment"],
-          "defaultContent": []
-        },
-        {
-          "id": "section-7-community",
-          "name": "Serving Our Communities",
-          "selector": ".ps-body-wrapper > .card-background-white:nth-of-type(2)",
-          "style": null,
-          "blocks": ["cards-feature"],
-          "defaultContent": [".ps-mid-page-title-wrapper:nth-of-type(2)"]
-        },
-        {
-          "id": "section-8-help",
-          "name": "Help CTA Strip",
-          "selector": ".contact-bar-container",
-          "style": null,
-          "blocks": ["fragment"],
-          "defaultContent": []
-        },
-        {
-          "id": "section-9-footer",
-          "name": "Footer Disclaimers",
-          "selector": ".ps-footer-wrapper",
-          "style": null,
-          "blocks": [],
-          "defaultContent": []
+          "name": "disclaimers",
+          "detection": ".ps-footnote",
+          "variant": "default",
+          "notes": "Numbered footnotes at page bottom"
         }
       ]
     }
