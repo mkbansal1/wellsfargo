@@ -127,11 +127,17 @@ export default function transform(hookName, element, payload) {
       }
     });
 
-    // Convert absolute wellsfargo.com links to relative paths
+    // Convert absolute wellsfargo.com links to relative paths and strip trailing slash
     element.querySelectorAll('a').forEach((a) => {
-      const href = a.getAttribute('href') || '';
+      let href = a.getAttribute('href') || '';
       if (href.startsWith('https://www.wellsfargo.com/')) {
-        a.setAttribute('href', href.replace('https://www.wellsfargo.com', ''));
+        href = href.replace('https://www.wellsfargo.com', '');
+      }
+      if (href.length > 1 && href.endsWith('/')) {
+        href = href.slice(0, -1);
+      }
+      if (href !== (a.getAttribute('href') || '')) {
+        a.setAttribute('href', href);
       }
     });
 

@@ -427,6 +427,8 @@ function buildSections(main, document) {
   });
 
   sections.forEach((section, i) => {
+    // Skip empty sections or sections with only empty/whitespace elements
+    section.els = section.els.filter((el) => el.textContent.trim() || el.querySelector('img, picture, table') || (el.className || '').includes('divider'));
     if (section.els.length === 0) return;
     if (i > 0) main.appendChild(document.createElement('hr'));
     section.els.forEach((el) => main.appendChild(el));
