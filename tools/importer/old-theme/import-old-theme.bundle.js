@@ -39,6 +39,7 @@ var CustomImportScript = (() => {
       '[id*="contentBottom"]',
       ".hidden",
       '[class*="hidden"]',
+      "#persistent-cta",
       "iframe",
       "noscript",
       ".visuallyHidden",
