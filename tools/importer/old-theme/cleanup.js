@@ -17,9 +17,6 @@ export default function cleanup(document, url) {
     '#ot-sdk-btn-floating',
     '.ep-modal',
     '.signon-container',
-    '.contentBottom',
-    '#contentBottom',
-    '[id*="contentBottom"]',
     '.hidden',
     '[class*="hidden"]',
     '#persistent-cta',
@@ -246,6 +243,9 @@ export default function cleanup(document, url) {
 
   if (pageid) main.setAttribute('data-pageid', pageid);
   if (footnoteCids.length > 0) main.setAttribute('data-footnotes', footnoteCids.join(', '));
+
+  // --- Remove contentBottom AFTER footnote extraction ---
+  main.querySelectorAll('.contentBottom, #contentBottom, [id*="contentBottom"]').forEach((el) => el.remove());
 
   // --- Generic transforms ---
 

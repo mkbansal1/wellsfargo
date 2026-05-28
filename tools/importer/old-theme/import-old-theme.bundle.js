@@ -34,9 +34,6 @@ var CustomImportScript = (() => {
       "#ot-sdk-btn-floating",
       ".ep-modal",
       ".signon-container",
-      ".contentBottom",
-      "#contentBottom",
-      '[id*="contentBottom"]',
       ".hidden",
       '[class*="hidden"]',
       "#persistent-cta",
@@ -208,6 +205,7 @@ var CustomImportScript = (() => {
     }
     if (pageid) main.setAttribute("data-pageid", pageid);
     if (footnoteCids.length > 0) main.setAttribute("data-footnotes", footnoteCids.join(", "));
+    main.querySelectorAll('.contentBottom, #contentBottom, [id*="contentBottom"]').forEach((el) => el.remove());
     main.querySelectorAll("div.title2-SemiBold").forEach((el) => {
       const h3 = document.createElement("h3");
       h3.innerHTML = el.innerHTML;
