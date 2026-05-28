@@ -134,5 +134,25 @@ export default function transform(hookName, element, payload) {
         a.setAttribute('href', href.replace('https://www.wellsfargo.com', ''));
       }
     });
+
+    // Convert button links: primary → bold, secondary → italic
+    element.querySelectorAll('a.ps-btn-primary, a.ps-btn, a[class*="ps-btn-primary"]').forEach((a) => {
+      const doc = element.ownerDocument;
+      const strong = doc.createElement('strong');
+      const newA = doc.createElement('a');
+      newA.setAttribute('href', a.getAttribute('href') || '');
+      newA.textContent = a.textContent.trim();
+      strong.appendChild(newA);
+      a.replaceWith(strong);
+    });
+    element.querySelectorAll('a.ps-btn-secondary, a[class*="ps-btn-secondary"]').forEach((a) => {
+      const doc = element.ownerDocument;
+      const em = doc.createElement('em');
+      const newA = doc.createElement('a');
+      newA.setAttribute('href', a.getAttribute('href') || '');
+      newA.textContent = a.textContent.trim();
+      em.appendChild(newA);
+      a.replaceWith(em);
+    });
   }
 }
