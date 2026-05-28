@@ -103,7 +103,40 @@ function buildSubNavContent(subNav, links) {
   if (!subNav.contains(inner)) subNav.append(inner);
 }
 
-function buildPrimaryNav(navLists, activeIndex = 0) {
+function getActiveNavState(navLists) {
+  const currentPath = window.location.pathname;
+  const normalizedCurrent = currentPath.endsWith('/') ? currentPath : `${currentPath}/`;
+
+  // first pass: check for exact top-level match
+  for (let i = 0; i < navLists.length; i += 1) {
+    try {
+      const linkPath = new URL(navLists[i].link.href, window.location.origin).pathname;
+      const normalizedLink = linkPath.endsWith('/') ? linkPath : `${linkPath}/`;
+      if (normalizedCurrent === normalizedLink) {
+        return { activeIdx: i, isTopLevel: true };
+      }
+    } catch { /* skip */ }
+  }
+
+  // second pass: check if current page matches a child link
+  for (let i = 0; i < navLists.length; i += 1) {
+    const { children } = navLists[i];
+    for (let j = 0; j < children.length; j += 1) {
+      try {
+        const childPath = new URL(children[j].href, window.location.origin).pathname;
+        const normalizedChild = childPath.endsWith('/') ? childPath : `${childPath}/`;
+        if (normalizedCurrent === normalizedChild
+          || (childPath !== '/' && currentPath.startsWith(childPath))) {
+          return { activeIdx: i, isTopLevel: false };
+        }
+      } catch { /* skip */ }
+    }
+  }
+
+  return { activeIdx: -1, isTopLevel: false };
+}
+
+function buildPrimaryNav(navLists, activeIndex = -1) {
   const primaryNav = document.createElement('div');
   primaryNav.className = 'nav-primary';
 
@@ -116,20 +149,10 @@ function buildPrimaryNav(navLists, activeIndex = 0) {
   navLists.forEach((item, i) => {
     const li = document.createElement('li');
     li.className = 'nav-primary-tab';
-    if (i === activeIndex) li.classList.add('active');
+    if (activeIndex >= 0 && i === activeIndex) li.classList.add('active');
 
     const link = item.link.cloneNode(true);
     link.className = 'nav-primary-link';
-    link.addEventListener('click', (e) => {
-      e.preventDefault();
-      ul.querySelectorAll('.nav-primary-tab').forEach((tab) => tab.classList.remove('active'));
-      li.classList.add('active');
-      const subNav = primaryNav.closest('nav').querySelector('.nav-sub');
-      const template = getMetadata('template');
-      if (template === 'product-landing' && subNav) {
-        buildSubNavContent(subNav, item.children);
-      }
-    });
     li.append(link);
     ul.append(li);
   });
@@ -139,10 +162,10 @@ function buildPrimaryNav(navLists, activeIndex = 0) {
   return primaryNav;
 }
 
-function buildSubNav(navLists, activeIndex = 0) {
+function buildSubNav(navLists, activeIndex = -1) {
   const subNav = document.createElement('div');
   subNav.className = 'nav-sub';
-  if (navLists[activeIndex] && navLists[activeIndex].children.length > 0) {
+  if (activeIndex >= 0 && navLists[activeIndex] && navLists[activeIndex].children.length > 0) {
     buildSubNavContent(subNav, navLists[activeIndex].children);
   }
   return subNav;
@@ -169,20 +192,13 @@ function buildMobileNav(navLists, utilities) {
   content.append(searchBar);
 
   // determine which section matches the current page
-  const currentPath = window.location.pathname;
-  let activeIdx = 0;
-  navLists.forEach((item, i) => {
-    try {
-      const linkPath = new URL(item.link.href, window.location.origin).pathname;
-      if (linkPath !== '/' && currentPath.startsWith(linkPath)) activeIdx = i;
-    } catch { /* keep default */ }
-  });
+  const { activeIdx } = getActiveNavState(navLists);
 
   // nav sections — active section determined by current page URL
   navLists.forEach((item, i) => {
     const section = document.createElement('div');
     section.className = 'nav-mobile-section';
-    if (i === activeIdx) section.classList.add('active');
+    if (activeIdx >= 0 && i === activeIdx) section.classList.add('active');
 
     const header = document.createElement('a');
     header.className = 'nav-mobile-section-header';
@@ -206,7 +222,7 @@ function buildMobileNav(navLists, utilities) {
   if (utilities.length > 0) {
     const utilsSection = document.createElement('div');
     utilsSection.className = 'nav-mobile-utils';
-    const isSpanish = currentPath.includes('/es/');
+    const isSpanish = window.location.pathname.includes('/es/');
     utilities.forEach(({ text, href }) => {
       // language logic: show opposite language
       if (text === 'English' && !isSpanish) return;
@@ -387,18 +403,14 @@ export default async function decorate(block) {
   });
   nav.append(topBar);
 
-  // build primary nav tabs
-  const primaryNav = buildPrimaryNav(navLists, 0);
+  // build primary nav tabs (active tab determined by current page URL)
+  const { activeIdx: activeNavIdx, isTopLevel } = getActiveNavState(navLists);
+  const primaryNav = buildPrimaryNav(navLists, activeNavIdx);
   nav.append(primaryNav);
 
-  // build sub-nav for active tab
-  const template = getMetadata('template');
-  if (template === 'product-landing') {
-    const subNav = buildSubNav(navLists, 0);
-    nav.append(subNav);
-  } else {
-    document.getElementsByTagName('header')[0]?.classList.add('no-subnav');
-  }
+  // build sub-nav only when on the exact top-level nav page
+  const subNav = buildSubNav(navLists, isTopLevel ? activeNavIdx : -1);
+  nav.append(subNav);
 
   // build mobile menu
   const mobileMenu = buildMobileNav(navLists, utilities);
