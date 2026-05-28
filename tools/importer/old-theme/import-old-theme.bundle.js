@@ -444,6 +444,50 @@ var CustomImportScript = (() => {
         }
       }
       flattenMain(main);
+      main.querySelectorAll('.hatched, [class*="hatched"]').forEach((el) => {
+        el.remove();
+      });
+      const showHideItems = main.querySelectorAll(".rebranded-show-hide");
+      if (showHideItems.length > 0) {
+        const parent = showHideItems[0].parentElement;
+        if (parent) {
+          const siblings = Array.from(parent.children);
+          let currentGroup = [];
+          const groups = [];
+          siblings.forEach((el) => {
+            const cls = el.className || "";
+            if (cls.includes("rebranded-show-hide")) {
+              currentGroup.push(el);
+            } else if (el.tagName === "H3" || cls.includes("c54")) {
+              if (currentGroup.length > 0) {
+                groups.push({ items: currentGroup, beforeEl: currentGroup[0] });
+                currentGroup = [];
+              }
+            }
+          });
+          if (currentGroup.length > 0) {
+            groups.push({ items: currentGroup, beforeEl: currentGroup[0] });
+          }
+          groups.forEach(({ items, beforeEl }) => {
+            const cells = [];
+            items.forEach((item) => {
+              const h2 = item.querySelector("h2");
+              const questionText = h2 ? h2.textContent.trim() : "";
+              const answerEls = Array.from(item.children).filter((c) => c.tagName !== "H2");
+              if (questionText) {
+                const qH3 = document.createElement("h3");
+                qH3.textContent = questionText;
+                cells.push([[qH3], answerEls.length > 0 ? answerEls : [""]]);
+              }
+            });
+            if (cells.length > 0) {
+              const block = WebImporter.Blocks.createBlock(document, { name: "Accordion (compact)", cells });
+              beforeEl.before(block);
+              items.forEach((item) => item.remove());
+            }
+          });
+        }
+      }
       parseOldThemeAccordion(main, document);
       const mainContent = main.querySelector('.content-area, .main-content, [role="main"]') || main;
       const containers = [mainContent, ...Array.from(main.querySelectorAll(":scope > div, :scope > section"))];
@@ -515,19 +559,27 @@ var CustomImportScript = (() => {
             }
           });
           if (cells.length > 0) {
-            const block = WebImporter.Blocks.createBlock(document, { name: "Cards", cells });
+            const block = WebImporter.Blocks.createBlock(document, { name: "Cards (separator)", cells });
             container.replaceWith(block);
           }
         }
       });
       const children = Array.from(main.children).filter((el) => {
         if (el.tagName === "SCRIPT" || el.tagName === "STYLE" || el.tagName === "LINK") return false;
-        if (!el.textContent.trim() && !el.querySelector("img, picture, table")) return false;
+        if (!el.textContent.trim() && !el.querySelector("img, picture, table") && !(el.className || "").includes("c54")) return false;
         return true;
       });
       const sections = [];
       let current = [];
       children.forEach((el) => {
+        const cls = el.className || "";
+        if (cls.includes("c54")) {
+          if (current.length > 0) {
+            sections.push(current);
+            current = [];
+          }
+          return;
+        }
         if (el.tagName === "H2" && el.closest("table") === null) {
           if (current.length > 0) {
             sections.push(current);

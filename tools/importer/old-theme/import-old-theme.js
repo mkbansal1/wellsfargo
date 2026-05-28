@@ -245,9 +245,60 @@ export default {
     }
     flattenMain(main);
 
+    // Phase 0.6: Remove hatched background divs (decorative only)
+    main.querySelectorAll('.hatched, [class*="hatched"]').forEach((el) => {
+      el.remove();
+    });
+
     // Phase 1: Parsers
 
-    // 1a. Old-theme accordion: h2 > a[href="#Expand"] pattern (most common on old-theme)
+    // 1a. Rebranded show-hide accordion: group .rebranded-show-hide items, break on H3
+    const showHideItems = main.querySelectorAll('.rebranded-show-hide');
+    if (showHideItems.length > 0) {
+      const parent = showHideItems[0].parentElement;
+      if (parent) {
+        const siblings = Array.from(parent.children);
+        let currentGroup = [];
+        const groups = [];
+
+        siblings.forEach((el) => {
+          const cls = el.className || '';
+          if (cls.includes('rebranded-show-hide')) {
+            currentGroup.push(el);
+          } else if (el.tagName === 'H3' || (cls.includes('c54'))) {
+            if (currentGroup.length > 0) {
+              groups.push({ items: currentGroup, beforeEl: currentGroup[0] });
+              currentGroup = [];
+            }
+          }
+        });
+        if (currentGroup.length > 0) {
+          groups.push({ items: currentGroup, beforeEl: currentGroup[0] });
+        }
+
+        // Convert each group to an Accordion (compact) block
+        groups.forEach(({ items, beforeEl }) => {
+          const cells = [];
+          items.forEach((item) => {
+            const h2 = item.querySelector('h2');
+            const questionText = h2 ? h2.textContent.trim() : '';
+            const answerEls = Array.from(item.children).filter((c) => c.tagName !== 'H2');
+            if (questionText) {
+              const qH3 = document.createElement('h3');
+              qH3.textContent = questionText;
+              cells.push([[qH3], answerEls.length > 0 ? answerEls : ['']]);
+            }
+          });
+          if (cells.length > 0) {
+            const block = WebImporter.Blocks.createBlock(document, { name: 'Accordion (compact)', cells });
+            beforeEl.before(block);
+            items.forEach((item) => item.remove());
+          }
+        });
+      }
+    }
+
+    // 1a-fallback: Old-theme accordion: h2 > a[href="#Expand"] pattern
     parseOldThemeAccordion(main, document);
 
     // 1b. Button accordion fallback: h2 > button pattern
@@ -333,16 +384,16 @@ export default {
         });
 
         if (cells.length > 0) {
-          const block = WebImporter.Blocks.createBlock(document, { name: 'Cards', cells });
+          const block = WebImporter.Blocks.createBlock(document, { name: 'Cards (separator)', cells });
           container.replaceWith(block);
         }
       }
     });
 
-    // Phase 2: Build sections — walk main children, break on H2, create sections with <hr>
+    // Phase 2: Build sections — break on H2 and div.c54 separators
     const children = Array.from(main.children).filter((el) => {
       if (el.tagName === 'SCRIPT' || el.tagName === 'STYLE' || el.tagName === 'LINK') return false;
-      if (!el.textContent.trim() && !el.querySelector('img, picture, table')) return false;
+      if (!el.textContent.trim() && !el.querySelector('img, picture, table') && !(el.className || '').includes('c54')) return false;
       return true;
     });
 
@@ -350,6 +401,15 @@ export default {
     let current = [];
 
     children.forEach((el) => {
+      const cls = el.className || '';
+      // div.c54 = section separator (skip the element itself, just break)
+      if (cls.includes('c54')) {
+        if (current.length > 0) {
+          sections.push(current);
+          current = [];
+        }
+        return;
+      }
       // Break on H2 that is NOT inside a block TABLE
       if (el.tagName === 'H2' && el.closest('table') === null) {
         if (current.length > 0) {
