@@ -260,6 +260,53 @@ var CustomImportScript = (() => {
     }
   }
 
+  // tools/importer/parsers/video.js
+  function parse6(element, { document }) {
+    const video = element.querySelector("video");
+    if (!video) return;
+    const source = video.querySelector("source");
+    const videoUrl = source ? source.getAttribute("src") : "";
+    const posterUrl = video.getAttribute("poster") || "";
+    const row1 = [];
+    if (videoUrl) {
+      const videoLink = document.createElement("a");
+      videoLink.href = videoUrl;
+      videoLink.textContent = videoUrl;
+      row1.push(videoLink);
+    }
+    if (posterUrl) {
+      const posterLink = document.createElement("a");
+      posterLink.href = posterUrl;
+      posterLink.textContent = posterUrl;
+      row1.push(posterLink);
+    }
+    const transcript = element.querySelector('details, [class*="transcript"]');
+    const row2 = [];
+    if (transcript) {
+      const summary = transcript.querySelector("summary");
+      if (summary) {
+        const heading = document.createElement("p");
+        heading.textContent = summary.textContent.trim();
+        row2.push(heading);
+      }
+      const bodyEls = Array.from(transcript.children).filter((c) => c.tagName !== "SUMMARY");
+      bodyEls.forEach((el) => {
+        const ps = el.querySelectorAll("p");
+        if (ps.length > 0) {
+          ps.forEach((p) => row2.push(p.cloneNode(true)));
+        } else if (el.textContent.trim()) {
+          const p = document.createElement("p");
+          p.textContent = el.textContent.trim();
+          row2.push(p);
+        }
+      });
+    }
+    const cells = [row1];
+    if (row2.length > 0) cells.push(row2);
+    const block = WebImporter.Blocks.createBlock(document, { name: "Video", cells });
+    element.replaceWith(block);
+  }
+
   // tools/importer/transformers/wellsfargo-cleanup.js
   var H = { before: "beforeTransform", after: "afterTransform" };
   var TAG_MAPPINGS = [
@@ -382,7 +429,8 @@ var CustomImportScript = (() => {
     "cards-with-images": parse2,
     "cards-no-images": parse4,
     "accordion": parse3,
-    "disclaimers": parse5
+    "disclaimers": parse5,
+    "video": parse6
   };
   var VARIANT_RULES = {
     // Image size threshold: below this = icon, above = photo
@@ -530,7 +578,18 @@ var CustomImportScript = (() => {
         }
       }
     });
-    const accordionItems = main.querySelectorAll("details.show-hide-content-wrapper");
+    main.querySelectorAll(':scope > div, :scope > [class*="enhanced-txt"]').forEach((el) => {
+      if (processed.has(el)) return;
+      const video = el.querySelector("video");
+      if (!video) return;
+      processed.add(el);
+      el.querySelectorAll("details").forEach((d) => processed.add(d));
+      try {
+        parsers["video"](el, { document, url, params });
+      } catch (e) {
+      }
+    });
+    const accordionItems = Array.from(main.querySelectorAll("details.show-hide-content-wrapper")).filter((d) => !processed.has(d));
     if (accordionItems.length > 0) {
       const parent = accordionItems[0].parentElement;
       if (parent === main) {
