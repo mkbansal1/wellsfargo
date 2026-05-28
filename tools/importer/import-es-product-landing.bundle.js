@@ -108,9 +108,15 @@ var CustomImportScript = (() => {
         }
       });
       element.querySelectorAll("a").forEach((a) => {
-        const href = a.getAttribute("href") || "";
+        let href = a.getAttribute("href") || "";
         if (href.startsWith("https://www.wellsfargo.com/")) {
-          a.setAttribute("href", href.replace("https://www.wellsfargo.com", ""));
+          href = href.replace("https://www.wellsfargo.com", "");
+        }
+        if (href.length > 1 && href.endsWith("/")) {
+          href = href.slice(0, -1);
+        }
+        if (href !== (a.getAttribute("href") || "")) {
+          a.setAttribute("href", href);
         }
       });
       element.querySelectorAll('a.ps-btn-primary, a.ps-btn, a[class*="ps-btn-primary"]').forEach((a) => {
@@ -458,22 +464,26 @@ var CustomImportScript = (() => {
     if (el.querySelector && el.querySelector(".ps-mid-page-title-top-line, .ps-mid-page-title-wrapper")) styles.push("heading-bar");
     return styles.length > 0 ? styles.join(", ") : null;
   }
-  var FRAGMENT_PATTERNS = [
-    { match: "Hable con un consultor hipotecario", path: "/es/fragments/mortgage/talk-to-mortgage-consultant" },
-    { match: "Talk to a mortgage consultant", path: "/es/fragments/mortgage/talk-to-mortgage-consultant" },
-    { match: "Explore el centro de aprendizaje", path: "/es/fragments/mortgage/explore-learning-center" },
-    { match: "Explore the mortgage learning center", path: "/es/fragments/mortgage/explore-learning-center" },
-    { match: "How can we help", path: "/es/fragments/help-cta-default" },
-    { match: "C\xF3mo podemos ayudar", path: "/es/fragments/help-cta-default" }
-  ];
+  function getFragmentPatterns(url) {
+    const prefix = url && url.includes("/es/") ? "/es" : "";
+    return [
+      { match: "Hable con un consultor hipotecario", path: prefix + "/fragments/mortgage/talk-to-mortgage-consultant" },
+      { match: "Talk to a mortgage consultant", path: prefix + "/fragments/mortgage/talk-to-mortgage-consultant" },
+      { match: "Explore el centro de aprendizaje", path: prefix + "/fragments/mortgage/explore-learning-center" },
+      { match: "Explore the mortgage learning center", path: prefix + "/fragments/mortgage/explore-learning-center" },
+      { match: "How can we help", path: prefix + "/fragments/help-cta-default" },
+      { match: "C\xF3mo podemos ayudar", path: prefix + "/fragments/help-cta-default" }
+    ];
+  }
   function runParsers(main, document, url, params) {
     const processed = /* @__PURE__ */ new Set();
+    const fragmentPatterns = getFragmentPatterns(url);
     main.querySelectorAll(':scope > div, :scope > [class*="card-background"]').forEach((el) => {
       if (processed.has(el)) return;
       const h2 = el.querySelector("h2");
       if (!h2) return;
       const headingText = h2.textContent.trim();
-      const fragmentMatch = FRAGMENT_PATTERNS.find((p) => headingText.includes(p.match));
+      const fragmentMatch = fragmentPatterns.find((p) => headingText.includes(p.match));
       if (fragmentMatch) {
         processed.add(el);
         const block = WebImporter.Blocks.createBlock(document, {
