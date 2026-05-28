@@ -162,6 +162,9 @@ var CustomImportScript = (() => {
     let pageid = "";
     const c20 = main.querySelectorAll(".c20");
     c20.forEach((el) => {
+      if (el.querySelector(".c20equal")) {
+        footnoteCids.push("tcm:84-226264-16");
+      }
       const cidItems = el.querySelectorAll("[data-cid]");
       cidItems.forEach((item) => {
         const cid = item.getAttribute("data-cid");
@@ -173,7 +176,7 @@ var CustomImportScript = (() => {
         if (dtMatch) pageid = dtMatch[0];
         else if (qsrMatch) pageid = qsrMatch[0];
         else if (lrcMatch) pageid = lrcMatch[0];
-        else footnoteCids.push(cid);
+        else if (!footnoteCids.includes(cid)) footnoteCids.push(cid);
       });
       el.remove();
     });
