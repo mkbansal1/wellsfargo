@@ -34,6 +34,7 @@ var CustomImportScript = (() => {
       "#ot-sdk-btn-floating",
       ".ep-modal",
       ".signon-container",
+      ".contentBottom",
       "iframe",
       "noscript",
       ".visuallyHidden",
@@ -592,6 +593,14 @@ var CustomImportScript = (() => {
             const block = WebImporter.Blocks.createBlock(document, { name: "Cards (separator)", cells });
             container.replaceWith(block);
           }
+        }
+      });
+      Array.from(main.children).forEach((child) => {
+        if (child.tagName === "DIV" && child.children.length > 0 && !child.className && child.querySelector(".c54, .rebranded-show-hide, h2, h3, table")) {
+          while (child.firstChild) {
+            main.insertBefore(child.firstChild, child);
+          }
+          child.remove();
         }
       });
       const children = Array.from(main.children).filter((el) => {

@@ -17,6 +17,7 @@ export default function cleanup(document, url) {
     '#ot-sdk-btn-floating',
     '.ep-modal',
     '.signon-container',
+    '.contentBottom',
     'iframe',
     'noscript',
     '.visuallyHidden',
