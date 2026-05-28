@@ -504,9 +504,10 @@ function getFragmentPatterns(url) {
 function runParsers(main, document, url, params) {
   const processed = new Set();
 
-  // LEARNING NAVIGATION: Detect sub-nav with /mortgage/learn/ links
+  // LEARNING NAVIGATION: Detect FIRST sub-nav with /mortgage/learn/ links (only once)
+  let learningNavProcessed = false;
   main.querySelectorAll('nav').forEach((nav) => {
-    if (processed.has(nav)) return;
+    if (processed.has(nav) || learningNavProcessed) return;
     const links = nav.querySelectorAll('a');
     const learnLinks = Array.from(links).filter((a) => {
       const href = a.getAttribute('href') || '';
@@ -514,6 +515,7 @@ function runParsers(main, document, url, params) {
     });
     if (learnLinks.length >= 3) {
       processed.add(nav);
+      learningNavProcessed = true;
       const cells = learnLinks.map((a) => {
         const p = document.createElement('p');
         const link = document.createElement('a');
@@ -524,6 +526,17 @@ function runParsers(main, document, url, params) {
       });
       const block = WebImporter.Blocks.createBlock(document, { name: 'Learning Navigation', cells });
       nav.replaceWith(block);
+      // Remove any duplicate navs with same links
+      main.querySelectorAll('nav').forEach((dupNav) => {
+        const dupLinks = Array.from(dupNav.querySelectorAll('a')).filter((a) => {
+          const href = a.getAttribute('href') || '';
+          return href.includes('/mortgage/learn') || href.includes('/es/mortgage/learn');
+        });
+        if (dupLinks.length >= 3) {
+          processed.add(dupNav);
+          dupNav.remove();
+        }
+      });
     }
   });
 

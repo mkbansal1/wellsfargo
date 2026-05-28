@@ -529,8 +529,9 @@ var CustomImportScript = (() => {
   }
   function runParsers(main, document, url, params) {
     const processed = /* @__PURE__ */ new Set();
+    let learningNavProcessed = false;
     main.querySelectorAll("nav").forEach((nav) => {
-      if (processed.has(nav)) return;
+      if (processed.has(nav) || learningNavProcessed) return;
       const links = nav.querySelectorAll("a");
       const learnLinks = Array.from(links).filter((a) => {
         const href = a.getAttribute("href") || "";
@@ -538,6 +539,7 @@ var CustomImportScript = (() => {
       });
       if (learnLinks.length >= 3) {
         processed.add(nav);
+        learningNavProcessed = true;
         const cells = learnLinks.map((a) => {
           const p = document.createElement("p");
           const link = document.createElement("a");
@@ -548,6 +550,16 @@ var CustomImportScript = (() => {
         });
         const block = WebImporter.Blocks.createBlock(document, { name: "Learning Navigation", cells });
         nav.replaceWith(block);
+        main.querySelectorAll("nav").forEach((dupNav) => {
+          const dupLinks = Array.from(dupNav.querySelectorAll("a")).filter((a) => {
+            const href = a.getAttribute("href") || "";
+            return href.includes("/mortgage/learn") || href.includes("/es/mortgage/learn");
+          });
+          if (dupLinks.length >= 3) {
+            processed.add(dupNav);
+            dupNav.remove();
+          }
+        });
       }
     });
     const fragmentPatterns = getFragmentPatterns(url);
