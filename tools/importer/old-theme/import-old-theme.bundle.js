@@ -444,6 +444,25 @@ var CustomImportScript = (() => {
         }
       }
       flattenMain(main);
+      const contentCol = main.querySelector(".mainContentCol") || main.querySelector('[class*="ContentCol"]');
+      if (contentCol) {
+        let target = contentCol;
+        while (target.children.length === 1 && target.children[0].tagName === "DIV" && !target.children[0].querySelector(".c54")) {
+          target = target.children[0];
+        }
+        if (!target.querySelector(":scope > .c54") && target.children.length === 1 && target.children[0].querySelector(".c54")) {
+          target = target.children[0];
+        }
+        const topWrapper = contentCol.closest("div:not(main)") || contentCol;
+        if (topWrapper.parentElement === main || topWrapper.parentElement) {
+          const parent = topWrapper.parentElement || main;
+          while (target.firstChild) {
+            parent.insertBefore(target.firstChild, topWrapper);
+          }
+          topWrapper.remove();
+        }
+      }
+      flattenMain(main);
       main.querySelectorAll('.hatched, [class*="hatched"]').forEach((el) => {
         el.remove();
       });

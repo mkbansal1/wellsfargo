@@ -245,6 +245,34 @@ export default {
     }
     flattenMain(main);
 
+    // Phase 0.55: Unwrap content column wrappers to bring c54 separators to main level
+    // Source nests content in: .t8 > div > .mainContentCol > div > (actual content + c54)
+    const contentCol = main.querySelector('.mainContentCol') || main.querySelector('[class*="ContentCol"]');
+    if (contentCol) {
+      // Find the innermost wrapper that contains the actual content (with c54 siblings)
+      let target = contentCol;
+      // If contentCol has one child div that contains c54, go deeper
+      while (target.children.length === 1 && target.children[0].tagName === 'DIV' && !target.children[0].querySelector('.c54')) {
+        target = target.children[0];
+      }
+      // If target itself doesn't have c54 but its single child does
+      if (!target.querySelector(':scope > .c54') && target.children.length === 1 && target.children[0].querySelector('.c54')) {
+        target = target.children[0];
+      }
+      // Move target's children to main (replacing the entire wrapper chain)
+      const topWrapper = contentCol.closest('div:not(main)') || contentCol;
+      if (topWrapper.parentElement === main || topWrapper.parentElement) {
+        // Move all content up to main level
+        const parent = topWrapper.parentElement || main;
+        while (target.firstChild) {
+          parent.insertBefore(target.firstChild, topWrapper);
+        }
+        topWrapper.remove();
+      }
+    }
+    // Re-run flatten in case we still have single-child wrappers
+    flattenMain(main);
+
     // Phase 0.6: Remove hatched background divs (decorative only)
     main.querySelectorAll('.hatched, [class*="hatched"]').forEach((el) => {
       el.remove();
