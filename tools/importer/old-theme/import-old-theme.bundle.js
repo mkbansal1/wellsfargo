@@ -37,6 +37,8 @@ var CustomImportScript = (() => {
       ".contentBottom",
       "#contentBottom",
       '[id*="contentBottom"]',
+      ".hidden",
+      '[class*="hidden"]',
       "iframe",
       "noscript",
       ".visuallyHidden",
