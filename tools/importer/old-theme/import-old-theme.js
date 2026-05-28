@@ -281,31 +281,41 @@ export default {
     // Phase 1: Parsers
 
     // 1a. Rebranded show-hide accordion: group .rebranded-show-hide items, break on H3
+    // H3 before a group becomes that group's heading (placed before the accordion block)
     const showHideItems = main.querySelectorAll('.rebranded-show-hide');
     if (showHideItems.length > 0) {
       const parent = showHideItems[0].parentElement;
       if (parent) {
         const siblings = Array.from(parent.children);
         let currentGroup = [];
+        let currentHeading = null;
         const groups = [];
 
         siblings.forEach((el) => {
           const cls = el.className || '';
           if (cls.includes('rebranded-show-hide')) {
             currentGroup.push(el);
-          } else if (el.tagName === 'H3' || (cls.includes('c54'))) {
+          } else if (el.tagName === 'H3') {
+            // H3 breaks current group and becomes heading for the NEXT group
             if (currentGroup.length > 0) {
-              groups.push({ items: currentGroup, beforeEl: currentGroup[0] });
+              groups.push({ items: currentGroup, heading: currentHeading, beforeEl: currentGroup[0] });
               currentGroup = [];
+            }
+            currentHeading = el;
+          } else if (cls.includes('c54')) {
+            if (currentGroup.length > 0) {
+              groups.push({ items: currentGroup, heading: currentHeading, beforeEl: currentGroup[0] });
+              currentGroup = [];
+              currentHeading = null;
             }
           }
         });
         if (currentGroup.length > 0) {
-          groups.push({ items: currentGroup, beforeEl: currentGroup[0] });
+          groups.push({ items: currentGroup, heading: currentHeading, beforeEl: currentGroup[0] });
         }
 
-        // Convert each group to an Accordion (compact) block
-        groups.forEach(({ items, beforeEl }) => {
+        // Convert each group to an Accordion (compact) block with heading before it
+        groups.forEach(({ items, heading, beforeEl }) => {
           const cells = [];
           items.forEach((item) => {
             const h2 = item.querySelector('h2');
@@ -319,6 +329,10 @@ export default {
           });
           if (cells.length > 0) {
             const block = WebImporter.Blocks.createBlock(document, { name: 'Accordion (compact)', cells });
+            // Place heading (H3) before the accordion block if present
+            if (heading) {
+              beforeEl.before(heading);
+            }
             beforeEl.before(block);
             items.forEach((item) => item.remove());
           }

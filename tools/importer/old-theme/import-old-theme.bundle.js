@@ -472,22 +472,30 @@ var CustomImportScript = (() => {
         if (parent) {
           const siblings = Array.from(parent.children);
           let currentGroup = [];
+          let currentHeading = null;
           const groups = [];
           siblings.forEach((el) => {
             const cls = el.className || "";
             if (cls.includes("rebranded-show-hide")) {
               currentGroup.push(el);
-            } else if (el.tagName === "H3" || cls.includes("c54")) {
+            } else if (el.tagName === "H3") {
               if (currentGroup.length > 0) {
-                groups.push({ items: currentGroup, beforeEl: currentGroup[0] });
+                groups.push({ items: currentGroup, heading: currentHeading, beforeEl: currentGroup[0] });
                 currentGroup = [];
+              }
+              currentHeading = el;
+            } else if (cls.includes("c54")) {
+              if (currentGroup.length > 0) {
+                groups.push({ items: currentGroup, heading: currentHeading, beforeEl: currentGroup[0] });
+                currentGroup = [];
+                currentHeading = null;
               }
             }
           });
           if (currentGroup.length > 0) {
-            groups.push({ items: currentGroup, beforeEl: currentGroup[0] });
+            groups.push({ items: currentGroup, heading: currentHeading, beforeEl: currentGroup[0] });
           }
-          groups.forEach(({ items, beforeEl }) => {
+          groups.forEach(({ items, heading, beforeEl }) => {
             const cells = [];
             items.forEach((item) => {
               const h2 = item.querySelector("h2");
@@ -501,6 +509,9 @@ var CustomImportScript = (() => {
             });
             if (cells.length > 0) {
               const block = WebImporter.Blocks.createBlock(document, { name: "Accordion (compact)", cells });
+              if (heading) {
+                beforeEl.before(heading);
+              }
               beforeEl.before(block);
               items.forEach((item) => item.remove());
             }
