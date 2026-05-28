@@ -504,6 +504,29 @@ function getFragmentPatterns(url) {
 function runParsers(main, document, url, params) {
   const processed = new Set();
 
+  // LEARNING NAVIGATION: Detect sub-nav with /mortgage/learn/ links
+  main.querySelectorAll('nav').forEach((nav) => {
+    if (processed.has(nav)) return;
+    const links = nav.querySelectorAll('a');
+    const learnLinks = Array.from(links).filter((a) => {
+      const href = a.getAttribute('href') || '';
+      return href.includes('/mortgage/learn') || href.includes('/es/mortgage/learn');
+    });
+    if (learnLinks.length >= 3) {
+      processed.add(nav);
+      const cells = learnLinks.map((a) => {
+        const p = document.createElement('p');
+        const link = document.createElement('a');
+        link.setAttribute('href', a.getAttribute('href') || '');
+        link.textContent = a.textContent.trim();
+        p.appendChild(link);
+        return [[p]];
+      });
+      const block = WebImporter.Blocks.createBlock(document, { name: 'Learning Navigation', cells });
+      nav.replaceWith(block);
+    }
+  });
+
   // FRAGMENTS: Detect shared content patterns FIRST
   const fragmentPatterns = getFragmentPatterns(url);
   main.querySelectorAll(':scope > div, :scope > [class*="card-background"]').forEach((el) => {

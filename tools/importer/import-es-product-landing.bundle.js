@@ -529,6 +529,27 @@ var CustomImportScript = (() => {
   }
   function runParsers(main, document, url, params) {
     const processed = /* @__PURE__ */ new Set();
+    main.querySelectorAll("nav").forEach((nav) => {
+      if (processed.has(nav)) return;
+      const links = nav.querySelectorAll("a");
+      const learnLinks = Array.from(links).filter((a) => {
+        const href = a.getAttribute("href") || "";
+        return href.includes("/mortgage/learn") || href.includes("/es/mortgage/learn");
+      });
+      if (learnLinks.length >= 3) {
+        processed.add(nav);
+        const cells = learnLinks.map((a) => {
+          const p = document.createElement("p");
+          const link = document.createElement("a");
+          link.setAttribute("href", a.getAttribute("href") || "");
+          link.textContent = a.textContent.trim();
+          p.appendChild(link);
+          return [[p]];
+        });
+        const block = WebImporter.Blocks.createBlock(document, { name: "Learning Navigation", cells });
+        nav.replaceWith(block);
+      }
+    });
     const fragmentPatterns = getFragmentPatterns(url);
     main.querySelectorAll(':scope > div, :scope > [class*="card-background"]').forEach((el) => {
       if (processed.has(el)) return;
