@@ -69,22 +69,24 @@ function extractFootnotesFromHTML(html) {
   const footnoteHTML = footnoteMatch[1];
 
   // Extract ALL entries with data-cid (both numbered and non-numbered)
-  const cidPattern = /data-cid="([^"]*)"[^>]*data-ctid="([^"]*)"[^>]*>([\s\S]*?)(?=<\/(?:p|div)>\s*(?:<(?:p|div)[^>]*data-cid|<div[^>]*class="[^"]*ps-|$))/gi;
+  const cidPattern = /(<[^>]*data-cid="([^"]*)"[^>]*data-ctid="([^"]*)"[^>]*>)([\s\S]*?)(?=<\/(?:p|div)>\s*(?:<(?:p|div)[^>]*data-cid|<div[^>]*class="[^"]*ps-|$))/gi;
   let match;
 
   // eslint-disable-next-line no-cond-assign
   while ((match = cidPattern.exec(footnoteHTML)) !== null) {
-    const cid = match[1];
-    const ctid = match[2];
-    const rawValue = match[3];
+    const fullTag = match[1];
+    const cid = match[2];
+    const ctid = match[3];
+    const rawValue = match[4];
 
     // Skip if value looks like modal/overlay content
     if (rawValue.includes('You are leaving') || rawValue.includes('ps-btn-secondary')) continue;
     // Skip pageid entries (DT pattern)
     if (/^DT\d+-/.test(cleanValue(rawValue))) continue;
 
-    // Determine if numbered: check if content starts with a number prefix
-    const isNumbered = /^\s*(<[^>]*>)?\s*\d+\./.test(rawValue) || rawValue.includes('footnote-number');
+    // Determine if numbered: check data-numbered attribute on the tag, then fallback to content patterns
+    const isNumbered = fullTag.includes('data-numbered="true"')
+      || /^\s*(<[^>]*>)?\s*\d+\./.test(rawValue) || rawValue.includes('footnote-number');
 
     footnotes.push({
       cid,
