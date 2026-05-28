@@ -73,6 +73,8 @@ locale: en
 
 When editing nav/footer code, changes to one variant must never affect another. Test all four variants after any nav/footer change.
 
+**Locale:** Locale is controlled by the metadata sheet (not page-level metadata). Do NOT add `locale` to individual page metadata — it is determined by path prefix (e.g., `/es/` pages are Spanish).
+
 ### Rule 4: Design Tokens — Use Confirmed Values, Never Approximate
 
 All color, type, and spacing values are confirmed from the live Wells Fargo CSS. NEVER pick hex values from screenshots or use approximations.

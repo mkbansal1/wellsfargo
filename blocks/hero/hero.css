@@ -90,7 +90,7 @@
 
   .hero .hero-bg img {
     height: 100%;
-    object-fit: contain;
+    object-fit: cover;
   }
 
   .hero .hero-content {
@@ -104,6 +104,10 @@
   .hero .hero-content h1,
   .hero .hero-content h2 {
     font-size: 44px;
+  }
+
+  .hero:not(.overlay-bottom) .hero-content h2::before {
+    margin: 0 0 25px;
   }
 
   .hero .hero-content p {

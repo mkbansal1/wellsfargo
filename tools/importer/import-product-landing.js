@@ -129,10 +129,15 @@ function runParsers(main, document, url, params) {
   const processed = new Set();
 
   // FRAGMENTS: Detect known shared content patterns FIRST (before hero detection)
+  // Determine locale prefix from URL
+  const isSpanish = url && url.includes('/es/');
+  const fragPrefix = isSpanish ? '/es' : '';
   const FRAGMENT_PATTERNS = [
-    { match: 'Talk to a mortgage consultant', path: '/fragments/mortgage/talk-to-mortgage-consultant' },
-    { match: 'Explore the mortgage learning center', path: '/fragments/mortgage/explore-learning-center' },
-    { match: 'How can we help', path: '/fragments/help-cta-default' },
+    { match: 'Talk to a mortgage consultant', path: fragPrefix + '/fragments/mortgage/talk-to-mortgage-consultant' },
+    { match: 'Hable con un consultor hipotecario', path: fragPrefix + '/fragments/mortgage/talk-to-mortgage-consultant' },
+    { match: 'Explore the mortgage learning center', path: fragPrefix + '/fragments/mortgage/explore-learning-center' },
+    { match: 'Explore el centro de aprendizaje', path: fragPrefix + '/fragments/mortgage/explore-learning-center' },
+    { match: 'How can we help', path: fragPrefix + '/fragments/help-cta-default' },
   ];
 
   main.querySelectorAll(':scope > div, :scope > [class*="card-background"]').forEach((el) => {

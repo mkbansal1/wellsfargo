@@ -24,12 +24,25 @@ function postProcess(filePath) {
   );
 
   // 4. Fix split lists: join orphaned <li> lines back into their <ul>/<ol>
+  // Handles two patterns:
+  //   Pattern A: line ends with <ul></div> (original pattern)
+  //   Pattern B: line ends with <ul> or <ol> (no </div> yet, </div> comes after </ul>)
   const lines = html.split('\n');
   const result = [];
   let i = 0;
   while (i < lines.length) {
     if (/<(?:ul|ol)><\/div>$/.test(lines[i])) {
+      // Pattern A: <ul></div> at end — strip the </div>, collect <li>s, re-add </div>
       let combined = lines[i].replace(/<(ul|ol)><\/div>$/, '<$1>');
+      i++;
+      while (i < lines.length && !lines[i].startsWith('<div>') && !lines[i].startsWith('<div><div')) {
+        combined += lines[i];
+        i++;
+      }
+      result.push(combined);
+    } else if (/<(?:ul|ol)>$/.test(lines[i])) {
+      // Pattern B: line ends with <ul> or <ol> — collect subsequent lines until </ul> or </ol>
+      let combined = lines[i];
       i++;
       while (i < lines.length && !lines[i].startsWith('<div>') && !lines[i].startsWith('<div><div')) {
         combined += lines[i];
@@ -43,13 +56,16 @@ function postProcess(filePath) {
   }
   html = result.join('\n');
 
-  // 5. Wrap bare text in block cells with <p> tags
+  // 5. Separate fragment blocks into their own sections
+  html = html.replace(/(<\/div>)<div class="fragment">/g, '$1</div>\n<div><div class="fragment">');
+
+  // 7. Wrap bare text in block cells with <p> tags
   html = html.replace(/<div>([^<]+)<\/div>/g, (match, text) => {
     if (text.length < 200) return '<div><p>' + text + '</p></div>';
     return match;
   });
 
-  // 6. Fix div balance per line
+  // 8. Fix div balance per line
   const finalLines = html.split('\n');
   finalLines.forEach((line, idx) => {
     const opens = (line.match(/<div/g) || []).length;
