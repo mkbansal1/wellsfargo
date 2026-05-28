@@ -1,0 +1,223 @@
+/* stylelint-disable no-descending-specificity */
+
+/* ===== Block-Level Tokens ===== */
+.tabs {
+    --tabs-border: #9c9191;
+    --tabs-yellow: #ffcd41;
+    --tabs-indigo: #322173;
+    --tabs-icon-size: 48px;
+    --tabs-indicator-bottom: 4px;
+    --tabs-indicator-top: 3px;
+}
+
+/* ===== Base Tabs ===== */
+.tabs .tabs-list {
+    display: flex;
+    gap: 0;
+    max-width: 100%;
+    font-size: var(--body-font-size-s);
+    overflow: visible;
+    border-bottom: 1px solid var(--tabs-border);
+}
+
+.tabs .tabs-list button {
+    flex: 0 0 auto;
+    margin: 0;
+    padding: 14px 24px 13px;
+    border: none;
+    border-bottom: var(--tabs-indicator-bottom) solid transparent;
+    border-radius: 0;
+    background-color: var(--wf-bg-white);
+    color: var(--wf-text-primary);
+    font-family: inherit;
+    font-size: 0.8824rem;
+    font-weight: 400;
+    line-height: 1.2667;
+    text-align: left;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: background-color 0.2s;
+}
+
+.tabs .tabs-list button p {
+    margin: 0;
+}
+
+.tabs .tabs-list button[aria-selected="true"] {
+    border-bottom: var(--tabs-indicator-bottom) solid var(--tabs-yellow);
+    margin-bottom: -1px;
+    background-color: var(--wf-bg-white);
+    color: var(--wf-dark);
+    font-weight: 600;
+}
+
+.tabs .tabs-panel {
+    padding: 24px;
+    margin-top: 0;
+    border: none;
+    overflow: auto;
+}
+
+.tabs .tabs-panel[aria-hidden="true"] {
+    display: none;
+}
+
+/* ===== Color Modifiers ===== */
+
+/* Yellow (default - gold active indicator) */
+.tabs.yellow .tabs-list button[aria-selected="true"] {
+    border-color: var(--tabs-yellow);
+}
+
+/* Indigo (purple active indicator) */
+.tabs.indigo .tabs-list button[aria-selected="true"] {
+    border-color: var(--tabs-indigo);
+}
+
+/* ===== Position Modifiers ===== */
+
+/* Bottom indicator (default) */
+.tabs.bottom .tabs-list button {
+    border-bottom: var(--tabs-indicator-bottom) solid transparent;
+    border-top: none;
+}
+
+.tabs.bottom .tabs-list button[aria-selected="true"] {
+    border-bottom-style: solid;
+    border-bottom-width: var(--tabs-indicator-bottom);
+    margin-bottom: -1px;
+}
+
+/* Top indicator */
+.tabs.top .tabs-list button {
+    border-bottom: 1px solid var(--tabs-border);
+    border-top: var(--tabs-indicator-top) solid transparent;
+}
+
+.tabs.top .tabs-list button[aria-selected="true"] {
+    border-top-style: solid;
+    border-top-width: var(--tabs-indicator-top);
+    border-bottom: 1px solid var(--wf-bg-white);
+    margin-bottom: -1px;
+}
+
+.tabs.top.yellow .tabs-list button[aria-selected="true"] {
+    border-top-color: var(--tabs-yellow);
+}
+
+.tabs.top.indigo .tabs-list button[aria-selected="true"] {
+    border-top-color: var(--tabs-indigo);
+}
+
+/* ===== tab-fill Modifier ===== */
+.tabs.tab-fill .tabs-list button {
+    border: 1px solid var(--tabs-border);
+    background-color: var(--wf-bg-light);
+}
+
+.tabs.tab-fill .tabs-list button[aria-selected="true"] {
+    background-color: var(--wf-bg-white);
+    border-bottom: 1px solid var(--wf-bg-white);
+    margin-bottom: -1px;
+}
+
+.tabs.tab-fill.top .tabs-list button[aria-selected="true"] {
+    border-top: var(--tabs-indicator-top) solid var(--tabs-yellow);
+    border-right: 1px solid var(--tabs-border);
+    border-bottom: 1px solid var(--wf-bg-white);
+    border-left: 1px solid var(--tabs-border);
+    margin-bottom: -1px;
+}
+
+.tabs.tab-fill.top.indigo .tabs-list button[aria-selected="true"] {
+    border-top-color: var(--tabs-indigo);
+}
+
+/* ===== Icons Modifier ===== */
+.tabs.icons .tabs-list button {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-width: 0;
+}
+
+.tabs.icons .tabs-list button img {
+    display: block;
+    width: var(--tabs-icon-size);
+    height: var(--tabs-icon-size);
+    object-fit: contain;
+    margin: 0 auto 4px;
+}
+
+.tabs.icons .tabs-list button img[src=""],
+.tabs.icons .tabs-list button img:not([src]) {
+    visibility: hidden;
+}
+
+@media (width < 600px) {
+    .tabs.icons .tabs-list button img {
+        display: none;
+    }
+
+    .tabs.icons .tabs-list button {
+        padding: 10px 16px;
+        font-size: 1.0588rem;
+    }
+}
+
+/* ===== Tab Label Alignment Modifiers ===== */
+
+/* Controls alignment of the tab button labels only */
+.tabs.tab-center .tabs-list button {
+    text-align: center;
+    justify-content: center;
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.tabs.tab-left .tabs-list button {
+    text-align: left;
+    justify-content: flex-start;
+}
+
+/* ===== Panel Content Alignment Modifiers ===== */
+
+/* Controls alignment of content inside the tab panels only */
+.tabs.text-center .tabs-panel {
+    text-align: center;
+}
+
+.tabs.text-center .tabs-panel * {
+    text-align: center;
+}
+
+.tabs.text-left .tabs-panel {
+    text-align: left;
+}
+
+.tabs.text-left .tabs-panel * {
+    text-align: left;
+}
+
+/* ===== Panel Border Modifier ===== */
+.tabs.panel-border .tabs-list {
+    border-bottom: none;
+}
+
+.tabs.panel-border .tabs-panel {
+    border: 1px solid var(--tabs-border);
+}
+
+/* ===== Reference Variant ===== */
+.tabs.reference .tabs-panel {
+    padding: 24px;
+}
+
+.tabs.reference .reference-content {
+    color: var(--wf-text-primary);
+    font-size: 1rem;
+    line-height: 1.5;
+}
