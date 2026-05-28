@@ -422,7 +422,7 @@ export default {
     });
     if (current.length > 0) sections.push(current);
 
-    // Rebuild main with section breaks
+    // Rebuild main: wrap each section in a <div> for proper serialization
     while (main.firstChild) main.removeChild(main.firstChild);
 
     sections.forEach((section, i) => {
@@ -471,21 +471,35 @@ export default {
     main.removeAttribute('data-pageid');
     main.removeAttribute('data-footnotes');
 
-    // Adjust image URLs
-    WebImporter.rules.transformBackgroundImages(main, document);
-    WebImporter.rules.adjustImageUrls(main, url, params.originalURL);
+    // Wrap each section in its own <div> for proper serialization
+    // The helix importer serializes each top-level child of the returned element
+    const wrapper = document.createElement('div');
+    const mainChildren = Array.from(main.children);
+    let sectionDiv = document.createElement('div');
 
-    const path = WebImporter.FileUtils.sanitizePath(
-      new URL(params.originalURL).pathname.replace(/\/$/, '').replace(/\.html$/, '') || '/index',
-    );
+    mainChildren.forEach((el) => {
+      if (el.tagName === 'HR') {
+        // Section break: push current section, start new one
+        if (sectionDiv.children.length > 0) {
+          wrapper.appendChild(sectionDiv);
+          sectionDiv = document.createElement('div');
+        }
+      } else {
+        sectionDiv.appendChild(el);
+      }
+    });
+    if (sectionDiv.children.length > 0) wrapper.appendChild(sectionDiv);
+
+    // Clear main, move wrapper children to main
+    while (main.firstChild) main.removeChild(main.firstChild);
+    while (wrapper.firstChild) main.appendChild(wrapper.firstChild);
+
+    const path = new URL(params.originalURL || url).pathname.replace(/\/$/, '').replace(/\.html$/, '') || '/index';
 
     return [{
       element: main,
       path,
-      report: {
-        title: document.title,
-        template: 'old-theme',
-      },
+      report: { title: document.title, template: 'old-theme' },
     }];
   },
 };

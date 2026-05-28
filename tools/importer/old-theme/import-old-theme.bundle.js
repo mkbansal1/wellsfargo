@@ -434,11 +434,11 @@ var CustomImportScript = (() => {
           changed = false;
           const children2 = Array.from(el.children);
           if (children2.length === 1 && children2[0].tagName === "DIV") {
-            const wrapper = children2[0];
-            while (wrapper.firstChild) {
-              el.appendChild(wrapper.firstChild);
+            const wrapper2 = children2[0];
+            while (wrapper2.firstChild) {
+              el.appendChild(wrapper2.firstChild);
             }
-            wrapper.remove();
+            wrapper2.remove();
             changed = true;
           }
         }
@@ -506,16 +506,16 @@ var CustomImportScript = (() => {
           const h2Elements = Array.from(main.querySelectorAll(":scope > h2"));
           const firstAccH2 = h2Elements.find((h2) => h2.querySelector("button"));
           if (firstAccH2) {
-            const wrapper = document.createElement("div");
-            wrapper.className = "__accordion-wrapper";
-            firstAccH2.before(wrapper);
-            let sibling = wrapper.nextSibling;
+            const wrapper2 = document.createElement("div");
+            wrapper2.className = "__accordion-wrapper";
+            firstAccH2.before(wrapper2);
+            let sibling = wrapper2.nextSibling;
             while (sibling) {
               const next = sibling.nextSibling;
-              wrapper.appendChild(sibling);
+              wrapper2.appendChild(sibling);
               sibling = next;
             }
-            parse(wrapper, { document });
+            parse(wrapper2, { document });
           }
         }
       }
@@ -627,18 +627,27 @@ var CustomImportScript = (() => {
       }
       main.removeAttribute("data-pageid");
       main.removeAttribute("data-footnotes");
-      WebImporter.rules.transformBackgroundImages(main, document);
-      WebImporter.rules.adjustImageUrls(main, url, params.originalURL);
-      const path = WebImporter.FileUtils.sanitizePath(
-        new URL(params.originalURL).pathname.replace(/\/$/, "").replace(/\.html$/, "") || "/index"
-      );
+      const wrapper = document.createElement("div");
+      const mainChildren = Array.from(main.children);
+      let sectionDiv = document.createElement("div");
+      mainChildren.forEach((el) => {
+        if (el.tagName === "HR") {
+          if (sectionDiv.children.length > 0) {
+            wrapper.appendChild(sectionDiv);
+            sectionDiv = document.createElement("div");
+          }
+        } else {
+          sectionDiv.appendChild(el);
+        }
+      });
+      if (sectionDiv.children.length > 0) wrapper.appendChild(sectionDiv);
+      while (main.firstChild) main.removeChild(main.firstChild);
+      while (wrapper.firstChild) main.appendChild(wrapper.firstChild);
+      const path = new URL(params.originalURL || url).pathname.replace(/\/$/, "").replace(/\.html$/, "") || "/index";
       return [{
         element: main,
         path,
-        report: {
-          title: document.title,
-          template: "old-theme"
-        }
+        report: { title: document.title, template: "old-theme" }
       }];
     }
   };
