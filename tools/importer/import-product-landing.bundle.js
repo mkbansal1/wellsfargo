@@ -46,7 +46,7 @@ var CustomImportScript = (() => {
       }
     }
     const ctaLink = element.querySelector(
-      'a.ps-btn-primary, a.ps-btn-secondary, a[class*="ps-btn"], .ps-padding a'
+      'a.ps-btn-primary, a.ps-btn-secondary, a[class*="ps-btn"], .ps-padding a, strong > a, em > a'
     );
     const cellContent = [];
     if (img) {
@@ -344,9 +344,15 @@ var CustomImportScript = (() => {
         }
       });
       element.querySelectorAll("a").forEach((a) => {
-        const href = a.getAttribute("href") || "";
+        let href = a.getAttribute("href") || "";
         if (href.startsWith("https://www.wellsfargo.com/")) {
-          a.setAttribute("href", href.replace("https://www.wellsfargo.com", ""));
+          href = href.replace("https://www.wellsfargo.com", "");
+        }
+        if (href.length > 1 && href.endsWith("/")) {
+          href = href.slice(0, -1);
+        }
+        if (href !== (a.getAttribute("href") || "")) {
+          a.setAttribute("href", href);
         }
       });
       element.querySelectorAll('a.ps-btn-primary, a.ps-btn, a[class*="ps-btn-primary"]').forEach((a) => {
@@ -708,6 +714,7 @@ var CustomImportScript = (() => {
       }
     });
     sections.forEach((section, i) => {
+      section.els = section.els.filter((el) => el.textContent.trim() || el.querySelector("img, picture, table") || (el.className || "").includes("divider"));
       if (section.els.length === 0) return;
       if (i > 0) main.appendChild(document.createElement("hr"));
       section.els.forEach((el) => main.appendChild(el));
