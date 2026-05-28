@@ -540,14 +540,32 @@ var CustomImportScript = (() => {
       if (learnLinks.length >= 3) {
         processed.add(nav);
         learningNavProcessed = true;
-        const cells = learnLinks.map((a) => {
-          const p = document.createElement("p");
+        let heroImg = null;
+        let prevEl = nav.previousElementSibling;
+        while (prevEl) {
+          const img = prevEl.querySelector("picture") || prevEl.querySelector("img");
+          if (img) {
+            heroImg = img.closest("picture") || img;
+            break;
+          }
+          prevEl = prevEl.previousElementSibling;
+        }
+        const ul = document.createElement("ul");
+        learnLinks.forEach((a) => {
+          const li = document.createElement("li");
           const link = document.createElement("a");
           link.setAttribute("href", a.getAttribute("href") || "");
           link.textContent = a.textContent.trim();
-          p.appendChild(link);
-          return [[p]];
+          li.appendChild(link);
+          ul.appendChild(li);
         });
+        const cells = [];
+        if (heroImg) {
+          cells.push([[heroImg.cloneNode(true)]]);
+          const imgParent = heroImg.closest("p") || heroImg.parentElement;
+          if (imgParent && imgParent !== main) imgParent.remove();
+        }
+        cells.push([[ul]]);
         const block = WebImporter.Blocks.createBlock(document, { name: "Learning Navigation", cells });
         nav.replaceWith(block);
         main.querySelectorAll("nav").forEach((dupNav) => {

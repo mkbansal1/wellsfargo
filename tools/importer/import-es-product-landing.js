@@ -504,7 +504,8 @@ function getFragmentPatterns(url) {
 function runParsers(main, document, url, params) {
   const processed = new Set();
 
-  // LEARNING NAVIGATION: Detect FIRST sub-nav with /mortgage/learn/ links (only once)
+  // LEARNING NAVIGATION: Detect FIRST sub-nav with /mortgage/learn/ links
+  // Block structure: Row 1 = hero image, Row 2 = <ul> with nav links
   let learningNavProcessed = false;
   main.querySelectorAll('nav').forEach((nav) => {
     if (processed.has(nav) || learningNavProcessed) return;
@@ -516,16 +517,39 @@ function runParsers(main, document, url, params) {
     if (learnLinks.length >= 3) {
       processed.add(nav);
       learningNavProcessed = true;
-      const cells = learnLinks.map((a) => {
-        const p = document.createElement('p');
+
+      // Row 1: Find hero image (preceding picture/img before this nav)
+      let heroImg = null;
+      let prevEl = nav.previousElementSibling;
+      while (prevEl) {
+        const img = prevEl.querySelector('picture') || prevEl.querySelector('img');
+        if (img) { heroImg = img.closest('picture') || img; break; }
+        prevEl = prevEl.previousElementSibling;
+      }
+
+      // Row 2: Build <ul> with nav links
+      const ul = document.createElement('ul');
+      learnLinks.forEach((a) => {
+        const li = document.createElement('li');
         const link = document.createElement('a');
         link.setAttribute('href', a.getAttribute('href') || '');
         link.textContent = a.textContent.trim();
-        p.appendChild(link);
-        return [[p]];
+        li.appendChild(link);
+        ul.appendChild(li);
       });
+
+      const cells = [];
+      if (heroImg) {
+        cells.push([[heroImg.cloneNode(true)]]);
+        // Remove original image element from DOM
+        const imgParent = heroImg.closest('p') || heroImg.parentElement;
+        if (imgParent && imgParent !== main) imgParent.remove();
+      }
+      cells.push([[ul]]);
+
       const block = WebImporter.Blocks.createBlock(document, { name: 'Learning Navigation', cells });
       nav.replaceWith(block);
+
       // Remove any duplicate navs with same links
       main.querySelectorAll('nav').forEach((dupNav) => {
         const dupLinks = Array.from(dupNav.querySelectorAll('a')).filter((a) => {
