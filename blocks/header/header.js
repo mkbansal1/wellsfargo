@@ -103,20 +103,37 @@ function buildSubNavContent(subNav, links) {
   if (!subNav.contains(inner)) subNav.append(inner);
 }
 
-function getActiveNavIndex(navLists) {
+function getActiveNavState(navLists) {
   const currentPath = window.location.pathname;
-  let activeIdx = -1;
-  navLists.forEach((item, i) => {
+  const normalizedCurrent = currentPath.endsWith('/') ? currentPath : `${currentPath}/`;
+
+  // first pass: check for exact top-level match
+  for (let i = 0; i < navLists.length; i += 1) {
     try {
-      const linkPath = new URL(item.link.href, window.location.origin).pathname;
-      if (linkPath === '/' && currentPath === '/') {
-        activeIdx = i;
-      } else if (linkPath !== '/' && currentPath.startsWith(linkPath)) {
-        activeIdx = i;
+      const linkPath = new URL(navLists[i].link.href, window.location.origin).pathname;
+      const normalizedLink = linkPath.endsWith('/') ? linkPath : `${linkPath}/`;
+      if (normalizedCurrent === normalizedLink) {
+        return { activeIdx: i, isTopLevel: true };
       }
-    } catch { /* keep default */ }
-  });
-  return activeIdx;
+    } catch { /* skip */ }
+  }
+
+  // second pass: check if current page matches a child link
+  for (let i = 0; i < navLists.length; i += 1) {
+    const { children } = navLists[i];
+    for (let j = 0; j < children.length; j += 1) {
+      try {
+        const childPath = new URL(children[j].href, window.location.origin).pathname;
+        const normalizedChild = childPath.endsWith('/') ? childPath : `${childPath}/`;
+        if (normalizedCurrent === normalizedChild
+          || (childPath !== '/' && currentPath.startsWith(childPath))) {
+          return { activeIdx: i, isTopLevel: false };
+        }
+      } catch { /* skip */ }
+    }
+  }
+
+  return { activeIdx: -1, isTopLevel: false };
 }
 
 function buildPrimaryNav(navLists, activeIndex = -1) {
@@ -175,18 +192,7 @@ function buildMobileNav(navLists, utilities) {
   content.append(searchBar);
 
   // determine which section matches the current page
-  const currentPath = window.location.pathname;
-  let activeIdx = -1;
-  navLists.forEach((item, i) => {
-    try {
-      const linkPath = new URL(item.link.href, window.location.origin).pathname;
-      if (linkPath === '/' && currentPath === '/') {
-        activeIdx = i;
-      } else if (linkPath !== '/' && currentPath.startsWith(linkPath)) {
-        activeIdx = i;
-      }
-    } catch { /* keep default */ }
-  });
+  const { activeIdx } = getActiveNavState(navLists);
 
   // nav sections — active section determined by current page URL
   navLists.forEach((item, i) => {
@@ -216,7 +222,7 @@ function buildMobileNav(navLists, utilities) {
   if (utilities.length > 0) {
     const utilsSection = document.createElement('div');
     utilsSection.className = 'nav-mobile-utils';
-    const isSpanish = currentPath.includes('/es/');
+    const isSpanish = window.location.pathname.includes('/es/');
     utilities.forEach(({ text, href }) => {
       // language logic: show opposite language
       if (text === 'English' && !isSpanish) return;
@@ -398,12 +404,12 @@ export default async function decorate(block) {
   nav.append(topBar);
 
   // build primary nav tabs (active tab determined by current page URL)
-  const activeNavIdx = getActiveNavIndex(navLists);
+  const { activeIdx: activeNavIdx, isTopLevel } = getActiveNavState(navLists);
   const primaryNav = buildPrimaryNav(navLists, activeNavIdx);
   nav.append(primaryNav);
 
-  // build sub-nav for active tab
-  const subNav = buildSubNav(navLists, activeNavIdx);
+  // build sub-nav only when on the exact top-level nav page
+  const subNav = buildSubNav(navLists, isTopLevel ? activeNavIdx : -1);
   nav.append(subNav);
 
   // build mobile menu
