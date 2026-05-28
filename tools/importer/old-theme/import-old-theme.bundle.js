@@ -486,32 +486,30 @@ var CustomImportScript = (() => {
       main.querySelectorAll('.hatched, [class*="hatched"]').forEach((el) => {
         el.remove();
       });
-      const contentTopImg = main.querySelector('#contentTop img, [id*="contentTop"] img');
-      const firstContentDiv = main.querySelector(":scope > div > div > h2, :scope > div > h2");
-      if (firstContentDiv) {
-        const container = firstContentDiv.closest("div");
-        const parent = container ? container.parentElement : null;
-        let ctaLink = null;
-        if (container && container.nextElementSibling && container.nextElementSibling.tagName === "A") {
-          ctaLink = container.nextElementSibling;
-        } else if (parent && parent.nextElementSibling && parent.nextElementSibling.tagName === "A") {
-          ctaLink = parent.nextElementSibling;
+      const contentTop = main.querySelector('#contentTop, [id*="contentTop"]');
+      if (contentTop) {
+        const heroImg = contentTop.querySelector("img");
+        const heroH2 = contentTop.querySelector("h2");
+        const heroDesc = contentTop.querySelector("p");
+        let ctaLink = contentTop.querySelector('a[href*="wellsfargo"], a[href*="secure"], a.ps-btn-primary, a.ps-btn');
+        if (!ctaLink) ctaLink = contentTop.querySelector("a");
+        if (!ctaLink && contentTop.nextElementSibling && contentTop.nextElementSibling.tagName === "A") {
+          ctaLink = contentTop.nextElementSibling;
         }
-        if (ctaLink) {
+        if (heroH2 && ctaLink) {
           const cellContent = [];
-          if (contentTopImg) {
-            const pic = contentTopImg.closest("picture") || contentTopImg;
+          if (heroImg) {
+            const pic = heroImg.closest("picture") || heroImg;
             cellContent.push(pic.cloneNode(true));
-            const imgContainer = contentTopImg.closest('#contentTop, [id*="contentTop"]') || contentTopImg.parentElement;
-            if (imgContainer) imgContainer.remove();
           }
           const h2 = document.createElement("h2");
-          h2.textContent = firstContentDiv.textContent.trim();
+          h2.textContent = heroH2.textContent.trim();
           cellContent.push(h2);
-          const desc = container.querySelectorAll("p");
-          desc.forEach((p) => {
-            if (p.textContent.trim()) cellContent.push(p.cloneNode(true));
-          });
+          if (heroDesc && heroDesc.textContent.trim()) {
+            const p = document.createElement("p");
+            p.textContent = heroDesc.textContent.trim();
+            cellContent.push(p);
+          }
           const ctaP = document.createElement("p");
           const strong = document.createElement("strong");
           const a = document.createElement("a");
@@ -521,9 +519,8 @@ var CustomImportScript = (() => {
           ctaP.appendChild(strong);
           cellContent.push(ctaP);
           const block = WebImporter.Blocks.createBlock(document, { name: "Hero", cells: [[cellContent]] });
-          const replaceTarget = parent || container;
-          replaceTarget.replaceWith(block);
-          ctaLink.remove();
+          contentTop.replaceWith(block);
+          if (ctaLink.parentElement && !ctaLink.closest("#contentTop")) ctaLink.remove();
         }
       }
       const processed = /* @__PURE__ */ new Set();
