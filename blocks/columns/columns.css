@@ -32,9 +32,36 @@
   }
 }
 
+/* --- Variant: center --- */
+
+/* Authored as | Columns (center) | — fully center-aligned content */
+
+.columns.center > div {
+  text-align: center;
+}
+
+.columns-container:has(.columns.center) .default-content-wrapper {
+  text-align: center;
+}
+
+/* --- Variant: center-headings --- */
+
+/* Authored as | Columns (center-headings) | — headings centered, content left */
+
+.columns.center-headings > div > div h2,
+.columns.center-headings > div > div h3,
+.columns.center-headings > div > div h4 {
+  text-align: center;
+}
+
+.columns-container:has(.columns.center-headings) .default-content-wrapper {
+  text-align: center;
+}
+
 /* --- Variant: contact --- */
 
 /* Authored as | Columns (contact) | — multi-column contact info */
+
 .columns.contact > div {
   gap: 24px;
 }
