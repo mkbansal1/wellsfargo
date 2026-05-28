@@ -86,7 +86,7 @@ function parseHero(element, { document, isFirstHero }) {
   const block = WebImporter.Blocks.createBlock(document, { name: 'Hero', cells });
 
   if (isFirstHero) {
-    block.setAttribute('data-section-style', 'heading-bar');
+    block.setAttribute('data-section-style', 'center-align, heading-bar');
   }
 
   element.replaceWith(block);
@@ -261,7 +261,7 @@ function parseCardsSeparator(element, { document }) {
 /**
  * Parse cards without images (noimage variant).
  * Source: .card-container with text-only cards (no images at all)
- * Output: Cards (bg-image, noimage) block
+ * Output: Cards (bg-image) block
  */
 function parseCardsNoImage(element, { document }) {
   let cardItems = Array.from(element.querySelectorAll('.ps-marketing-small-promo-item'));
@@ -315,7 +315,7 @@ function parseCardsNoImage(element, { document }) {
   });
 
   if (cells.length > 0) {
-    const block = WebImporter.Blocks.createBlock(document, { name: 'Cards (bg-image, noimage)', cells });
+    const block = WebImporter.Blocks.createBlock(document, { name: 'Cards (bg-image)', cells });
     element.replaceWith(block);
   }
 }
@@ -412,13 +412,13 @@ function parseColumns(element, { document }) {
 
 /**
  * Determine the cards variant from an element's content.
- * Returns: 'icons' | 'separator' | 'noimage'
+ * Returns: 'icons' | 'separator' | 'bg-image'
  */
 function detectCardsVariant(el) {
   const images = el.querySelectorAll('img');
   const headings = el.querySelectorAll('h3, h4');
 
-  if (images.length === 0) return 'noimage';
+  if (images.length === 0) return 'bg-image';
 
   let iconCount = 0;
   let photoCount = 0;
@@ -635,7 +635,7 @@ function runParsers(main, document, url, params) {
     }
 
     // Use appropriate parser
-    if (variant === 'noimage') {
+    if (variant === 'bg-image') {
       try { parseCardsNoImage(el, { document }); } catch (e) { /* keep */ }
     } else if (variant === 'icons') {
       try { parseCardsIcons(el, { document }); } catch (e) { /* keep */ }

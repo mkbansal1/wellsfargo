@@ -168,7 +168,7 @@ var CustomImportScript = (() => {
     const cells = [[cellContent]];
     const block = WebImporter.Blocks.createBlock(document, { name: "Hero", cells });
     if (isFirstHero) {
-      block.setAttribute("data-section-style", "heading-bar");
+      block.setAttribute("data-section-style", "center-align, heading-bar");
     }
     element.replaceWith(block);
   }
@@ -333,7 +333,7 @@ var CustomImportScript = (() => {
       }
     });
     if (cells.length > 0) {
-      const block = WebImporter.Blocks.createBlock(document, { name: "Cards (bg-image, noimage)", cells });
+      const block = WebImporter.Blocks.createBlock(document, { name: "Cards (bg-image)", cells });
       element.replaceWith(block);
     }
   }
@@ -399,7 +399,7 @@ var CustomImportScript = (() => {
   function detectCardsVariant(el) {
     const images = el.querySelectorAll("img");
     const headings = el.querySelectorAll("h3, h4");
-    if (images.length === 0) return "noimage";
+    if (images.length === 0) return "bg-image";
     let iconCount = 0;
     let photoCount = 0;
     images.forEach((img) => {
@@ -580,7 +580,7 @@ var CustomImportScript = (() => {
         }
         el.before(wrapper);
       }
-      if (variant === "noimage") {
+      if (variant === "bg-image") {
         try {
           parseCardsNoImage(el, { document });
         } catch (e) {
