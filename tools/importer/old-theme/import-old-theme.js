@@ -432,6 +432,18 @@ export default {
       }
     });
 
+    // Phase 1.9: Deep flatten — ensure all block-level content is a direct child of main
+    // Unwrap any remaining single-purpose wrapper divs that don't have meaningful classes
+    Array.from(main.children).forEach((child) => {
+      if (child.tagName === 'DIV' && child.children.length > 0 && !child.className && child.querySelector('.c54, .rebranded-show-hide, h2, h3, table')) {
+        // This is a layout wrapper with no class — unwrap its children to main
+        while (child.firstChild) {
+          main.insertBefore(child.firstChild, child);
+        }
+        child.remove();
+      }
+    });
+
     // Phase 2: Build sections — break on H2 and div.c54 separators
     const children = Array.from(main.children).filter((el) => {
       if (el.tagName === 'SCRIPT' || el.tagName === 'STYLE' || el.tagName === 'LINK') return false;

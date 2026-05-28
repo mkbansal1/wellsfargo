@@ -185,39 +185,58 @@ export default function cleanup(document, url) {
     sidebarEl.replaceWith(block);
   }
 
+  // --- Extract footnote CIDs from div.c20 ---
+  const footnoteCids = [];
+  let pageid = '';
+  const c20 = main.querySelectorAll('.c20');
+  c20.forEach((el) => {
+    const cidItems = el.querySelectorAll('[data-cid]');
+    cidItems.forEach((item) => {
+      const cid = item.getAttribute('data-cid');
+      if (!cid) return;
+      const text = item.textContent.trim();
+      // Check if this is a pageid entry (DT1-, QSR-, LRC-)
+      const dtMatch = text.match(/DT1-\d+-\d+-\d+-[\d.]+/);
+      const qsrMatch = text.match(/QSR-\d+-\d+\.\d+\.\d+/);
+      const lrcMatch = text.match(/LRC-\d+/);
+      if (dtMatch) pageid = dtMatch[0];
+      else if (qsrMatch) pageid = qsrMatch[0];
+      else if (lrcMatch) pageid = lrcMatch[0];
+      else footnoteCids.push(cid);
+    });
+    el.remove();
+  });
+
   // --- Extract metadata from aside/complementary ---
   const asides = document.querySelectorAll('aside, [role="complementary"]');
   for (const aside of asides) {
     const text = aside.textContent || '';
 
-    // Extract pageid patterns
-    let pageid = '';
-    const dtMatch = text.match(/DT1-\d+-\d+-\d+-[\d.]+/);
-    const qsrMatch = text.match(/QSR-\d+-\d+\.\d+\.\d+/);
-    const lrcMatch = text.match(/LRC-\d+/);
-    if (dtMatch) pageid = dtMatch[0];
-    else if (qsrMatch) pageid = qsrMatch[0];
-    else if (lrcMatch) pageid = lrcMatch[0];
-
-    if (pageid) {
-      main.setAttribute('data-pageid', pageid);
+    // Extract pageid if not already found from c20
+    if (!pageid) {
+      const dtMatch = text.match(/DT1-\d+-\d+-\d+-[\d.]+/);
+      const qsrMatch = text.match(/QSR-\d+-\d+\.\d+\.\d+/);
+      const lrcMatch = text.match(/LRC-\d+/);
+      if (dtMatch) pageid = dtMatch[0];
+      else if (qsrMatch) pageid = qsrMatch[0];
+      else if (lrcMatch) pageid = lrcMatch[0];
     }
 
-    // Extract footnote disclaimer text
-    const disclaimerPs = aside.querySelectorAll('p');
-    const disclaimerTexts = [];
-    disclaimerPs.forEach((p) => {
-      const pText = p.textContent.trim();
-      if (pText && pText.length > 20) {
-        disclaimerTexts.push(pText);
+    // Extract footnote CIDs from aside data-cid elements too
+    const cidItems = aside.querySelectorAll('[data-cid]');
+    cidItems.forEach((item) => {
+      const cid = item.getAttribute('data-cid');
+      if (cid && !footnoteCids.includes(cid)) {
+        const itemText = item.textContent.trim();
+        if (!itemText.match(/^(DT1|QSR|LRC)-/)) footnoteCids.push(cid);
       }
     });
-    if (disclaimerTexts.length > 0) {
-      main.setAttribute('data-footnotes', disclaimerTexts.join(' | '));
-    }
 
     aside.remove();
   }
+
+  if (pageid) main.setAttribute('data-pageid', pageid);
+  if (footnoteCids.length > 0) main.setAttribute('data-footnotes', footnoteCids.join(', '));
 
   // --- Generic transforms ---
 
