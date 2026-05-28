@@ -48,9 +48,9 @@ export default function parse(element, { document, isFirstHero }) {
     }
   }
 
-  // Extract CTA link (button-styled link)
+  // Extract CTA link (button-styled link or wrapped in strong/em by cleanup transformer)
   const ctaLink = element.querySelector(
-    'a.ps-btn-primary, a.ps-btn-secondary, a[class*="ps-btn"], .ps-padding a'
+    'a.ps-btn-primary, a.ps-btn-secondary, a[class*="ps-btn"], .ps-padding a, strong > a, em > a'
   );
 
   // Block library structure: single row, single cell with image + heading + description + CTA
