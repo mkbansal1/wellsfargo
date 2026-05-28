@@ -24,12 +24,25 @@ function postProcess(filePath) {
   );
 
   // 4. Fix split lists: join orphaned <li> lines back into their <ul>/<ol>
+  // Handles two patterns:
+  //   Pattern A: line ends with <ul></div> (original pattern)
+  //   Pattern B: line ends with <ul> or <ol> (no </div> yet, </div> comes after </ul>)
   const lines = html.split('\n');
   const result = [];
   let i = 0;
   while (i < lines.length) {
     if (/<(?:ul|ol)><\/div>$/.test(lines[i])) {
+      // Pattern A: <ul></div> at end — strip the </div>, collect <li>s, re-add </div>
       let combined = lines[i].replace(/<(ul|ol)><\/div>$/, '<$1>');
+      i++;
+      while (i < lines.length && !lines[i].startsWith('<div>') && !lines[i].startsWith('<div><div')) {
+        combined += lines[i];
+        i++;
+      }
+      result.push(combined);
+    } else if (/<(?:ul|ol)>$/.test(lines[i])) {
+      // Pattern B: line ends with <ul> or <ol> — collect subsequent lines until </ul> or </ol>
+      let combined = lines[i];
       i++;
       while (i < lines.length && !lines[i].startsWith('<div>') && !lines[i].startsWith('<div><div')) {
         combined += lines[i];
