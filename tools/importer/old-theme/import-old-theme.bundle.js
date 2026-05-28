@@ -35,6 +35,8 @@ var CustomImportScript = (() => {
       ".ep-modal",
       ".signon-container",
       ".contentBottom",
+      "#contentBottom",
+      '[id*="contentBottom"]',
       "iframe",
       "noscript",
       ".visuallyHidden",

@@ -18,6 +18,8 @@ export default function cleanup(document, url) {
     '.ep-modal',
     '.signon-container',
     '.contentBottom',
+    '#contentBottom',
+    '[id*="contentBottom"]',
     'iframe',
     'noscript',
     '.visuallyHidden',
