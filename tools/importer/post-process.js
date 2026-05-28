@@ -14,8 +14,9 @@ function postProcess(filePath) {
   // Pattern 2: <a href="...tcm:...">Opens a modal dialog for footnote N</a> (inside <sup>)
   html = html.replace(/<a href="([^"]*tcm:[^"]*)"[^>]*>Opens a modal dialog for footnote (\d+)<\/a>/g, '<a href="$1">$2</a>');
 
-  // 2. Convert absolute wellsfargo.com links to relative
+  // 2. Convert absolute wellsfargo.com links to relative and strip trailing slash
   html = html.replace(/https:\/\/www\.wellsfargo\.com\//g, '/');
+  html = html.replace(/href="(\/[^"]+)\/"/g, 'href="$1"');
 
   // 3. Fix first hero serialization issue (<p>Hero</p> → proper block div)
   html = html.replace(
