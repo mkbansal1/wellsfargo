@@ -7,6 +7,7 @@ import cardsFeatureParser from './parsers/cards-feature.js';
 import accordionParser from './parsers/accordion.js';
 import contactInfoParser from './parsers/contact-info.js';
 import disclaimersParser from './parsers/disclaimers.js';
+import videoParser from './parsers/video.js';
 
 // TRANSFORMER IMPORTS
 import wellsfargoCleanup from './transformers/wellsfargo-cleanup.js';
@@ -18,6 +19,7 @@ const parsers = {
   'cards-no-images': contactInfoParser,
   'accordion': accordionParser,
   'disclaimers': disclaimersParser,
+  'video': videoParser,
 };
 
 /**
@@ -207,8 +209,18 @@ function runParsers(main, document, url, params) {
     }
   });
 
-  // ACCORDION: group consecutive <details> siblings
-  const accordionItems = main.querySelectorAll('details.show-hide-content-wrapper');
+  // VIDEO: detect sections with <video> elements
+  main.querySelectorAll(':scope > div, :scope > [class*="enhanced-txt"]').forEach((el) => {
+    if (processed.has(el)) return;
+    const video = el.querySelector('video');
+    if (!video) return;
+    processed.add(el);
+    el.querySelectorAll('details').forEach((d) => processed.add(d));
+    try { parsers['video'](el, { document, url, params }); } catch (e) { /* keep as-is */ }
+  });
+
+  // ACCORDION: group consecutive <details> siblings (skip processed ones from video)
+  const accordionItems = Array.from(main.querySelectorAll('details.show-hide-content-wrapper')).filter(d => !processed.has(d));
   if (accordionItems.length > 0) {
     const parent = accordionItems[0].parentElement;
     if (parent === main) {

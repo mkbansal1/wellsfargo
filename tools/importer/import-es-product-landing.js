@@ -20,6 +20,9 @@
 // TRANSFORMER IMPORTS
 import wellsfargoCleanup from './transformers/wellsfargo-cleanup.js';
 
+// SHARED PARSER IMPORTS
+import parseVideoShared from './parsers/video.js';
+
 // --- PARSER FUNCTIONS ---
 
 /**
@@ -320,6 +323,9 @@ function parseCardsNoImage(element, { document }) {
   }
 }
 
+// Use shared video parser
+const parseVideo = parseVideoShared;
+
 /**
  * Parse accordion/FAQ section.
  * Source: details.show-hide-content-wrapper elements
@@ -474,15 +480,19 @@ function detectSectionStyle(el) {
 }
 
 // --- FRAGMENT PATTERNS ---
+// Paths are relative — prefix is added dynamically based on URL locale
 
-const FRAGMENT_PATTERNS = [
-  { match: 'Hable con un consultor hipotecario', path: '/es/fragments/mortgage/talk-to-mortgage-consultant' },
-  { match: 'Talk to a mortgage consultant', path: '/es/fragments/mortgage/talk-to-mortgage-consultant' },
-  { match: 'Explore el centro de aprendizaje', path: '/es/fragments/mortgage/explore-learning-center' },
-  { match: 'Explore the mortgage learning center', path: '/es/fragments/mortgage/explore-learning-center' },
-  { match: 'How can we help', path: '/es/fragments/help-cta-default' },
-  { match: 'Cómo podemos ayudar', path: '/es/fragments/help-cta-default' },
-];
+function getFragmentPatterns(url) {
+  const prefix = (url && url.includes('/es/')) ? '/es' : '';
+  return [
+    { match: 'Hable con un consultor hipotecario', path: prefix + '/fragments/mortgage/talk-to-mortgage-consultant' },
+    { match: 'Talk to a mortgage consultant', path: prefix + '/fragments/mortgage/talk-to-mortgage-consultant' },
+    { match: 'Explore el centro de aprendizaje', path: prefix + '/fragments/mortgage/explore-learning-center' },
+    { match: 'Explore the mortgage learning center', path: prefix + '/fragments/mortgage/explore-learning-center' },
+    { match: 'How can we help', path: prefix + '/fragments/help-cta-default' },
+    { match: 'Cómo podemos ayudar', path: prefix + '/fragments/help-cta-default' },
+  ];
+}
 
 // --- MAIN TRANSFORM ---
 
@@ -495,12 +505,13 @@ function runParsers(main, document, url, params) {
   const processed = new Set();
 
   // FRAGMENTS: Detect shared content patterns FIRST
+  const fragmentPatterns = getFragmentPatterns(url);
   main.querySelectorAll(':scope > div, :scope > [class*="card-background"]').forEach((el) => {
     if (processed.has(el)) return;
     const h2 = el.querySelector('h2');
     if (!h2) return;
     const headingText = h2.textContent.trim();
-    const fragmentMatch = FRAGMENT_PATTERNS.find((p) => headingText.includes(p.match));
+    const fragmentMatch = fragmentPatterns.find((p) => headingText.includes(p.match));
     if (fragmentMatch) {
       processed.add(el);
       const block = WebImporter.Blocks.createBlock(document, {
@@ -543,8 +554,19 @@ function runParsers(main, document, url, params) {
     }
   });
 
-  // ACCORDION: group consecutive <details> siblings
-  const accordionItems = main.querySelectorAll('details.show-hide-content-wrapper');
+  // VIDEO: detect sections with <video> elements
+  main.querySelectorAll(':scope > div, :scope > [class*="enhanced-txt"]').forEach((el) => {
+    if (processed.has(el)) return;
+    const video = el.querySelector('video');
+    if (!video) return;
+    processed.add(el);
+    // Also mark the transcript <details> inside as processed so accordion parser skips it
+    el.querySelectorAll('details').forEach((d) => processed.add(d));
+    try { parseVideo(el, { document }); } catch (e) { /* keep as-is */ }
+  });
+
+  // ACCORDION: group consecutive <details> siblings (skip processed ones from video)
+  const accordionItems = Array.from(main.querySelectorAll('details.show-hide-content-wrapper')).filter(d => !processed.has(d));
   if (accordionItems.length > 0) {
     const parent = accordionItems[0].parentElement;
     if (parent === main) {
