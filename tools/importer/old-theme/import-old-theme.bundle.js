@@ -1,4 +1,3 @@
-/* eslint-disable */
 var CustomImportScript = (() => {
   var __defProp = Object.defineProperty;
   var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -26,7 +25,7 @@ var CustomImportScript = (() => {
 
   // tools/importer/old-theme/cleanup.js
   function cleanup(document, url) {
-    const main = document.querySelector("main") || document.body;
+    const main = document.querySelector("main") || document.querySelector("#mainColumns") || document.querySelector("#shell") || document.body;
     const removeSelectors = [
       "#onetrust-consent-sdk",
       ".onetrust-pc-dark-filter",
@@ -125,6 +124,9 @@ var CustomImportScript = (() => {
         sidebarEl = h2.parentElement;
         while (sidebarEl && sidebarEl.parentElement && sidebarEl.parentElement !== main && sidebarEl.parentElement !== document.body) {
           const parent = sidebarEl.parentElement;
+          if (parent.classList.contains("mainContentCol") || parent.id === "mainColumns") {
+            break;
+          }
           const parentChildren = Array.from(parent.children);
           if (parentChildren.length > 1 && parent.textContent.length > sidebarEl.textContent.length * 3) {
             break;
@@ -153,7 +155,7 @@ var CustomImportScript = (() => {
         }
       }
     }
-    if (sidebarEl && sidebarEl !== main && sidebarEl !== document.body) {
+    if (sidebarEl && sidebarEl !== main && sidebarEl !== document.body && !sidebarEl.classList.contains("mainContentCol") && sidebarEl.id !== "contentBody") {
       const block = WebImporter.Blocks.createBlock(document, {
         name: "Fragment",
         cells: [[[prefix + "/fragments/mortgage/talk-to-mortgage-consultant"]]]
@@ -449,8 +451,9 @@ var CustomImportScript = (() => {
   var import_old_theme_default = {
     transform: (payload) => {
       const { document, url, params } = payload;
-      const main = document.querySelector("main") || document.body;
+      let main = document.querySelector("main") || document.querySelector("#contentBody") || document.querySelector("#mainColumns") || document.querySelector("#shell") || document.body;
       cleanup(document, url);
+      main = document.querySelector("#contentBody") || document.querySelector("#mainColumns") || document.querySelector("main") || document.querySelector("#shell") || document.querySelector(".t8") || document.body;
       function flattenMain(el) {
         let changed = true;
         while (changed) {
@@ -470,20 +473,13 @@ var CustomImportScript = (() => {
       const contentCol = main.querySelector(".mainContentCol") || main.querySelector('[class*="ContentCol"]');
       if (contentCol) {
         let target = contentCol;
-        while (target.children.length === 1 && target.children[0].tagName === "DIV" && !target.children[0].querySelector(".c54")) {
+        while (target.children.length === 1 && target.children[0].tagName === "DIV") {
           target = target.children[0];
         }
-        if (!target.querySelector(":scope > .c54") && target.children.length === 1 && target.children[0].querySelector(".c54")) {
-          target = target.children[0];
+        while (target.firstChild) {
+          main.appendChild(target.firstChild);
         }
-        const topWrapper = contentCol.closest("div:not(main)") || contentCol;
-        if (topWrapper.parentElement === main || topWrapper.parentElement) {
-          const parent = topWrapper.parentElement || main;
-          while (target.firstChild) {
-            parent.insertBefore(target.firstChild, topWrapper);
-          }
-          topWrapper.remove();
-        }
+        contentCol.remove();
       }
       flattenMain(main);
       main.querySelectorAll('.hatched, [class*="hatched"]').forEach((el) => {
@@ -558,6 +554,42 @@ var CustomImportScript = (() => {
           const block = WebImporter.Blocks.createBlock(document, { name: variant, cells });
           c60.replaceWith(block);
         }
+      });
+      main.querySelectorAll(".c55body").forEach((c55) => {
+        const img = c55.querySelector("img");
+        const contentDiv = c55.querySelector(".c55content") || c55.querySelector("article");
+        if (!img || !contentDiv) return;
+        const article = contentDiv.querySelector("article") || contentDiv;
+        const heading = article.querySelector("strong, h3, h2");
+        const paragraphs = article.querySelectorAll("p");
+        const link = article.querySelector("a");
+        const col2Content = [];
+        if (heading) {
+          const h3 = document.createElement("h3");
+          h3.textContent = heading.textContent.trim();
+          col2Content.push(h3);
+        }
+        paragraphs.forEach((p) => {
+          if (p.querySelector("strong") === heading) return;
+          if (p.querySelector("a") && p.textContent.trim() === (link ? link.textContent.trim() : "")) return;
+          if (p.textContent.trim()) col2Content.push(p.cloneNode(true));
+        });
+        if (link) {
+          const ctaP = document.createElement("p");
+          const em = document.createElement("em");
+          const a = document.createElement("a");
+          a.setAttribute("href", link.getAttribute("href") || "");
+          a.textContent = link.textContent.trim().replace(/\s*Abre.*$/, "");
+          em.appendChild(a);
+          ctaP.appendChild(em);
+          col2Content.push(ctaP);
+        }
+        const pic = img.closest("picture") || img;
+        const block = WebImporter.Blocks.createBlock(document, {
+          name: "Columns (panel)",
+          cells: [[[pic.cloneNode(true)], col2Content]]
+        });
+        c55.replaceWith(block);
       });
       const showHideItems = main.querySelectorAll(".rebranded-show-hide");
       if (showHideItems.length > 0) {

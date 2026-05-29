@@ -7,7 +7,10 @@
  * extracts metadata from aside/complementary, and applies generic transforms.
  */
 export default function cleanup(document, url) {
-  const main = document.querySelector('main') || document.body;
+  const main = document.querySelector('main')
+    || document.querySelector('#mainColumns')
+    || document.querySelector('#shell')
+    || document.body;
 
   // --- Remove cookie consent / OneTrust overlay (run on full document) ---
   const removeSelectors = [
@@ -145,6 +148,10 @@ export default function cleanup(document, url) {
       // Go up until we find an element that is NOT the main content area
       while (sidebarEl && sidebarEl.parentElement && sidebarEl.parentElement !== main && sidebarEl.parentElement !== document.body) {
         const parent = sidebarEl.parentElement;
+        // Stop at content column wrappers — never replace the main content area
+        if (parent.classList.contains('mainContentCol') || parent.id === 'mainColumns') {
+          break;
+        }
         // Stop if parent contains significantly more content (it's a layout wrapper)
         const parentChildren = Array.from(parent.children);
         if (parentChildren.length > 1 && parent.textContent.length > sidebarEl.textContent.length * 3) {
@@ -179,7 +186,8 @@ export default function cleanup(document, url) {
     }
   }
 
-  if (sidebarEl && sidebarEl !== main && sidebarEl !== document.body) {
+  if (sidebarEl && sidebarEl !== main && sidebarEl !== document.body
+    && !sidebarEl.classList.contains('mainContentCol') && sidebarEl.id !== 'contentBody') {
     const block = WebImporter.Blocks.createBlock(document, {
       name: 'Fragment',
       cells: [[[prefix + '/fragments/mortgage/talk-to-mortgage-consultant']]],

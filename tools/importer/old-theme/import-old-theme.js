@@ -218,12 +218,26 @@ function parseOldThemeAccordion(main, document) {
 export default {
   transform: (payload) => {
     const { document, url, params } = payload;
-    const main = document.querySelector('main') || document.body;
+    let main = document.querySelector('main')
+      || document.querySelector('#contentBody')
+      || document.querySelector('#mainColumns')
+      || document.querySelector('#shell')
+      || document.body;
 
     // Phase 0: Cleanup (removes header, footer, breadcrumbs, sidebar → fragment, etc.)
     cleanup(document, url);
 
-    // Phase 0.5: Flatten nested layout wrappers
+    // Re-resolve main after cleanup — prefer the most specific content container
+    main = document.querySelector('#contentBody')
+      || document.querySelector('#mainColumns')
+      || document.querySelector('main')
+      || document.querySelector('#shell')
+      || document.querySelector('.t8')
+      || document.body;
+
+    
+
+            // Phase 0.5: Flatten nested layout wrappers
     // Old-theme pages nest content in divs like .ps-content-wrapper > .ps-left-col
     // Unwrap single-child div wrappers to bring content to main level
     function flattenMain(el) {
@@ -246,29 +260,20 @@ export default {
     flattenMain(main);
 
     // Phase 0.55: Unwrap content column wrappers to bring c54 separators to main level
-    // Source nests content in: .t8 > div > .mainContentCol > div > (actual content + c54)
+    // Source nests content in: #mainColumns > .mainContentCol > #contentBody > (actual content + c54)
     const contentCol = main.querySelector('.mainContentCol') || main.querySelector('[class*="ContentCol"]');
     if (contentCol) {
       // Find the innermost wrapper that contains the actual content (with c54 siblings)
       let target = contentCol;
-      // If contentCol has one child div that contains c54, go deeper
-      while (target.children.length === 1 && target.children[0].tagName === 'DIV' && !target.children[0].querySelector('.c54')) {
+      while (target.children.length === 1 && target.children[0].tagName === 'DIV') {
         target = target.children[0];
       }
-      // If target itself doesn't have c54 but its single child does
-      if (!target.querySelector(':scope > .c54') && target.children.length === 1 && target.children[0].querySelector('.c54')) {
-        target = target.children[0];
+      // Move target's children directly into main (clearing the wrapper chain)
+      while (target.firstChild) {
+        main.appendChild(target.firstChild);
       }
-      // Move target's children to main (replacing the entire wrapper chain)
-      const topWrapper = contentCol.closest('div:not(main)') || contentCol;
-      if (topWrapper.parentElement === main || topWrapper.parentElement) {
-        // Move all content up to main level
-        const parent = topWrapper.parentElement || main;
-        while (target.firstChild) {
-          parent.insertBefore(target.firstChild, topWrapper);
-        }
-        topWrapper.remove();
-      }
+      // Remove the now-empty wrapper chain
+      contentCol.remove();
     }
     // Re-run flatten in case we still have single-child wrappers
     flattenMain(main);
@@ -364,6 +369,48 @@ export default {
         const block = WebImporter.Blocks.createBlock(document, { name: variant, cells });
         c60.replaceWith(block);
       }
+    });
+
+    // Phase 0.9: Columns (panel) from div.c55body
+    // Pattern: div.c55body > img (illustration) + div.c55content > article (text + CTA)
+    main.querySelectorAll('.c55body').forEach((c55) => {
+      const img = c55.querySelector('img');
+      const contentDiv = c55.querySelector('.c55content') || c55.querySelector('article');
+      if (!img || !contentDiv) return;
+
+      const article = contentDiv.querySelector('article') || contentDiv;
+      const heading = article.querySelector('strong, h3, h2');
+      const paragraphs = article.querySelectorAll('p');
+      const link = article.querySelector('a');
+
+      const col2Content = [];
+      if (heading) {
+        const h3 = document.createElement('h3');
+        h3.textContent = heading.textContent.trim();
+        col2Content.push(h3);
+      }
+      paragraphs.forEach((p) => {
+        if (p.querySelector('strong') === heading) return;
+        if (p.querySelector('a') && p.textContent.trim() === (link ? link.textContent.trim() : '')) return;
+        if (p.textContent.trim()) col2Content.push(p.cloneNode(true));
+      });
+      if (link) {
+        const ctaP = document.createElement('p');
+        const em = document.createElement('em');
+        const a = document.createElement('a');
+        a.setAttribute('href', link.getAttribute('href') || '');
+        a.textContent = link.textContent.trim().replace(/\s*Abre.*$/, '');
+        em.appendChild(a);
+        ctaP.appendChild(em);
+        col2Content.push(ctaP);
+      }
+
+      const pic = img.closest('picture') || img;
+      const block = WebImporter.Blocks.createBlock(document, {
+        name: 'Columns (panel)',
+        cells: [[[pic.cloneNode(true)], col2Content]],
+      });
+      c55.replaceWith(block);
     });
 
     // Phase 1: Parsers
