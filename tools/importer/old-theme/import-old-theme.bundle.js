@@ -245,21 +245,21 @@ var CustomImportScript = (() => {
         a.setAttribute("href", href.slice(0, -1));
       }
     });
-    main.querySelectorAll('a.ps-btn-primary, a.ps-btn, a[class*="ps-btn-primary"]').forEach((a) => {
-      const strong = document.createElement("strong");
-      const newA = document.createElement("a");
-      newA.setAttribute("href", a.getAttribute("href") || "");
-      newA.textContent = a.textContent.trim();
-      strong.appendChild(newA);
-      a.replaceWith(strong);
-    });
-    main.querySelectorAll('a.ps-btn-secondary, a[class*="ps-btn-secondary"]').forEach((a) => {
+    main.querySelectorAll('a.ps-btn-secondary, a[class*="ps-btn-secondary"], a.c93.secondarybtn').forEach((a) => {
       const em = document.createElement("em");
       const newA = document.createElement("a");
       newA.setAttribute("href", a.getAttribute("href") || "");
       newA.textContent = a.textContent.trim();
       em.appendChild(newA);
       a.replaceWith(em);
+    });
+    main.querySelectorAll('a.ps-btn-primary, a.ps-btn, a[class*="ps-btn-primary"], a.c93:not(.secondarybtn)').forEach((a) => {
+      const strong = document.createElement("strong");
+      const newA = document.createElement("a");
+      newA.setAttribute("href", a.getAttribute("href") || "");
+      newA.textContent = a.textContent.trim();
+      strong.appendChild(newA);
+      a.replaceWith(strong);
     });
     main.querySelectorAll("a").forEach((a) => {
       const text = a.textContent || "";

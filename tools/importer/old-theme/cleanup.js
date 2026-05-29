@@ -304,24 +304,24 @@ export default function cleanup(document, url) {
     }
   });
 
-  // Primary buttons → wrap in <strong>
-  main.querySelectorAll('a.ps-btn-primary, a.ps-btn, a[class*="ps-btn-primary"]').forEach((a) => {
-    const strong = document.createElement('strong');
-    const newA = document.createElement('a');
-    newA.setAttribute('href', a.getAttribute('href') || '');
-    newA.textContent = a.textContent.trim();
-    strong.appendChild(newA);
-    a.replaceWith(strong);
-  });
-
-  // Secondary buttons → wrap in <em>
-  main.querySelectorAll('a.ps-btn-secondary, a[class*="ps-btn-secondary"]').forEach((a) => {
+  // Secondary buttons → wrap in <em> (check secondary FIRST before primary, since a.c93.secondarybtn matches both)
+  main.querySelectorAll('a.ps-btn-secondary, a[class*="ps-btn-secondary"], a.c93.secondarybtn').forEach((a) => {
     const em = document.createElement('em');
     const newA = document.createElement('a');
     newA.setAttribute('href', a.getAttribute('href') || '');
     newA.textContent = a.textContent.trim();
     em.appendChild(newA);
     a.replaceWith(em);
+  });
+
+  // Primary buttons → wrap in <strong>
+  main.querySelectorAll('a.ps-btn-primary, a.ps-btn, a[class*="ps-btn-primary"], a.c93:not(.secondarybtn)').forEach((a) => {
+    const strong = document.createElement('strong');
+    const newA = document.createElement('a');
+    newA.setAttribute('href', a.getAttribute('href') || '');
+    newA.textContent = a.textContent.trim();
+    strong.appendChild(newA);
+    a.replaceWith(strong);
   });
 
   // Strip trailing '>' from link text
