@@ -315,7 +315,8 @@
 /* === Variant: callout — single card CTA (e.g., "Start your application") === */
 
 .cards.callout > ul {
-  flex-direction: column;
+  flex-flow: column nowrap;
+  align-items: flex-start;
 }
 
 .cards.callout > ul > li {
@@ -324,6 +325,7 @@
   box-shadow: none;
   padding: 24px;
   max-width: 300px;
+  flex: 0 0 auto;
 }
 
 .cards.callout > ul > li > .cards-card-body {
