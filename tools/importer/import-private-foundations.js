@@ -50,22 +50,24 @@ export default {
     let geographicLimitations = '';
 
     if (tablist) {
-      const tabLinks = tablist.querySelectorAll('a[href], [role="tab"] a, [role="tab"]');
+      const tabs = tablist.querySelectorAll('[role="tab"]');
       const panelIds = [];
+      const seenIds = new Set();
 
-      tabLinks.forEach((tab) => {
-        const link = tab.querySelector('a') || tab;
-        const label = link.textContent.trim();
-        const href = link.getAttribute('href') || '';
+      tabs.forEach((tab) => {
+        const link = tab.querySelector('a');
+        const label = (link || tab).textContent.trim().split('\n')[0].trim();
+        const href = link ? link.getAttribute('href') || '' : '';
         const panelId = href.replace('#', '').replace(/^\//, '');
-        if (label && panelId) {
+        if (label && panelId && !seenIds.has(panelId)) {
+          seenIds.add(panelId);
           panelIds.push({ label, panelId });
         }
       });
 
-      // Extract content from each panel
+      // Extract content from each panel by ID
       panelIds.forEach(({ label, panelId }) => {
-        const panel = document.getElementById(panelId) || main.querySelector(`[role="tabpanel"]`);
+        const panel = document.getElementById(panelId);
         if (!panel) {
           tabData.push({ label, content: '' });
           return;

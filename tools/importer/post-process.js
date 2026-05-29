@@ -209,6 +209,8 @@ function postProcess(filePath) {
     const line = smLines[si];
     if (line.includes('class="metadata"')) continue;
     if (!line.includes('<h2') || line.includes('section-metadata')) continue;
+    // Skip lines where H2 is inside a block (tabs, accordion, etc.) — not a standalone section heading
+    if (line.includes('class="tabs') || line.includes('class="accordion')) continue;
 
     // Determine style: if H2 is followed by a major block, use center-align + heading-bar
     const hasMajorBlock = /class="(cards|accordion|tabs|columns|carousel)/.test(line);

@@ -48,19 +48,21 @@ var CustomImportScript = (() => {
       let statesServed = "";
       let geographicLimitations = "";
       if (tablist) {
-        const tabLinks = tablist.querySelectorAll('a[href], [role="tab"] a, [role="tab"]');
+        const tabs = tablist.querySelectorAll('[role="tab"]');
         const panelIds = [];
-        tabLinks.forEach((tab) => {
-          const link = tab.querySelector("a") || tab;
-          const label = link.textContent.trim();
-          const href = link.getAttribute("href") || "";
+        const seenIds = /* @__PURE__ */ new Set();
+        tabs.forEach((tab) => {
+          const link = tab.querySelector("a");
+          const label = (link || tab).textContent.trim().split("\n")[0].trim();
+          const href = link ? link.getAttribute("href") || "" : "";
           const panelId = href.replace("#", "").replace(/^\//, "");
-          if (label && panelId) {
+          if (label && panelId && !seenIds.has(panelId)) {
+            seenIds.add(panelId);
             panelIds.push({ label, panelId });
           }
         });
         panelIds.forEach(({ label, panelId }) => {
-          const panel = document.getElementById(panelId) || main.querySelector(`[role="tabpanel"]`);
+          const panel = document.getElementById(panelId);
           if (!panel) {
             tabData.push({ label, content: "" });
             return;
