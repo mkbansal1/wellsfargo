@@ -110,18 +110,6 @@ function postProcess(filePath) {
     );
   }
 
-  // 3d. Remove duplicate tab content (mobile view rendered after the Tabs block)
-  // Pattern: Tabs block is followed by tab label paragraphs + repeated panel content
-  html = html.replace(
-    /(<\/div><\/div>)(<p>[^<]*<a href="#[a-z]+[^"]*">[^<]*<\/a>[^<]*(?:<a href="#[a-z]+[^"]*">[^<]*<\/a>[^<]*)+<\/p>)/g,
-    '$1',
-  );
-  // Remove residual duplicate panels after tabs (paragraphs with <a href="#">TabLabel</a> + H3s)
-  html = html.replace(
-    /(<div class="tabs[^"]*">.*?<\/div><\/div>)((?:<p><a href="#">[^<]+<\/a><\/p>)?(?:<h3[^>]*>.*?<\/h3>|<p>.*?<\/p>|<ul>.*?<\/ul>)+)/g,
-    '$1',
-  );
-
   // 4. Join orphaned lines (lines not starting with <div>) back to their parent
   const lines = html.split('\n');
   const result = [];
@@ -133,6 +121,41 @@ function postProcess(filePath) {
     }
   }
   html = result.join('\n');
+
+  // 4b. Remove duplicate tab content (mobile view joined onto tabs line after orphan joining)
+  const tabsLines2 = html.split('\n');
+  for (let ti = 0; ti < tabsLines2.length; ti++) {
+    const line = tabsLines2[ti];
+    if (!line.includes('class="tabs')) continue;
+
+    const tabsStart = line.indexOf('class="tabs');
+    const blockStart = line.lastIndexOf('<div', tabsStart);
+    let depth = 0;
+    let tabsEndPos = -1;
+    for (let ci = blockStart; ci < line.length; ci++) {
+      if (line.substring(ci, ci + 4) === '<div') { depth++; ci += 3; }
+      else if (line.substring(ci, ci + 6) === '</div>') {
+        depth--;
+        if (depth === 0) { tabsEndPos = ci + 6; break; }
+        ci += 5;
+      }
+    }
+    if (tabsEndPos === -1) break;
+
+    const afterTabs = line.substring(tabsEndPos);
+    if (afterTabs.length < 50) break;
+    const nextBlock = afterTabs.match(/<div class="(?:fragment|section-metadata|metadata)">/);
+    if (nextBlock) {
+      tabsLines2[ti] = line.substring(0, tabsEndPos) + afterTabs.substring(nextBlock.index);
+    } else {
+      const lastClose = afterTabs.lastIndexOf('</div>');
+      if (lastClose >= 0) {
+        tabsLines2[ti] = line.substring(0, tabsEndPos) + afterTabs.substring(lastClose);
+      }
+    }
+    break;
+  }
+  html = tabsLines2.join('\n');
 
   // 5. Separate fragment blocks into their own sections (but not when following a hero block)
   const sepLines = html.split('\n');
