@@ -71,6 +71,7 @@
 }
 
 .columns.panel > div > div {
+  box-sizing: border-box;
   background: #fff;
   padding: 32px;
 }
