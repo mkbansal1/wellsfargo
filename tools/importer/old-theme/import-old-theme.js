@@ -451,6 +451,8 @@ export default {
     });
 
     // Phase 0.95: Tabs from ul.tabs / [role="tablist"]
+    // If tab content has complex blocks (accordion, columns, etc.) → tabs (reference) with fragments
+    // If tab content is simple freetext → standard Tabs
     const tablist = main.querySelector('ul.tabs, [role="tablist"]');
     if (tablist) {
       const tabLinks = tablist.querySelectorAll('a[href^="#"], [role="tab"] a');
@@ -460,21 +462,39 @@ export default {
         const href = a.getAttribute('href') || '';
         const panelId = href.replace('#', '');
         if (!label || !panelId) return;
-        // Find the corresponding panel
         const panel = main.querySelector('#' + panelId) || main.querySelector('[id="' + panelId + '"]');
-        const content = panel ? panel.innerHTML : '';
-        if (content) tabData.push({ label, content, panel });
+        if (!panel) return;
+        const content = panel.innerHTML || '';
+        // Check if panel has complex content (accordion patterns, nested blocks)
+        const hasAccordion = panel.querySelector('.c58, [href="#Expand"], .rebranded-show-hide, details, h2 > button, h3 > a[href*="Expand"]');
+        const hasComplexBlock = panel.querySelector('.c60, .c55, .c5, [role="tablist"]');
+        const isComplex = !!(hasAccordion || hasComplexBlock);
+        const slug = 'tab-' + label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, '');
+        tabData.push({ label, content, panel, isComplex, slug });
       });
 
       if (tabData.length >= 2) {
-        const cells = tabData.map((tab) => {
-          const contentEl = document.createElement('div');
-          contentEl.innerHTML = tab.content;
-          return [[tab.label], [contentEl]];
-        });
-        const block = WebImporter.Blocks.createBlock(document, { name: 'Tabs', cells });
-        // Replace the tablist and panels with the block
-        tablist.before(block);
+        // Determine variant: if ANY panel has complex content → tabs (reference)
+        const useReference = tabData.some((t) => t.isComplex);
+
+        if (useReference) {
+          // Build fragment paths
+          const pagePath = new URL(params.originalURL || url).pathname.replace(/\/$/, '').replace(/^\//, '');
+          const fragmentBase = '/fragments/' + pagePath;
+          const cells = tabData.map((tab) => [[tab.label], [fragmentBase + '/' + tab.slug]]);
+          const block = WebImporter.Blocks.createBlock(document, { name: 'Tabs (reference)', cells });
+          tablist.before(block);
+        } else {
+          // Standard tabs with inline content
+          const cells = tabData.map((tab) => {
+            const contentEl = document.createElement('div');
+            contentEl.innerHTML = tab.content;
+            return [[tab.label], [contentEl]];
+          });
+          const block = WebImporter.Blocks.createBlock(document, { name: 'Tabs', cells });
+          tablist.before(block);
+        }
+
         tablist.remove();
         tabData.forEach((tab) => { if (tab.panel && tab.panel.parentElement) tab.panel.remove(); });
       }

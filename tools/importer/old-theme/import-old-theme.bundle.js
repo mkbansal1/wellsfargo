@@ -640,17 +640,31 @@ var CustomImportScript = (() => {
           const panelId = href.replace("#", "");
           if (!label || !panelId) return;
           const panel = main.querySelector("#" + panelId) || main.querySelector('[id="' + panelId + '"]');
-          const content = panel ? panel.innerHTML : "";
-          if (content) tabData.push({ label, content, panel });
+          if (!panel) return;
+          const content = panel.innerHTML || "";
+          const hasAccordion = panel.querySelector('.c58, [href="#Expand"], .rebranded-show-hide, details, h2 > button, h3 > a[href*="Expand"]');
+          const hasComplexBlock = panel.querySelector('.c60, .c55, .c5, [role="tablist"]');
+          const isComplex = !!(hasAccordion || hasComplexBlock);
+          const slug = "tab-" + label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-+$/, "");
+          tabData.push({ label, content, panel, isComplex, slug });
         });
         if (tabData.length >= 2) {
-          const cells = tabData.map((tab) => {
-            const contentEl = document.createElement("div");
-            contentEl.innerHTML = tab.content;
-            return [[tab.label], [contentEl]];
-          });
-          const block = WebImporter.Blocks.createBlock(document, { name: "Tabs", cells });
-          tablist.before(block);
+          const useReference = tabData.some((t) => t.isComplex);
+          if (useReference) {
+            const pagePath = new URL(params.originalURL || url).pathname.replace(/\/$/, "").replace(/^\//, "");
+            const fragmentBase = "/fragments/" + pagePath;
+            const cells = tabData.map((tab) => [[tab.label], [fragmentBase + "/" + tab.slug]]);
+            const block = WebImporter.Blocks.createBlock(document, { name: "Tabs (reference)", cells });
+            tablist.before(block);
+          } else {
+            const cells = tabData.map((tab) => {
+              const contentEl = document.createElement("div");
+              contentEl.innerHTML = tab.content;
+              return [[tab.label], [contentEl]];
+            });
+            const block = WebImporter.Blocks.createBlock(document, { name: "Tabs", cells });
+            tablist.before(block);
+          }
           tablist.remove();
           tabData.forEach((tab) => {
             if (tab.panel && tab.panel.parentElement) tab.panel.remove();
