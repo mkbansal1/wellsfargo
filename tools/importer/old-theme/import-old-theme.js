@@ -415,9 +415,9 @@ export default {
     });
 
     
-    // Phase 0.9: Columns (panel) from div.c55
-    // Pattern: div.c55 contains an image + text content. Image → col 1, text → col 2.
-    main.querySelectorAll('.c55').forEach((c55) => {
+    // Phase 0.9: Columns (panel) from div.c55 or div.c5
+    // Pattern: container has an image + text content. Image → col 1, text → col 2.
+    main.querySelectorAll('.c55, .c5').forEach((c55) => {
       if (processed.has(c55)) return;
       const img = c55.querySelector('img');
       if (!img) return;

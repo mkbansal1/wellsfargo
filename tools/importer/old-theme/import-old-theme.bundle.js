@@ -605,7 +605,7 @@ var CustomImportScript = (() => {
           c60.replaceWith(block);
         }
       });
-      main.querySelectorAll(".c55").forEach((c55) => {
+      main.querySelectorAll(".c55, .c5").forEach((c55) => {
         if (processed.has(c55)) return;
         const img = c55.querySelector("img");
         if (!img) return;

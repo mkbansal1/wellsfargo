@@ -110,36 +110,31 @@ function postProcess(filePath) {
     );
   }
 
-  // 4. Join orphaned lines back to their parent, and merge bare heading lines with next line
+  // 4. Join orphaned lines into sections
+  // Lines starting with <div> or <h1>/<h2> are section boundaries.
+  // Lines starting with <p>, <ul>, <li>, <br>, etc. merge into the preceding section.
   const lines = html.split('\n');
   const result = [];
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-    const isBlockStart = !line
-      || line.startsWith('<div')
-      || line.startsWith('<h1') || line.startsWith('<h2') || line.startsWith('<h3')
-      || line.startsWith('<h4') || line.startsWith('<h5') || line.startsWith('<h6')
-      || line.startsWith('<table') || line.startsWith('<p>');
-    if (i > 0 && line && !isBlockStart) {
+    if (!line) continue;
+    const isSectionStart = line.startsWith('<div') || line.startsWith('<h1') || line.startsWith('<h2');
+    if (isSectionStart) {
+      result.push(line);
+    } else if (result.length > 0) {
+      // Merge into previous section
       result[result.length - 1] += line;
     } else {
       result.push(line);
     }
   }
-  // Merge bare heading lines (e.g. <h2>...</h2>) with the following line to form one section
-  const merged = [];
+  // Wrap any non-<div> lines in a section <div>
   for (let i = 0; i < result.length; i++) {
-    const line = result[i];
-    const isBareHeading = /^<h[1-6][^>]*>.*<\/h[1-6]>$/.test(line.trim());
-    if (isBareHeading && i + 1 < result.length) {
-      // Wrap heading + next line in a section div
-      merged.push('<div>' + line + result[i + 1] + '</div>');
-      i++;
-    } else {
-      merged.push(line);
+    if (!result[i].startsWith('<div')) {
+      result[i] = '<div>' + result[i] + '</div>';
     }
   }
-  html = merged.join('\n');
+  html = result.join('\n');
 
   // 4b. Remove duplicate tab content (mobile view joined onto tabs line after orphan joining)
   const tabsLines2 = html.split('\n');
