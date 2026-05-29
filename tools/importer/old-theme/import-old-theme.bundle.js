@@ -630,6 +630,33 @@ var CustomImportScript = (() => {
         processed.add(c55);
         c55.replaceWith(block);
       });
+      const tablist = main.querySelector('ul.tabs, [role="tablist"]');
+      if (tablist) {
+        const tabLinks = tablist.querySelectorAll('a[href^="#"], [role="tab"] a');
+        const tabData = [];
+        tabLinks.forEach((a) => {
+          const label = a.textContent.trim();
+          const href = a.getAttribute("href") || "";
+          const panelId = href.replace("#", "");
+          if (!label || !panelId) return;
+          const panel = main.querySelector("#" + panelId) || main.querySelector('[id="' + panelId + '"]');
+          const content = panel ? panel.innerHTML : "";
+          if (content) tabData.push({ label, content, panel });
+        });
+        if (tabData.length >= 2) {
+          const cells = tabData.map((tab) => {
+            const contentEl = document.createElement("div");
+            contentEl.innerHTML = tab.content;
+            return [[tab.label], [contentEl]];
+          });
+          const block = WebImporter.Blocks.createBlock(document, { name: "Tabs", cells });
+          tablist.before(block);
+          tablist.remove();
+          tabData.forEach((tab) => {
+            if (tab.panel && tab.panel.parentElement) tab.panel.remove();
+          });
+        }
+      }
       const showHideItems = main.querySelectorAll(".rebranded-show-hide");
       if (showHideItems.length > 0) {
         const parent = showHideItems[0].parentElement;

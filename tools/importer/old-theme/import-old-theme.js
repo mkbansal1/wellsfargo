@@ -450,6 +450,36 @@ export default {
       c55.replaceWith(block);
     });
 
+    // Phase 0.95: Tabs from ul.tabs / [role="tablist"]
+    const tablist = main.querySelector('ul.tabs, [role="tablist"]');
+    if (tablist) {
+      const tabLinks = tablist.querySelectorAll('a[href^="#"], [role="tab"] a');
+      const tabData = [];
+      tabLinks.forEach((a) => {
+        const label = a.textContent.trim();
+        const href = a.getAttribute('href') || '';
+        const panelId = href.replace('#', '');
+        if (!label || !panelId) return;
+        // Find the corresponding panel
+        const panel = main.querySelector('#' + panelId) || main.querySelector('[id="' + panelId + '"]');
+        const content = panel ? panel.innerHTML : '';
+        if (content) tabData.push({ label, content, panel });
+      });
+
+      if (tabData.length >= 2) {
+        const cells = tabData.map((tab) => {
+          const contentEl = document.createElement('div');
+          contentEl.innerHTML = tab.content;
+          return [[tab.label], [contentEl]];
+        });
+        const block = WebImporter.Blocks.createBlock(document, { name: 'Tabs', cells });
+        // Replace the tablist and panels with the block
+        tablist.before(block);
+        tablist.remove();
+        tabData.forEach((tab) => { if (tab.panel && tab.panel.parentElement) tab.panel.remove(); });
+      }
+    }
+
     // Phase 1: Parsers
 
     // 1a. Rebranded show-hide accordion: group .rebranded-show-hide items, break on H3
