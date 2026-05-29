@@ -305,6 +305,13 @@
   background-repeat: no-repeat;
 }
 
+/* === Variant: align-center === */
+
+.cards.align-center > ul > li .cards-card-body {
+  text-align: center;
+  align-items: center;
+}
+
 /* === Variant: callout — single card CTA (e.g., "Start your application") === */
 
 .cards.callout > ul {
