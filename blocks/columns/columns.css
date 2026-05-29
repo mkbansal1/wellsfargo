@@ -85,27 +85,34 @@
 
 /* --- Variant: panel --- */
 
-/* Authored as | Columns (panel) | — white background panels with card-like styling */
+/* Authored as | Columns (panel) | — white columns on gray background */
+.columns.panel {
+  background: var(--wf-bg-gray, #e2dede);
+  padding: 16px;
+}
+
 .columns.panel > div {
-  background: var(--wf-bg-light, #f9f7f6);
-  border-radius: 12px;
+  background: transparent;
   padding: 0;
-  gap: 0;
+  gap: 16px;
 }
 
 .columns.panel > div > div {
-  padding: 24px;
+  box-sizing: border-box;
+  background: #fff;
+  padding: 32px;
 }
 
 .columns.panel > div > .columns-img-col {
   padding: 0;
+  margin-bottom: -16px;
 }
 
 .columns.panel > div > .columns-img-col img {
-  border-radius: 12px 12px 0 0;
   object-fit: cover;
   width: 100%;
-  height: auto;
+  height: 100%;
+  display: block;
 }
 
 .columns.panel > div > div h3 {
@@ -129,10 +136,6 @@
     flex-direction: column;
     align-items: stretch;
   }
-
-  .columns.panel.columns-2-cols > div > .columns-img-col img {
-    border-radius: 12px 12px 0 0;
-  }
 }
 
 /* 2-col panel: desktop side by side, image+text touching */
@@ -144,17 +147,16 @@
 
   .columns.panel.columns-2-cols > div > .columns-img-col {
     flex: 0 0 40%;
+    margin-bottom: 0;
+    margin-right: -16px;
   }
 
   .columns.panel.columns-2-cols > div > .columns-img-col img {
-    border-radius: 12px 0 0 12px;
     height: 100%;
-    object-fit: cover;
   }
 
-  .columns.panel.columns-2-cols > div > div:not(.columns-img-col) {
+  .columns.panel.columns-2-cols:not([class*="ratio-"]) > div > div:not(.columns-img-col) {
     flex: 1;
-    padding: 32px;
   }
 }
 
@@ -167,23 +169,20 @@
 
   .columns.panel.columns-3-cols > div > .columns-img-col {
     flex: 0 0 40%;
+    margin-bottom: 0;
+    margin-right: -16px;
   }
 
   .columns.panel.columns-3-cols > div > .columns-img-col img {
-    border-radius: 12px 0 0;
     height: 100%;
-    object-fit: cover;
   }
 
   .columns.panel.columns-3-cols > div > div:nth-child(2) {
     flex: 1;
-    padding: 24px;
   }
 
   .columns.panel.columns-3-cols > div > div:nth-child(3) {
     flex: 0 0 100%;
-    padding: 24px;
-    border-top: 1px solid var(--wf-bg-gray, #e2dede);
   }
 }
 
@@ -195,21 +194,37 @@
 
   .columns.panel.columns-3-cols > div > .columns-img-col {
     flex: 0 0 30%;
-  }
-
-  .columns.panel.columns-3-cols > div > .columns-img-col img {
-    border-radius: 12px 0 0 12px;
+    margin-right: -16px;
   }
 
   .columns.panel.columns-3-cols > div > div:nth-child(2) {
     flex: 1;
-    padding: 32px;
     border-right: 1px solid var(--wf-bg-gray, #e2dede);
   }
 
   .columns.panel.columns-3-cols > div > div:nth-child(3) {
     flex: 0 0 30%;
-    padding: 32px;
     border-top: none;
   }
+}
+
+/* --- Variants: column ratios --- */
+
+/* Tablet+ (768px): apply specified ratios, accounting for gap */
+@media (width >= 768px) {
+  .columns.ratio-25-75 > div > div:first-child { flex: 0 0 calc(25% - 8px); }
+
+  .columns.ratio-25-75 > div > div:last-child { flex: 0 0 calc(75% - 8px); }
+
+  .columns.ratio-33-67 > div > div:first-child { flex: 0 0 calc(33% - 8px); }
+
+  .columns.ratio-33-67 > div > div:last-child { flex: 0 0 calc(67% - 8px); }
+
+  .columns.ratio-75-25 > div > div:first-child { flex: 0 0 calc(75% - 8px); }
+
+  .columns.ratio-75-25 > div > div:last-child { flex: 0 0 calc(25% - 8px); }
+
+  .columns.ratio-67-33 > div > div:first-child { flex: 0 0 calc(67% - 8px); }
+
+  .columns.ratio-67-33 > div > div:last-child { flex: 0 0 calc(33% - 8px); }
 }
