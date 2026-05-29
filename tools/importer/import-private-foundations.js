@@ -40,7 +40,8 @@ export default {
     if (dtMatch) pageid = dtMatch[0];
 
     const footnoteCids = [];
-    main.querySelectorAll('[data-cid]').forEach((el) => {
+    // Extract footnotes from .ps-footnote-text elements only (not nav/header CIDs)
+    document.querySelectorAll('.ps-footnote-text, .ps-footnote [data-cid]').forEach((el) => {
       const cid = el.getAttribute('data-cid');
       if (!cid) return;
       const text = el.textContent.trim();

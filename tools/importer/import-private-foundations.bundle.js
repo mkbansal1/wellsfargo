@@ -40,7 +40,7 @@ var CustomImportScript = (() => {
       const dtMatch = allText.match(/DT1-\d+-\d+-\d+-[\d.]+/);
       if (dtMatch) pageid = dtMatch[0];
       const footnoteCids = [];
-      main.querySelectorAll("[data-cid]").forEach((el) => {
+      document.querySelectorAll(".ps-footnote-text, .ps-footnote [data-cid]").forEach((el) => {
         const cid = el.getAttribute("data-cid");
         if (!cid) return;
         const text = el.textContent.trim();
