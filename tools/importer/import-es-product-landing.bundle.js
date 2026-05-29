@@ -190,6 +190,125 @@ var CustomImportScript = (() => {
     element.replaceWith(block);
   }
 
+  // tools/importer/parsers/tabs.js
+  var TAB_ANCHORS = [
+    { id: "nationalbanks", label: "National banks", slug: "tab-national-banks" },
+    { id: "regionalandcommunitybanks", label: "Regional and community banks", slug: "tab-regional-and-community-banks" },
+    { id: "creditunions", label: "Credit unions", slug: "tab-credit-unions" },
+    { id: "mortgagebrokers", label: "Mortgage brokers", slug: "tab-mortgage-brokers" },
+    { id: "onlineonlymortgagelenders", label: "Online-only mortgage lenders", slug: "tab-online-only-mortgage-lenders" }
+  ];
+  function parse2(container, { document, url, params }) {
+    if (!url || !container) return false;
+    const allAnchors = container.querySelectorAll('a[href^="#"]');
+    const tabAnchors = [];
+    for (const a of allAnchors) {
+      const href = (a.getAttribute("href") || "").replace("#", "");
+      const match = TAB_ANCHORS.find((t) => t.id === href);
+      if (match && !tabAnchors.find((t) => t.id === match.id)) {
+        tabAnchors.push({ ...match, anchorEl: a });
+      }
+    }
+    if (tabAnchors.length < 3) return false;
+    let pagePath = "";
+    try {
+      const urlObj = new URL(url);
+      pagePath = urlObj.pathname.replace(/\/$/, "").replace(/^\//, "");
+    } catch (e) {
+      pagePath = url.replace(/^https?:\/\/[^/]+/, "").replace(/\/$/, "").replace(/^\//, "");
+    }
+    const fragmentBase = "/fragments/" + pagePath;
+    const tabData = [];
+    const elementsToRemove = /* @__PURE__ */ new Set();
+    let firstTabLabelEl = null;
+    for (const tab of TAB_ANCHORS) {
+      const anchor = container.querySelector(`a[href="#${tab.id}"]`);
+      if (!anchor) continue;
+      const labelEl = anchor.closest("p") || anchor.closest("div");
+      if (!labelEl) continue;
+      if (!firstTabLabelEl) firstTabLabelEl = labelEl;
+      const panelEl = labelEl.nextElementSibling;
+      if (!panelEl) continue;
+      const h3s = panelEl.querySelectorAll("h3");
+      let productsContent = "";
+      let servicesContent = "";
+      for (const h3 of h3s) {
+        const text = h3.textContent.trim().toLowerCase();
+        let content = "";
+        let sibling = h3.nextElementSibling;
+        while (sibling && sibling.tagName !== "H3") {
+          content += sibling.outerHTML || "";
+          sibling = sibling.nextElementSibling;
+        }
+        if (!content) {
+          const cell = h3.closest("div");
+          if (cell) {
+            content = cell.innerHTML.replace(h3.outerHTML, "").trim();
+          }
+        }
+        if (text.includes("product")) {
+          productsContent = content;
+        } else if (text.includes("service")) {
+          servicesContent = content;
+        }
+      }
+      if (!productsContent && !servicesContent) {
+        const rows = panelEl.querySelectorAll(":scope > div");
+        for (const row of rows) {
+          const h3 = row.querySelector("h3");
+          if (!h3) continue;
+          const text = h3.textContent.trim().toLowerCase();
+          const cellContent = row.querySelector(":scope > div:last-child");
+          if (!cellContent) continue;
+          const content = cellContent.innerHTML.replace(/<h3[^>]*>.*?<\/h3>/i, "").trim();
+          if (text.includes("product")) productsContent = content;
+          else if (text.includes("service")) servicesContent = content;
+        }
+      }
+      tabData.push({
+        label: tab.label,
+        slug: tab.slug,
+        fragmentPath: fragmentBase + "/" + tab.slug,
+        productsContent,
+        servicesContent
+      });
+      elementsToRemove.add(labelEl);
+      elementsToRemove.add(panelEl);
+    }
+    if (tabData.length < 3) return false;
+    const allLabelsAndPanels = container.querySelectorAll("p");
+    for (const p of allLabelsAndPanels) {
+      const anchor = p.querySelector('a[href^="#"]');
+      if (!anchor) continue;
+      const href = (anchor.getAttribute("href") || "").replace("#", "");
+      if (TAB_ANCHORS.find((t) => t.id === href)) {
+        elementsToRemove.add(p);
+        const next = p.nextElementSibling;
+        if (next && (next.querySelector("h3") || next.className.includes("cards"))) {
+          elementsToRemove.add(next);
+        }
+      }
+    }
+    const allParagraphs = container.querySelectorAll("p");
+    for (const p of allParagraphs) {
+      const anchors = p.querySelectorAll('a[href^="#"]');
+      if (anchors.length >= 3) {
+        const tabIds = Array.from(anchors).map((a) => (a.getAttribute("href") || "").replace("#", ""));
+        const matchCount = tabIds.filter((id) => TAB_ANCHORS.find((t) => t.id === id)).length;
+        if (matchCount >= 3) elementsToRemove.add(p);
+      }
+    }
+    const cells = tabData.map((tab) => [[tab.label], [tab.fragmentPath]]);
+    const block = WebImporter.Blocks.createBlock(document, { name: "Tabs (reference)", cells });
+    if (firstTabLabelEl && firstTabLabelEl.parentNode) {
+      firstTabLabelEl.parentNode.insertBefore(block, firstTabLabelEl);
+    }
+    elementsToRemove.forEach((el) => {
+      if (el.parentNode) el.remove();
+    });
+    return true;
+  }
+
   // tools/importer/import-es-product-landing.js
   function parseHero(element, { document, isFirstHero }) {
     const img = element.querySelector(
@@ -579,6 +698,7 @@ var CustomImportScript = (() => {
         });
       }
     });
+    parse2(main, { document, url, params });
     const fragmentPatterns = getFragmentPatterns(url);
     main.querySelectorAll(':scope > div, :scope > [class*="card-background"]').forEach((el) => {
       if (processed.has(el)) return;

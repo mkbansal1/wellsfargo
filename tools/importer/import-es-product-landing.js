@@ -22,6 +22,7 @@ import wellsfargoCleanup from './transformers/wellsfargo-cleanup.js';
 
 // SHARED PARSER IMPORTS
 import parseVideoShared from './parsers/video.js';
+import parseTabsShared from './parsers/tabs.js';
 
 // --- PARSER FUNCTIONS ---
 
@@ -563,6 +564,9 @@ function runParsers(main, document, url, params) {
       });
     }
   });
+
+  // TABS: Detect tabbed interfaces before cards/fragments (so panels aren't consumed as Cards)
+  parseTabsShared(main, { document, url, params });
 
   // FRAGMENTS: Detect shared content patterns FIRST
   const fragmentPatterns = getFragmentPatterns(url);

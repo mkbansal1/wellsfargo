@@ -75,6 +75,24 @@ function postProcess(filePath) {
   }
   html = lnLines.join('\n');
 
+  // 3c. Fix Tabs block: remove footnotes/pageid rows absorbed by serializer
+  const tabLines = html.split('\n');
+  for (let ti = 0; ti < tabLines.length; ti++) {
+    const line = tabLines[ti];
+    if (!line.includes('tabs reference') && !line.includes('tabs-reference')) continue;
+    // Extract footnotes/pageid from inside the tabs block
+    const fnMatch = line.match(/<div><div>(?:<p>)?footnotes(?:<\/p>)?<\/div><div>(?:<p>)?(tcm:[^<]+)(?:<\/p>)?<\/div><\/div>/);
+    if (fnMatch && !extractedFootnotes) extractedFootnotes = fnMatch[1];
+    const pidMatch = line.match(/<div><div>(?:<p>)?pageid(?:<\/p>)?<\/div><div>(?:<p>)?([^<]+?)(?:<\/p>)?<\/div><\/div>/);
+    if (pidMatch && !extractedPageid) extractedPageid = pidMatch[1].trim();
+    // Remove the footnotes/pageid rows from the tabs block
+    tabLines[ti] = line
+      .replace(/<div><div>(?:<p>)?footnotes(?:<\/p>)?<\/div><div>(?:<p>)?tcm:[^<]+(?:<\/p>)?<\/div><\/div>/g, '')
+      .replace(/<div><div>(?:<p>)?pageid(?:<\/p>)?<\/div><div>(?:<p>)?[^<]+(?:<\/p>)?<\/div><\/div>/g, '');
+    break;
+  }
+  html = tabLines.join('\n');
+
   // Append extracted footnotes/pageid to Metadata block at end of file
   if (extractedFootnotes || extractedPageid) {
     const metaInsertions = [];
