@@ -322,7 +322,6 @@
 .cards.callout > ul > li {
   background: var(--wf-bg-light, #f9f7f6);
   border: none;
-  box-shadow: none;
   padding: 24px;
   max-width: 300px;
   flex: 0 0 auto;
