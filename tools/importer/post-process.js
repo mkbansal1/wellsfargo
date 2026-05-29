@@ -79,7 +79,7 @@ function postProcess(filePath) {
   const tabLines = html.split('\n');
   for (let ti = 0; ti < tabLines.length; ti++) {
     const line = tabLines[ti];
-    if (!line.includes('tabs reference') && !line.includes('tabs-reference')) continue;
+    if (!line.includes('class="tabs')) continue;
     // Extract footnotes/pageid from inside the tabs block
     const fnMatch = line.match(/<div><div>(?:<p>)?footnotes(?:<\/p>)?<\/div><div>(?:<p>)?(tcm:[^<]+)(?:<\/p>)?<\/div><\/div>/);
     if (fnMatch && !extractedFootnotes) extractedFootnotes = fnMatch[1];
@@ -109,6 +109,18 @@ function postProcess(filePath) {
       '$1' + metaInsertions.join('') + '$2',
     );
   }
+
+  // 3d. Remove duplicate tab content (mobile view rendered after the Tabs block)
+  // Pattern: Tabs block is followed by tab label paragraphs + repeated panel content
+  html = html.replace(
+    /(<\/div><\/div>)(<p>[^<]*<a href="#[a-z]+[^"]*">[^<]*<\/a>[^<]*(?:<a href="#[a-z]+[^"]*">[^<]*<\/a>[^<]*)+<\/p>)/g,
+    '$1',
+  );
+  // Remove residual duplicate panels after tabs (paragraphs with <a href="#">TabLabel</a> + H3s)
+  html = html.replace(
+    /(<div class="tabs[^"]*">.*?<\/div><\/div>)((?:<p><a href="#">[^<]+<\/a><\/p>)?(?:<h3[^>]*>.*?<\/h3>|<p>.*?<\/p>|<ul>.*?<\/ul>)+)/g,
+    '$1',
+  );
 
   // 4. Join orphaned lines (lines not starting with <div>) back to their parent
   const lines = html.split('\n');

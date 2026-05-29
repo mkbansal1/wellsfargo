@@ -2,18 +2,18 @@
 /* global WebImporter */
 
 // Parser: tabs
-// Detects tabbed interfaces with anchor-linked panels and converts to Tabs (reference) block.
-// Each tab panel with complex content (columns/cards) → tabs (reference) variant with fragment links.
+// Detects tabbed interfaces and converts to Tabs block.
 //
-// Source DOM pattern:
-//   <p>Tab Label <a href="#anchorid">Tab Label</a></p>
-//   <div class="...">  ← panel content (Products H3 + Services H3 in 2-col layout)
+// Two detection strategies:
+//   1. Known tab anchors (e.g., #nationalbanks) → Tabs (reference) with fragment links
+//   2. Generic tab pattern: <p>Label <a href="#anchor">Label</a></p> followed by panel content
+//      → Standard Tabs block (label | panel HTML content)
 //
-// Output:
-//   - Tabs (reference) block on main page
-//   - Fragment files generated for each tab panel (returned via params.fragmentOutputs)
+// Variant decision:
+//   - If tab panel has 2-column layout (Products/Services) → tabs (reference) + fragments
+//   - If tab panel has simple freetext (headings + paragraphs + lists) → standard Tabs
 
-const TAB_ANCHORS = [
+const KNOWN_REFERENCE_TABS = [
   { id: 'nationalbanks', label: 'National banks', slug: 'tab-national-banks' },
   { id: 'regionalandcommunitybanks', label: 'Regional and community banks', slug: 'tab-regional-and-community-banks' },
   { id: 'creditunions', label: 'Credit unions', slug: 'tab-credit-unions' },
@@ -21,24 +21,11 @@ const TAB_ANCHORS = [
   { id: 'onlineonlymortgagelenders', label: 'Online-only mortgage lenders', slug: 'tab-online-only-mortgage-lenders' },
 ];
 
-export default function parse(container, { document, url, params }) {
-  if (!url || !container) return false;
+function isKnownReferenceTab(anchorId) {
+  return KNOWN_REFERENCE_TABS.find((t) => t.id === anchorId);
+}
 
-  // Detect tab pattern: look for anchor links like <a href="#nationalbanks">
-  const allAnchors = container.querySelectorAll('a[href^="#"]');
-  const tabAnchors = [];
-  for (const a of allAnchors) {
-    const href = (a.getAttribute('href') || '').replace('#', '');
-    const match = TAB_ANCHORS.find((t) => t.id === href);
-    if (match && !tabAnchors.find((t) => t.id === match.id)) {
-      tabAnchors.push({ ...match, anchorEl: a });
-    }
-  }
-
-  // Need at least 3 tab anchors to consider this a tab section
-  if (tabAnchors.length < 3) return false;
-
-  // Determine the page path for fragment URLs
+function parseReferenceTabs(container, document, url, tabAnchors) {
   let pagePath = '';
   try {
     const urlObj = new URL(url);
@@ -48,128 +35,165 @@ export default function parse(container, { document, url, params }) {
   }
   const fragmentBase = '/fragments/' + pagePath;
 
-  // Find tab panels: the content after each tab label paragraph
-  // Pattern: <p>Label <a href="#id">Label</a></p> followed by sibling container with H3 Products/Services
   const tabData = [];
   const elementsToRemove = new Set();
   let firstTabLabelEl = null;
 
-  for (const tab of TAB_ANCHORS) {
-    // Find the first anchor for this tab (skip duplicates from mobile/desktop views)
+  for (const tab of KNOWN_REFERENCE_TABS) {
     const anchor = container.querySelector(`a[href="#${tab.id}"]`);
     if (!anchor) continue;
-
-    // The anchor is inside a <p> or <div> — find the label paragraph
     const labelEl = anchor.closest('p') || anchor.closest('div');
     if (!labelEl) continue;
-
     if (!firstTabLabelEl) firstTabLabelEl = labelEl;
 
-    // The panel content is the next sibling element after the label
     const panelEl = labelEl.nextElementSibling;
-    if (!panelEl) continue;
-
-    // Extract Products and Services content from the panel
-    const h3s = panelEl.querySelectorAll('h3');
-    let productsContent = '';
-    let servicesContent = '';
-
-    for (const h3 of h3s) {
-      const text = h3.textContent.trim().toLowerCase();
-      // Get all paragraph siblings after this h3 until next h3
-      let content = '';
-      let sibling = h3.nextElementSibling;
-      while (sibling && sibling.tagName !== 'H3') {
-        content += sibling.outerHTML || '';
-        sibling = sibling.nextElementSibling;
-      }
-      // Fallback: get parent cell content
-      if (!content) {
-        const cell = h3.closest('div');
-        if (cell) {
-          content = cell.innerHTML.replace(h3.outerHTML, '').trim();
-        }
-      }
-
-      if (text.includes('product')) {
-        productsContent = content;
-      } else if (text.includes('service')) {
-        servicesContent = content;
-      }
-    }
-
-    // If we couldn't extract from H3 siblings, try the cards structure
-    // (the importer may have already created cards rows)
-    if (!productsContent && !servicesContent) {
-      const rows = panelEl.querySelectorAll(':scope > div');
-      for (const row of rows) {
-        const h3 = row.querySelector('h3');
-        if (!h3) continue;
-        const text = h3.textContent.trim().toLowerCase();
-        const cellContent = row.querySelector(':scope > div:last-child');
-        if (!cellContent) continue;
-        const content = cellContent.innerHTML.replace(/<h3[^>]*>.*?<\/h3>/i, '').trim();
-        if (text.includes('product')) productsContent = content;
-        else if (text.includes('service')) servicesContent = content;
-      }
-    }
+    if (panelEl) elementsToRemove.add(panelEl);
+    elementsToRemove.add(labelEl);
 
     tabData.push({
       label: tab.label,
-      slug: tab.slug,
       fragmentPath: fragmentBase + '/' + tab.slug,
-      productsContent,
-      servicesContent,
     });
-
-    // Mark elements for removal
-    elementsToRemove.add(labelEl);
-    elementsToRemove.add(panelEl);
   }
 
   if (tabData.length < 3) return false;
 
-  // Also remove duplicate tab panels (mobile/desktop duplication)
-  // Find all remaining tab label paragraphs and their panels
-  const allLabelsAndPanels = container.querySelectorAll('p');
-  for (const p of allLabelsAndPanels) {
+  // Remove duplicate panels and navigation lists
+  const allParagraphs = container.querySelectorAll('p');
+  for (const p of allParagraphs) {
     const anchor = p.querySelector('a[href^="#"]');
     if (!anchor) continue;
     const href = (anchor.getAttribute('href') || '').replace('#', '');
-    if (TAB_ANCHORS.find((t) => t.id === href)) {
+    if (isKnownReferenceTab(href)) {
       elementsToRemove.add(p);
-      // Also remove the next sibling if it's a panel
       const next = p.nextElementSibling;
-      if (next && (next.querySelector('h3') || next.className.includes('cards'))) {
+      if (next && (next.querySelector('h3') || (next.className || '').includes('cards'))) {
+        elementsToRemove.add(next);
+      }
+    }
+  }
+  for (const p of allParagraphs) {
+    const anchors = p.querySelectorAll('a[href^="#"]');
+    if (anchors.length >= 3) {
+      const matchCount = Array.from(anchors)
+        .filter((a) => isKnownReferenceTab((a.getAttribute('href') || '').replace('#', '')))
+        .length;
+      if (matchCount >= 3) elementsToRemove.add(p);
+    }
+  }
+
+  const cells = tabData.map((tab) => [[tab.label], [tab.fragmentPath]]);
+  const block = WebImporter.Blocks.createBlock(document, { name: 'Tabs (reference)', cells });
+
+  if (firstTabLabelEl && firstTabLabelEl.parentNode) {
+    firstTabLabelEl.parentNode.insertBefore(block, firstTabLabelEl);
+  }
+  elementsToRemove.forEach((el) => { if (el.parentNode) el.remove(); });
+  return true;
+}
+
+function parseGenericTabs(container, document, tabAnchors) {
+  // Generic tabs: tab labels as <p> with anchors, panel content follows each label
+  // Build standard Tabs block with label | content cells
+  const tabData = [];
+  const elementsToRemove = new Set();
+  let firstTabLabelEl = null;
+
+  for (const { id, label, anchorEl } of tabAnchors) {
+    const labelEl = anchorEl.closest('p') || anchorEl.parentElement;
+    if (!labelEl) continue;
+    if (!firstTabLabelEl) firstTabLabelEl = labelEl;
+
+    // Panel is the next sibling after the label
+    const panelEl = labelEl.nextElementSibling;
+    if (!panelEl) continue;
+
+    // Extract panel HTML content (headings, paragraphs, lists)
+    const panelContent = panelEl.innerHTML || '';
+
+    tabData.push({ label, content: panelContent });
+    elementsToRemove.add(labelEl);
+    elementsToRemove.add(panelEl);
+  }
+
+  if (tabData.length < 2) return false;
+
+  // Remove duplicate tab navigation (mobile view with all labels in one <p>)
+  const allParagraphs = container.querySelectorAll('p');
+  const knownIds = tabAnchors.map((t) => t.id);
+  for (const p of allParagraphs) {
+    const anchors = p.querySelectorAll('a[href^="#"]');
+    if (anchors.length >= tabAnchors.length) {
+      const matchCount = Array.from(anchors)
+        .filter((a) => knownIds.includes((a.getAttribute('href') || '').replace('#', '')))
+        .length;
+      if (matchCount >= tabAnchors.length) elementsToRemove.add(p);
+    }
+  }
+
+  // Remove duplicate panels (mobile/desktop duplication)
+  for (const p of allParagraphs) {
+    if (elementsToRemove.has(p)) continue;
+    const anchor = p.querySelector('a[href^="#"]');
+    if (!anchor) continue;
+    const href = (anchor.getAttribute('href') || '').replace('#', '');
+    if (knownIds.includes(href)) {
+      elementsToRemove.add(p);
+      const next = p.nextElementSibling;
+      if (next && (next.querySelector('h3') || next.querySelector('p'))) {
         elementsToRemove.add(next);
       }
     }
   }
 
-  // Remove duplicate tab navigation list (mobile view shows all labels in one paragraph)
-  const allParagraphs = container.querySelectorAll('p');
-  for (const p of allParagraphs) {
-    const anchors = p.querySelectorAll('a[href^="#"]');
-    if (anchors.length >= 3) {
-      const tabIds = Array.from(anchors).map((a) => (a.getAttribute('href') || '').replace('#', ''));
-      const matchCount = tabIds.filter((id) => TAB_ANCHORS.find((t) => t.id === id)).length;
-      if (matchCount >= 3) elementsToRemove.add(p);
-    }
-  }
+  // Build standard Tabs block (label | content)
+  const cells = tabData.map((tab) => {
+    const contentEl = document.createElement('div');
+    contentEl.innerHTML = tab.content;
+    return [[tab.label], [contentEl]];
+  });
+  const block = WebImporter.Blocks.createBlock(document, { name: 'Tabs', cells });
 
-  // Build the Tabs (reference) block
-  const cells = tabData.map((tab) => [[tab.label], [tab.fragmentPath]]);
-  const block = WebImporter.Blocks.createBlock(document, { name: 'Tabs (reference)', cells });
-
-  // Replace the first tab label element with the block
   if (firstTabLabelEl && firstTabLabelEl.parentNode) {
     firstTabLabelEl.parentNode.insertBefore(block, firstTabLabelEl);
   }
-
-  // Remove all tab-related elements
-  elementsToRemove.forEach((el) => {
-    if (el.parentNode) el.remove();
-  });
-
+  elementsToRemove.forEach((el) => { if (el.parentNode) el.remove(); });
   return true;
+}
+
+export default function parse(container, { document, url, params }) {
+  if (!url || !container) return false;
+
+  // Detect tab anchors
+  const allAnchors = container.querySelectorAll('a[href^="#"]');
+  const tabAnchors = [];
+  const seenIds = new Set();
+
+  for (const a of allAnchors) {
+    const href = (a.getAttribute('href') || '').replace('#', '');
+    if (!href || href === 'skip' || seenIds.has(href)) continue;
+    // Only consider anchors that look like tab IDs (lowercase, no spaces)
+    if (/^[a-z][a-z0-9]*$/.test(href) || /^[a-z]+[a-z!]*$/.test(href)) {
+      const label = a.textContent.trim();
+      if (label && label.length > 2 && label.length < 80) {
+        seenIds.add(href);
+        tabAnchors.push({ id: href, label, anchorEl: a });
+      }
+    }
+  }
+
+  if (tabAnchors.length < 2) return false;
+
+  // Check if this is a known reference-tabs pattern
+  const knownCount = tabAnchors.filter((t) => isKnownReferenceTab(t.id)).length;
+  if (knownCount >= 3) {
+    return parseReferenceTabs(container, document, url, tabAnchors);
+  }
+
+  // Otherwise use generic tabs (standard variant with inline content)
+  if (tabAnchors.length >= 2) {
+    return parseGenericTabs(container, document, tabAnchors);
+  }
+
+  return false;
 }
