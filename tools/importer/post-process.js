@@ -194,6 +194,35 @@ function postProcess(filePath) {
     return match;
   });
 
+  // 7b. Ensure every line is a proper section: wrap block-class lines in <div> if needed
+  // Lines starting with <div class="blockname"> need an outer <div> wrapper for DA sections
+  const wrapLines = html.split('\n');
+  for (let wi = 0; wi < wrapLines.length; wi++) {
+    const line = wrapLines[wi];
+    // Skip lines that already start with plain <div> (section wrapper) or <div><
+    if (line.startsWith('<div><') || line.startsWith('<div>\n')) continue;
+    // Wrap lines starting with <div class="..."> (block-level elements without section wrapper)
+    if (line.startsWith('<div class="') && !line.startsWith('<div class="metadata"')) {
+      wrapLines[wi] = '<div>' + line + '</div>';
+    }
+  }
+  html = wrapLines.join('\n');
+
+  // 7c. Add section-metadata (heading-bar) to sections with H2 headings
+  const smLines = html.split('\n');
+  for (let si = 0; si < smLines.length; si++) {
+    const line = smLines[si];
+    // Skip metadata line
+    if (line.includes('class="metadata"')) continue;
+    // If line has an H2 and doesn't already have section-metadata, add one
+    if (line.includes('<h2') && !line.includes('section-metadata')) {
+      const sectionMeta = '<div class="section-metadata"><div><div><p>style</p></div><div><p>heading-bar</p></div></div></div>';
+      // Insert before the final </div> of the section
+      smLines[si] = line.replace(/<\/div>$/, sectionMeta + '</div>');
+    }
+  }
+  html = smLines.join('\n');
+
   // 8. Fix div balance per line
   const finalLines = html.split('\n');
   finalLines.forEach((line, idx) => {
