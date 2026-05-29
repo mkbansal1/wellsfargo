@@ -126,7 +126,6 @@ export default {
       const h1El = document.createElement('h1');
       h1El.textContent = h1Text;
       main.appendChild(h1El);
-      main.appendChild(document.createElement('hr'));
     }
 
     // 2. Fragment: Start your application
@@ -135,7 +134,6 @@ export default {
       cells: [[['/fragments/private-foundations/start-your-application']]],
     });
     main.appendChild(appFragment);
-    main.appendChild(document.createElement('hr'));
 
     // 3. Tabs block
     if (tabData.length > 0) {
@@ -149,7 +147,6 @@ export default {
         cells: tabCells,
       });
       main.appendChild(tabBlock);
-      main.appendChild(document.createElement('hr'));
     }
 
     // 4. Fragment: Contact cards
@@ -158,7 +155,6 @@ export default {
       cells: [[['/fragments/private-foundations/contact-cards']]],
     });
     main.appendChild(contactFragment);
-    main.appendChild(document.createElement('hr'));
 
     // 5. Metadata
     WebImporter.rules.createMetadata(main, document);
@@ -204,26 +200,6 @@ export default {
         tbody.appendChild(row);
       }
     }
-
-    // --- Wrap sections ---
-    const wrapper = document.createElement('div');
-    const mainChildren = Array.from(main.children);
-    let sectionDiv = document.createElement('div');
-
-    mainChildren.forEach((el) => {
-      if (el.tagName === 'HR') {
-        if (sectionDiv.children.length > 0) {
-          wrapper.appendChild(sectionDiv);
-          sectionDiv = document.createElement('div');
-        }
-      } else {
-        sectionDiv.appendChild(el);
-      }
-    });
-    if (sectionDiv.children.length > 0) wrapper.appendChild(sectionDiv);
-
-    while (main.firstChild) main.removeChild(main.firstChild);
-    while (wrapper.firstChild) main.appendChild(wrapper.firstChild);
 
     const path = new URL(params.originalURL || url).pathname.replace(/\/$/, '') || '/index';
 

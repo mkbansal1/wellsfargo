@@ -106,14 +106,12 @@ var CustomImportScript = (() => {
         const h1El = document.createElement("h1");
         h1El.textContent = h1Text;
         main.appendChild(h1El);
-        main.appendChild(document.createElement("hr"));
       }
       const appFragment = WebImporter.Blocks.createBlock(document, {
         name: "Fragment",
         cells: [[["/fragments/private-foundations/start-your-application"]]]
       });
       main.appendChild(appFragment);
-      main.appendChild(document.createElement("hr"));
       if (tabData.length > 0) {
         const tabCells = tabData.map((tab) => {
           const contentEl = document.createElement("div");
@@ -125,14 +123,12 @@ var CustomImportScript = (() => {
           cells: tabCells
         });
         main.appendChild(tabBlock);
-        main.appendChild(document.createElement("hr"));
       }
       const contactFragment = WebImporter.Blocks.createBlock(document, {
         name: "Fragment",
         cells: [[["/fragments/private-foundations/contact-cards"]]]
       });
       main.appendChild(contactFragment);
-      main.appendChild(document.createElement("hr"));
       WebImporter.rules.createMetadata(main, document);
       const allTables = main.querySelectorAll("table");
       let metaTable = null;
@@ -172,22 +168,6 @@ var CustomImportScript = (() => {
           tbody.appendChild(row);
         }
       }
-      const wrapper = document.createElement("div");
-      const mainChildren = Array.from(main.children);
-      let sectionDiv = document.createElement("div");
-      mainChildren.forEach((el) => {
-        if (el.tagName === "HR") {
-          if (sectionDiv.children.length > 0) {
-            wrapper.appendChild(sectionDiv);
-            sectionDiv = document.createElement("div");
-          }
-        } else {
-          sectionDiv.appendChild(el);
-        }
-      });
-      if (sectionDiv.children.length > 0) wrapper.appendChild(sectionDiv);
-      while (main.firstChild) main.removeChild(main.firstChild);
-      while (wrapper.firstChild) main.appendChild(wrapper.firstChild);
       const path = new URL(params.originalURL || url).pathname.replace(/\/$/, "") || "/index";
       return [{
         element: main,
