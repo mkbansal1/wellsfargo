@@ -6,7 +6,7 @@
 .contact-bar {
   max-width: var(--content-max-width);
   margin: 0 auto;
-  padding: 48px 16px;
+  padding: 0;
   text-align: left;
 }
 
@@ -229,7 +229,7 @@
   }
 
   .contact-bar {
-    padding: 56px 24px;
+    padding: 0;
   }
 
   .contact-bar .contact-bar-item {
@@ -247,7 +247,7 @@
 /* desktop */
 @media (width >= 1024px) {
   .contact-bar {
-    padding: 60px 32px;
+    padding: 0;
   }
 
   .contact-bar .contact-bar-item {
@@ -264,7 +264,7 @@
 /* wide desktop */
 @media (width >= 1400px) {
   .contact-bar {
-    padding: 64px 40px;
+    padding: 0;
   }
 
   .contact-bar .contact-bar-item,
