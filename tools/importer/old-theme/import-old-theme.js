@@ -218,12 +218,53 @@ function parseOldThemeAccordion(main, document) {
 export default {
   transform: (payload) => {
     const { document, url, params } = payload;
-    const main = document.querySelector('main') || document.body;
+    let main = document.querySelector('main')
+      || document.querySelector('#contentBody')
+      || document.querySelector('#mainColumns')
+      || document.querySelector('#shell')
+      || document.body;
 
     // Phase 0: Cleanup (removes header, footer, breadcrumbs, sidebar → fragment, etc.)
     cleanup(document, url);
 
-    // Phase 0.5: Flatten nested layout wrappers
+    // Extract H1 and hero from shell-level siblings before narrowing to content body
+    const shell = document.querySelector('#shell') || document.querySelector('.t8');
+    let extractedH1 = null;
+    let extractedHero = null;
+
+    if (shell) {
+      // H1 from div.c42 > #title
+      const titleDiv = shell.querySelector('.c42 h1, #title h1');
+      if (titleDiv) {
+        extractedH1 = document.createElement('h1');
+        extractedH1.textContent = titleDiv.textContent.trim();
+      }
+
+      // Hero from #contentTop
+      const contentTop = shell.querySelector('#contentTop, [id*="contentTop"]');
+      if (contentTop) {
+        const heroImg = contentTop.querySelector('img');
+        const heroH2 = contentTop.querySelector('h2');
+        const heroDesc = contentTop.querySelector('p');
+        let ctaLink = contentTop.querySelector('a');
+        if (heroH2) {
+          extractedHero = { img: heroImg, h2: heroH2, desc: heroDesc, cta: ctaLink };
+        }
+        contentTop.remove();
+      }
+    }
+
+    // Re-resolve main after cleanup — prefer the most specific content container
+    main = document.querySelector('#contentBody')
+      || document.querySelector('#mainColumns')
+      || document.querySelector('main')
+      || document.querySelector('#shell')
+      || document.querySelector('.t8')
+      || document.body;
+
+    
+
+            // Phase 0.5: Flatten nested layout wrappers
     // Old-theme pages nest content in divs like .ps-content-wrapper > .ps-left-col
     // Unwrap single-child div wrappers to bring content to main level
     function flattenMain(el) {
@@ -246,70 +287,80 @@ export default {
     flattenMain(main);
 
     // Phase 0.55: Unwrap content column wrappers to bring c54 separators to main level
-    // Source nests content in: .t8 > div > .mainContentCol > div > (actual content + c54)
+    // Source nests content in: #mainColumns > .mainContentCol > #contentBody > (actual content + c54)
     const contentCol = main.querySelector('.mainContentCol') || main.querySelector('[class*="ContentCol"]');
     if (contentCol) {
       // Find the innermost wrapper that contains the actual content (with c54 siblings)
       let target = contentCol;
-      // If contentCol has one child div that contains c54, go deeper
-      while (target.children.length === 1 && target.children[0].tagName === 'DIV' && !target.children[0].querySelector('.c54')) {
+      while (target.children.length === 1 && target.children[0].tagName === 'DIV') {
         target = target.children[0];
       }
-      // If target itself doesn't have c54 but its single child does
-      if (!target.querySelector(':scope > .c54') && target.children.length === 1 && target.children[0].querySelector('.c54')) {
-        target = target.children[0];
+      // Move target's children directly into main (clearing the wrapper chain)
+      while (target.firstChild) {
+        main.appendChild(target.firstChild);
       }
-      // Move target's children to main (replacing the entire wrapper chain)
-      const topWrapper = contentCol.closest('div:not(main)') || contentCol;
-      if (topWrapper.parentElement === main || topWrapper.parentElement) {
-        // Move all content up to main level
-        const parent = topWrapper.parentElement || main;
-        while (target.firstChild) {
-          parent.insertBefore(target.firstChild, topWrapper);
-        }
-        topWrapper.remove();
-      }
+      // Remove the now-empty wrapper chain
+      contentCol.remove();
     }
     // Re-run flatten in case we still have single-child wrappers
     flattenMain(main);
 
-    // Phase 0.6: Remove hatched background divs (decorative only)
+    // Phase 0.6: Remove hatched background divs (decorative only, skip content-bearing ones like c55)
     main.querySelectorAll('.hatched, [class*="hatched"]').forEach((el) => {
+      if (el.classList.contains('c55') || el.querySelector('.c55')) return;
       el.remove();
     });
 
-    // Phase 0.7: Hero detection
-    // HERO: Detect #contentTop with image + H2 + description + CTA link
+    // Phase 0.7: Prepend extracted H1 and Hero to main
+    if (extractedHero) {
+      const cellContent = [];
+      if (extractedHero.img) {
+        const pic = extractedHero.img.closest('picture') || extractedHero.img;
+        cellContent.push(pic.cloneNode(true));
+      }
+      const h2 = document.createElement('h2');
+      h2.textContent = extractedHero.h2.textContent.trim();
+      cellContent.push(h2);
+      if (extractedHero.desc && extractedHero.desc.textContent.trim()) {
+        const p = document.createElement('p');
+        p.textContent = extractedHero.desc.textContent.trim();
+        cellContent.push(p);
+      }
+      if (extractedHero.cta) {
+        const ctaP = document.createElement('p');
+        const strong = document.createElement('strong');
+        const a = document.createElement('a');
+        a.setAttribute('href', extractedHero.cta.getAttribute('href') || '');
+        a.textContent = extractedHero.cta.textContent.trim();
+        strong.appendChild(a);
+        ctaP.appendChild(strong);
+        cellContent.push(ctaP);
+      }
+      const heroBlock = WebImporter.Blocks.createBlock(document, { name: 'Hero', cells: [[cellContent]] });
+      main.insertBefore(heroBlock, main.firstChild);
+    }
+    if (extractedH1) {
+      main.insertBefore(extractedH1, main.firstChild);
+    }
+
+    // Fallback: Phase 0.7 legacy hero detection (for pages where contentTop is inside main)
     const contentTop = main.querySelector('#contentTop, [id*="contentTop"]');
     if (contentTop) {
       const heroImg = contentTop.querySelector('img');
       const heroH2 = contentTop.querySelector('h2');
       const heroDesc = contentTop.querySelector('p');
-      // CTA: look inside contentTop first, then as next sibling
-      let ctaLink = contentTop.querySelector('a[href*="wellsfargo"], a[href*="secure"], a.ps-btn-primary, a.ps-btn');
-      if (!ctaLink) ctaLink = contentTop.querySelector('a');
-      if (!ctaLink && contentTop.nextElementSibling && contentTop.nextElementSibling.tagName === 'A') {
-        ctaLink = contentTop.nextElementSibling;
-      }
-
+      let ctaLink = contentTop.querySelector('a');
       if (heroH2 && ctaLink) {
         const cellContent = [];
-        // Add image
-        if (heroImg) {
-          const pic = heroImg.closest('picture') || heroImg;
-          cellContent.push(pic.cloneNode(true));
-        }
-        // Add H2
+        if (heroImg) cellContent.push((heroImg.closest('picture') || heroImg).cloneNode(true));
         const h2 = document.createElement('h2');
         h2.textContent = heroH2.textContent.trim();
         cellContent.push(h2);
-        // Add description
         if (heroDesc && heroDesc.textContent.trim()) {
           const p = document.createElement('p');
           p.textContent = heroDesc.textContent.trim();
           cellContent.push(p);
         }
-        // Add CTA as bold link
         const ctaP = document.createElement('p');
         const strong = document.createElement('strong');
         const a = document.createElement('a');
@@ -318,11 +369,8 @@ export default {
         strong.appendChild(a);
         ctaP.appendChild(strong);
         cellContent.push(ctaP);
-
         const block = WebImporter.Blocks.createBlock(document, { name: 'Hero', cells: [[cellContent]] });
         contentTop.replaceWith(block);
-        // Remove CTA if it was a sibling
-        if (ctaLink.parentElement && !ctaLink.closest('#contentTop')) ctaLink.remove();
       }
     }
 
@@ -365,6 +413,92 @@ export default {
         c60.replaceWith(block);
       }
     });
+
+    
+    // Phase 0.9: Columns (panel) from div.c55 or div.c5
+    // Pattern: container has an image + text content. Image → col 1, text → col 2.
+    main.querySelectorAll('.c55, .c5').forEach((c55) => {
+      if (processed.has(c55)) return;
+      const img = c55.querySelector('img');
+      if (!img) return;
+
+      // Col 1: image
+      const pic = img.closest('picture') || img;
+
+      // Col 2: clone c55, remove image, collect remaining paragraphs
+      const contentClone = c55.cloneNode(true);
+      const clonedImg = contentClone.querySelector('img');
+      if (clonedImg) {
+        const imgWrapper = clonedImg.closest('picture') || clonedImg.closest('p') || clonedImg;
+        imgWrapper.remove();
+      }
+      const col2Content = [];
+      contentClone.querySelectorAll('p, ul, ol').forEach((el) => {
+        if (!el.textContent.trim()) return;
+        // Skip nested paragraphs already inside a captured parent
+        if (el.tagName === 'P' && el.parentElement.closest('p')) return;
+        col2Content.push(el.cloneNode(true));
+      });
+
+      if (col2Content.length === 0) return;
+
+      const block = WebImporter.Blocks.createBlock(document, {
+        name: 'Columns (panel)',
+        cells: [[[pic.cloneNode(true)], col2Content]],
+      });
+      processed.add(c55);
+      c55.replaceWith(block);
+    });
+
+    // Phase 0.95: Tabs from ul.tabs / [role="tablist"]
+    // If tab content has complex blocks (accordion, columns, etc.) → tabs (reference) with fragments
+    // If tab content is simple freetext → standard Tabs
+    const tablist = main.querySelector('ul.tabs, [role="tablist"]');
+    if (tablist) {
+      const tabLinks = tablist.querySelectorAll('a[href^="#"], [role="tab"] a');
+      const tabData = [];
+      tabLinks.forEach((a) => {
+        const label = a.textContent.trim();
+        const href = a.getAttribute('href') || '';
+        const panelId = href.replace('#', '');
+        if (!label || !panelId) return;
+        const panel = main.querySelector('#' + panelId) || main.querySelector('[id="' + panelId + '"]');
+        if (!panel) return;
+        const content = panel.innerHTML || '';
+        // Check if panel has complex content (accordion patterns, nested blocks)
+        const hasAccordion = panel.querySelector('.c58, [href="#Expand"], .rebranded-show-hide, details, h2 > button, h3 > a[href*="Expand"]');
+        const hasComplexBlock = panel.querySelector('.c60, .c55, .c5, [role="tablist"]');
+        const isComplex = !!(hasAccordion || hasComplexBlock);
+        const slug = 'tab-' + label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, '');
+        tabData.push({ label, content, panel, isComplex, slug });
+      });
+
+      if (tabData.length >= 2) {
+        // Determine variant: if ANY panel has complex content → tabs (reference)
+        const useReference = tabData.some((t) => t.isComplex);
+
+        if (useReference) {
+          // Build fragment paths
+          const pagePath = new URL(params.originalURL || url).pathname.replace(/\/$/, '').replace(/^\//, '');
+          const fragmentBase = '/fragments/' + pagePath;
+          const cells = tabData.map((tab) => [[tab.label], [fragmentBase + '/' + tab.slug]]);
+          const block = WebImporter.Blocks.createBlock(document, { name: 'Tabs (reference)', cells });
+          tablist.before(block);
+        } else {
+          // Standard tabs with inline content
+          const cells = tabData.map((tab) => {
+            const contentEl = document.createElement('div');
+            contentEl.innerHTML = tab.content;
+            return [[tab.label], [contentEl]];
+          });
+          const block = WebImporter.Blocks.createBlock(document, { name: 'Tabs', cells });
+          tablist.before(block);
+        }
+
+        tablist.remove();
+        tabData.forEach((tab) => { if (tab.panel && tab.panel.parentElement) tab.panel.remove(); });
+      }
+    }
 
     // Phase 1: Parsers
 
@@ -578,8 +712,8 @@ export default {
     WebImporter.rules.createMetadata(main, document);
 
     // Add pageid and footnotes to the Metadata block (the LAST table in main)
-    const pageid = main.getAttribute('data-pageid');
-    const footnotes = main.getAttribute('data-footnotes');
+    const pageid = main.getAttribute('data-pageid') || document.body.getAttribute('data-pageid') || '';
+    const footnotes = main.getAttribute('data-footnotes') || document.body.getAttribute('data-footnotes') || '';
 
     if (pageid || footnotes) {
       // Find the metadata table — it's the last table and should have "Metadata" in its header

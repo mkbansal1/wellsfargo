@@ -110,14 +110,28 @@ function postProcess(filePath) {
     );
   }
 
-  // 4. Join orphaned lines (lines not starting with <div>) back to their parent
+  // 4. Join orphaned lines into sections
+  // Lines starting with <div> or <h1>/<h2> are section boundaries.
+  // Lines starting with <p>, <ul>, <li>, <br>, etc. merge into the preceding section.
   const lines = html.split('\n');
   const result = [];
   for (let i = 0; i < lines.length; i++) {
-    if (i > 0 && lines[i] && !lines[i].startsWith('<div>') && !lines[i].startsWith('<div><div')) {
-      result[result.length - 1] += lines[i];
+    const line = lines[i];
+    if (!line) continue;
+    const isSectionStart = line.startsWith('<div') || line.startsWith('<h1') || line.startsWith('<h2');
+    if (isSectionStart) {
+      result.push(line);
+    } else if (result.length > 0) {
+      // Merge into previous section
+      result[result.length - 1] += line;
     } else {
-      result.push(lines[i]);
+      result.push(line);
+    }
+  }
+  // Wrap any non-<div> lines in a section <div>
+  for (let i = 0; i < result.length; i++) {
+    if (!result[i].startsWith('<div')) {
+      result[i] = '<div>' + result[i] + '</div>';
     }
   }
   html = result.join('\n');
@@ -171,9 +185,39 @@ function postProcess(filePath) {
 
   // 7. Wrap bare text in block cells with <p> tags
   html = html.replace(/<div>([^<]+)<\/div>/g, (match, text) => {
-    if (text.length < 200) return '<div><p>' + text + '</p></div>';
+    if (text.length < 500) return '<div><p>' + text + '</p></div>';
     return match;
   });
+
+  // 7b. Ensure every line is a proper section: wrap block-class lines in <div> if needed
+  // Lines starting with <div class="blockname"> need an outer <div> wrapper for DA sections
+  const wrapLines = html.split('\n');
+  for (let wi = 0; wi < wrapLines.length; wi++) {
+    const line = wrapLines[wi];
+    // Skip lines that already start with plain <div> (section wrapper) or <div><
+    if (line.startsWith('<div><') || line.startsWith('<div>\n')) continue;
+    // Wrap lines starting with <div class="..."> (including metadata)
+    if (line.startsWith('<div class="')) {
+      wrapLines[wi] = '<div>' + line + '</div>';
+    }
+  }
+  html = wrapLines.join('\n');
+
+  // 7c. Add section-metadata to sections with H2 headings
+  const smLines = html.split('\n');
+  for (let si = 0; si < smLines.length; si++) {
+    const line = smLines[si];
+    if (line.includes('class="metadata"')) continue;
+    if (!line.includes('<h2') || line.includes('section-metadata')) continue;
+
+    // Determine style: if H2 is followed by a major block, use center-align + heading-bar
+    const hasMajorBlock = /class="(cards|accordion|tabs|columns|carousel)/.test(line);
+    const style = hasMajorBlock ? 'heading-bar, center-align' : 'heading-bar';
+
+    const sectionMeta = '<div class="section-metadata"><div><div><p>style</p></div><div><p>' + style + '</p></div></div></div>';
+    smLines[si] = line.replace(/<\/div>$/, sectionMeta + '</div>');
+  }
+  html = smLines.join('\n');
 
   // 8. Fix div balance per line
   const finalLines = html.split('\n');
@@ -181,6 +225,14 @@ function postProcess(filePath) {
     const opens = (line.match(/<div/g) || []).length;
     const closes = (line.match(/<\/div>/g) || []).length;
     if (opens > closes) finalLines[idx] = line + '</div>'.repeat(opens - closes);
+    else if (closes > opens) {
+      // Remove excess trailing </div> tags
+      let fixed = line;
+      for (let d = 0; d < closes - opens; d++) {
+        fixed = fixed.replace(/<\/div>$/, '');
+      }
+      finalLines[idx] = fixed;
+    }
   });
   html = finalLines.join('\n');
 

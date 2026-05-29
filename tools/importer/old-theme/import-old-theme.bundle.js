@@ -1,4 +1,3 @@
-/* eslint-disable */
 var CustomImportScript = (() => {
   var __defProp = Object.defineProperty;
   var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -26,7 +25,7 @@ var CustomImportScript = (() => {
 
   // tools/importer/old-theme/cleanup.js
   function cleanup(document, url) {
-    const main = document.querySelector("main") || document.body;
+    const main = document.querySelector("main") || document.querySelector("#mainColumns") || document.querySelector("#shell") || document.body;
     const removeSelectors = [
       "#onetrust-consent-sdk",
       ".onetrust-pc-dark-filter",
@@ -115,51 +114,6 @@ var CustomImportScript = (() => {
         el.remove();
       }
     });
-    const isSpanish = url && url.includes("/es/");
-    const prefix = isSpanish ? "/es" : "";
-    let sidebarEl = null;
-    const allH2s = main.querySelectorAll("h2");
-    for (const h2 of allH2s) {
-      const hText = h2.textContent.trim();
-      if (hText.includes("\xBFTiene m\xE1s preguntas?") || hText.includes("More questions?")) {
-        sidebarEl = h2.parentElement;
-        while (sidebarEl && sidebarEl.parentElement && sidebarEl.parentElement !== main && sidebarEl.parentElement !== document.body) {
-          const parent = sidebarEl.parentElement;
-          const parentChildren = Array.from(parent.children);
-          if (parentChildren.length > 1 && parent.textContent.length > sidebarEl.textContent.length * 3) {
-            break;
-          }
-          sidebarEl = parent;
-        }
-        break;
-      }
-    }
-    if (!sidebarEl) {
-      const allH3s = main.querySelectorAll("h3");
-      let quickHelpH3 = null;
-      let callUsH3 = null;
-      for (const h3 of allH3s) {
-        const t = h3.textContent.trim().toLowerCase();
-        if (t.includes("quick help") || t.includes("ayuda r\xE1pida")) quickHelpH3 = h3;
-        if (t.includes("call us") || t.includes("ll\xE1menos")) callUsH3 = h3;
-      }
-      if (quickHelpH3 && callUsH3) {
-        sidebarEl = quickHelpH3.parentElement;
-        while (sidebarEl && !sidebarEl.contains(callUsH3)) {
-          sidebarEl = sidebarEl.parentElement;
-        }
-        if (sidebarEl === main || sidebarEl === document.body) {
-          sidebarEl = quickHelpH3.parentElement;
-        }
-      }
-    }
-    if (sidebarEl && sidebarEl !== main && sidebarEl !== document.body) {
-      const block = WebImporter.Blocks.createBlock(document, {
-        name: "Fragment",
-        cells: [[[prefix + "/fragments/mortgage/talk-to-mortgage-consultant"]]]
-      });
-      sidebarEl.replaceWith(block);
-    }
     const footnoteCids = [];
     let pageid = "";
     const c20 = main.querySelectorAll(".c20");
@@ -203,8 +157,62 @@ var CustomImportScript = (() => {
       });
       aside.remove();
     }
-    if (pageid) main.setAttribute("data-pageid", pageid);
-    if (footnoteCids.length > 0) main.setAttribute("data-footnotes", footnoteCids.join(", "));
+    if (pageid) {
+      main.setAttribute("data-pageid", pageid);
+      document.body.setAttribute("data-pageid", pageid);
+    }
+    if (footnoteCids.length > 0) {
+      main.setAttribute("data-footnotes", footnoteCids.join(", "));
+      document.body.setAttribute("data-footnotes", footnoteCids.join(", "));
+    }
+    const isSpanish = url && url.includes("/es/");
+    const prefix = isSpanish ? "/es" : "";
+    let sidebarEl = null;
+    const allH2s = main.querySelectorAll("h2");
+    for (const h2 of allH2s) {
+      const hText = h2.textContent.trim();
+      if (hText.includes("\xBFTiene m\xE1s preguntas?") || hText.includes("More questions?")) {
+        sidebarEl = h2.parentElement;
+        while (sidebarEl && sidebarEl.parentElement && sidebarEl.parentElement !== main && sidebarEl.parentElement !== document.body) {
+          const parent = sidebarEl.parentElement;
+          if (parent.classList.contains("mainContentCol") || parent.id === "mainColumns") {
+            break;
+          }
+          const parentChildren = Array.from(parent.children);
+          if (parentChildren.length > 1 && parent.textContent.length > sidebarEl.textContent.length * 3) {
+            break;
+          }
+          sidebarEl = parent;
+        }
+        break;
+      }
+    }
+    if (!sidebarEl) {
+      const allH3s = main.querySelectorAll("h3");
+      let quickHelpH3 = null;
+      let callUsH3 = null;
+      for (const h3 of allH3s) {
+        const t = h3.textContent.trim().toLowerCase();
+        if (t.includes("quick help") || t.includes("ayuda r\xE1pida")) quickHelpH3 = h3;
+        if (t.includes("call us") || t.includes("ll\xE1menos")) callUsH3 = h3;
+      }
+      if (quickHelpH3 && callUsH3) {
+        sidebarEl = quickHelpH3.parentElement;
+        while (sidebarEl && !sidebarEl.contains(callUsH3)) {
+          sidebarEl = sidebarEl.parentElement;
+        }
+        if (sidebarEl === main || sidebarEl === document.body) {
+          sidebarEl = quickHelpH3.parentElement;
+        }
+      }
+    }
+    if (sidebarEl && sidebarEl !== main && sidebarEl !== document.body && !sidebarEl.classList.contains("mainContentCol") && sidebarEl.id !== "contentBody") {
+      const block = WebImporter.Blocks.createBlock(document, {
+        name: "Fragment",
+        cells: [[[prefix + "/fragments/mortgage/talk-to-mortgage-consultant"]]]
+      });
+      sidebarEl.replaceWith(block);
+    }
     main.querySelectorAll('.contentBottom, #contentBottom, [id*="contentBottom"]').forEach((el) => el.remove());
     main.querySelectorAll("div.title2-SemiBold").forEach((el) => {
       const h3 = document.createElement("h3");
@@ -243,21 +251,21 @@ var CustomImportScript = (() => {
         a.setAttribute("href", href.slice(0, -1));
       }
     });
-    main.querySelectorAll('a.ps-btn-primary, a.ps-btn, a[class*="ps-btn-primary"]').forEach((a) => {
-      const strong = document.createElement("strong");
-      const newA = document.createElement("a");
-      newA.setAttribute("href", a.getAttribute("href") || "");
-      newA.textContent = a.textContent.trim();
-      strong.appendChild(newA);
-      a.replaceWith(strong);
-    });
-    main.querySelectorAll('a.ps-btn-secondary, a[class*="ps-btn-secondary"]').forEach((a) => {
+    main.querySelectorAll('a.ps-btn-secondary, a[class*="ps-btn-secondary"], a.c93.secondarybtn').forEach((a) => {
       const em = document.createElement("em");
       const newA = document.createElement("a");
       newA.setAttribute("href", a.getAttribute("href") || "");
       newA.textContent = a.textContent.trim();
       em.appendChild(newA);
       a.replaceWith(em);
+    });
+    main.querySelectorAll('a.ps-btn-primary, a.ps-btn, a[class*="ps-btn-primary"], a.c93:not(.secondarybtn)').forEach((a) => {
+      const strong = document.createElement("strong");
+      const newA = document.createElement("a");
+      newA.setAttribute("href", a.getAttribute("href") || "");
+      newA.textContent = a.textContent.trim();
+      strong.appendChild(newA);
+      a.replaceWith(strong);
     });
     main.querySelectorAll("a").forEach((a) => {
       const text = a.textContent || "";
@@ -449,8 +457,30 @@ var CustomImportScript = (() => {
   var import_old_theme_default = {
     transform: (payload) => {
       const { document, url, params } = payload;
-      const main = document.querySelector("main") || document.body;
+      let main = document.querySelector("main") || document.querySelector("#contentBody") || document.querySelector("#mainColumns") || document.querySelector("#shell") || document.body;
       cleanup(document, url);
+      const shell = document.querySelector("#shell") || document.querySelector(".t8");
+      let extractedH1 = null;
+      let extractedHero = null;
+      if (shell) {
+        const titleDiv = shell.querySelector(".c42 h1, #title h1");
+        if (titleDiv) {
+          extractedH1 = document.createElement("h1");
+          extractedH1.textContent = titleDiv.textContent.trim();
+        }
+        const contentTop2 = shell.querySelector('#contentTop, [id*="contentTop"]');
+        if (contentTop2) {
+          const heroImg = contentTop2.querySelector("img");
+          const heroH2 = contentTop2.querySelector("h2");
+          const heroDesc = contentTop2.querySelector("p");
+          let ctaLink = contentTop2.querySelector("a");
+          if (heroH2) {
+            extractedHero = { img: heroImg, h2: heroH2, desc: heroDesc, cta: ctaLink };
+          }
+          contentTop2.remove();
+        }
+      }
+      main = document.querySelector("#contentBody") || document.querySelector("#mainColumns") || document.querySelector("main") || document.querySelector("#shell") || document.querySelector(".t8") || document.body;
       function flattenMain(el) {
         let changed = true;
         while (changed) {
@@ -470,41 +500,58 @@ var CustomImportScript = (() => {
       const contentCol = main.querySelector(".mainContentCol") || main.querySelector('[class*="ContentCol"]');
       if (contentCol) {
         let target = contentCol;
-        while (target.children.length === 1 && target.children[0].tagName === "DIV" && !target.children[0].querySelector(".c54")) {
+        while (target.children.length === 1 && target.children[0].tagName === "DIV") {
           target = target.children[0];
         }
-        if (!target.querySelector(":scope > .c54") && target.children.length === 1 && target.children[0].querySelector(".c54")) {
-          target = target.children[0];
+        while (target.firstChild) {
+          main.appendChild(target.firstChild);
         }
-        const topWrapper = contentCol.closest("div:not(main)") || contentCol;
-        if (topWrapper.parentElement === main || topWrapper.parentElement) {
-          const parent = topWrapper.parentElement || main;
-          while (target.firstChild) {
-            parent.insertBefore(target.firstChild, topWrapper);
-          }
-          topWrapper.remove();
-        }
+        contentCol.remove();
       }
       flattenMain(main);
       main.querySelectorAll('.hatched, [class*="hatched"]').forEach((el) => {
+        if (el.classList.contains("c55") || el.querySelector(".c55")) return;
         el.remove();
       });
+      if (extractedHero) {
+        const cellContent = [];
+        if (extractedHero.img) {
+          const pic = extractedHero.img.closest("picture") || extractedHero.img;
+          cellContent.push(pic.cloneNode(true));
+        }
+        const h2 = document.createElement("h2");
+        h2.textContent = extractedHero.h2.textContent.trim();
+        cellContent.push(h2);
+        if (extractedHero.desc && extractedHero.desc.textContent.trim()) {
+          const p = document.createElement("p");
+          p.textContent = extractedHero.desc.textContent.trim();
+          cellContent.push(p);
+        }
+        if (extractedHero.cta) {
+          const ctaP = document.createElement("p");
+          const strong = document.createElement("strong");
+          const a = document.createElement("a");
+          a.setAttribute("href", extractedHero.cta.getAttribute("href") || "");
+          a.textContent = extractedHero.cta.textContent.trim();
+          strong.appendChild(a);
+          ctaP.appendChild(strong);
+          cellContent.push(ctaP);
+        }
+        const heroBlock = WebImporter.Blocks.createBlock(document, { name: "Hero", cells: [[cellContent]] });
+        main.insertBefore(heroBlock, main.firstChild);
+      }
+      if (extractedH1) {
+        main.insertBefore(extractedH1, main.firstChild);
+      }
       const contentTop = main.querySelector('#contentTop, [id*="contentTop"]');
       if (contentTop) {
         const heroImg = contentTop.querySelector("img");
         const heroH2 = contentTop.querySelector("h2");
         const heroDesc = contentTop.querySelector("p");
-        let ctaLink = contentTop.querySelector('a[href*="wellsfargo"], a[href*="secure"], a.ps-btn-primary, a.ps-btn');
-        if (!ctaLink) ctaLink = contentTop.querySelector("a");
-        if (!ctaLink && contentTop.nextElementSibling && contentTop.nextElementSibling.tagName === "A") {
-          ctaLink = contentTop.nextElementSibling;
-        }
+        let ctaLink = contentTop.querySelector("a");
         if (heroH2 && ctaLink) {
           const cellContent = [];
-          if (heroImg) {
-            const pic = heroImg.closest("picture") || heroImg;
-            cellContent.push(pic.cloneNode(true));
-          }
+          if (heroImg) cellContent.push((heroImg.closest("picture") || heroImg).cloneNode(true));
           const h2 = document.createElement("h2");
           h2.textContent = heroH2.textContent.trim();
           cellContent.push(h2);
@@ -523,7 +570,6 @@ var CustomImportScript = (() => {
           cellContent.push(ctaP);
           const block = WebImporter.Blocks.createBlock(document, { name: "Hero", cells: [[cellContent]] });
           contentTop.replaceWith(block);
-          if (ctaLink.parentElement && !ctaLink.closest("#contentTop")) ctaLink.remove();
         }
       }
       const processed = /* @__PURE__ */ new Set();
@@ -559,6 +605,72 @@ var CustomImportScript = (() => {
           c60.replaceWith(block);
         }
       });
+      main.querySelectorAll(".c55, .c5").forEach((c55) => {
+        if (processed.has(c55)) return;
+        const img = c55.querySelector("img");
+        if (!img) return;
+        const pic = img.closest("picture") || img;
+        const contentClone = c55.cloneNode(true);
+        const clonedImg = contentClone.querySelector("img");
+        if (clonedImg) {
+          const imgWrapper = clonedImg.closest("picture") || clonedImg.closest("p") || clonedImg;
+          imgWrapper.remove();
+        }
+        const col2Content = [];
+        contentClone.querySelectorAll("p, ul, ol").forEach((el) => {
+          if (!el.textContent.trim()) return;
+          if (el.tagName === "P" && el.parentElement.closest("p")) return;
+          col2Content.push(el.cloneNode(true));
+        });
+        if (col2Content.length === 0) return;
+        const block = WebImporter.Blocks.createBlock(document, {
+          name: "Columns (panel)",
+          cells: [[[pic.cloneNode(true)], col2Content]]
+        });
+        processed.add(c55);
+        c55.replaceWith(block);
+      });
+      const tablist = main.querySelector('ul.tabs, [role="tablist"]');
+      if (tablist) {
+        const tabLinks = tablist.querySelectorAll('a[href^="#"], [role="tab"] a');
+        const tabData = [];
+        tabLinks.forEach((a) => {
+          const label = a.textContent.trim();
+          const href = a.getAttribute("href") || "";
+          const panelId = href.replace("#", "");
+          if (!label || !panelId) return;
+          const panel = main.querySelector("#" + panelId) || main.querySelector('[id="' + panelId + '"]');
+          if (!panel) return;
+          const content = panel.innerHTML || "";
+          const hasAccordion = panel.querySelector('.c58, [href="#Expand"], .rebranded-show-hide, details, h2 > button, h3 > a[href*="Expand"]');
+          const hasComplexBlock = panel.querySelector('.c60, .c55, .c5, [role="tablist"]');
+          const isComplex = !!(hasAccordion || hasComplexBlock);
+          const slug = "tab-" + label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-+$/, "");
+          tabData.push({ label, content, panel, isComplex, slug });
+        });
+        if (tabData.length >= 2) {
+          const useReference = tabData.some((t) => t.isComplex);
+          if (useReference) {
+            const pagePath = new URL(params.originalURL || url).pathname.replace(/\/$/, "").replace(/^\//, "");
+            const fragmentBase = "/fragments/" + pagePath;
+            const cells = tabData.map((tab) => [[tab.label], [fragmentBase + "/" + tab.slug]]);
+            const block = WebImporter.Blocks.createBlock(document, { name: "Tabs (reference)", cells });
+            tablist.before(block);
+          } else {
+            const cells = tabData.map((tab) => {
+              const contentEl = document.createElement("div");
+              contentEl.innerHTML = tab.content;
+              return [[tab.label], [contentEl]];
+            });
+            const block = WebImporter.Blocks.createBlock(document, { name: "Tabs", cells });
+            tablist.before(block);
+          }
+          tablist.remove();
+          tabData.forEach((tab) => {
+            if (tab.panel && tab.panel.parentElement) tab.panel.remove();
+          });
+        }
+      }
       const showHideItems = main.querySelectorAll(".rebranded-show-hide");
       if (showHideItems.length > 0) {
         const parent = showHideItems[0].parentElement;
@@ -729,8 +841,8 @@ var CustomImportScript = (() => {
       const hr = document.createElement("hr");
       main.appendChild(hr);
       WebImporter.rules.createMetadata(main, document);
-      const pageid = main.getAttribute("data-pageid");
-      const footnotes = main.getAttribute("data-footnotes");
+      const pageid = main.getAttribute("data-pageid") || document.body.getAttribute("data-pageid") || "";
+      const footnotes = main.getAttribute("data-footnotes") || document.body.getAttribute("data-footnotes") || "";
       if (pageid || footnotes) {
         const allTables = main.querySelectorAll("table");
         let metaTable = null;

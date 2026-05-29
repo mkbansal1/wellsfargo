@@ -7,7 +7,10 @@
  * extracts metadata from aside/complementary, and applies generic transforms.
  */
 export default function cleanup(document, url) {
-  const main = document.querySelector('main') || document.body;
+  const main = document.querySelector('main')
+    || document.querySelector('#mainColumns')
+    || document.querySelector('#shell')
+    || document.body;
 
   // --- Remove cookie consent / OneTrust overlay (run on full document) ---
   const removeSelectors = [
@@ -125,6 +128,62 @@ export default function cleanup(document, url) {
     }
   });
 
+  // --- Extract footnote CIDs from div.c20 (BEFORE sidebar detection which may remove #contentBottom) ---
+  const footnoteCids = [];
+  let pageid = '';
+  const c20 = main.querySelectorAll('.c20');
+  c20.forEach((el) => {
+    if (el.querySelector('.c20equal')) {
+      footnoteCids.push('tcm:84-226264-16');
+    }
+    const cidItems = el.querySelectorAll('[data-cid]');
+    cidItems.forEach((item) => {
+      const cid = item.getAttribute('data-cid');
+      if (!cid) return;
+      const text = item.textContent.trim();
+      const dtMatch = text.match(/DT1-\d+-\d+-\d+-[\d.]+/);
+      const qsrMatch = text.match(/QSR-\d+-\d+\.\d+\.\d+/);
+      const lrcMatch = text.match(/LRC-\d+/);
+      if (dtMatch) pageid = dtMatch[0];
+      else if (qsrMatch) pageid = qsrMatch[0];
+      else if (lrcMatch) pageid = lrcMatch[0];
+      else if (!footnoteCids.includes(cid)) footnoteCids.push(cid);
+    });
+    el.remove();
+  });
+
+  // Extract from aside/complementary too
+  const asides = document.querySelectorAll('aside, [role="complementary"]');
+  for (const aside of asides) {
+    const text = aside.textContent || '';
+    if (!pageid) {
+      const dtMatch = text.match(/DT1-\d+-\d+-\d+-[\d.]+/);
+      const qsrMatch = text.match(/QSR-\d+-\d+\.\d+\.\d+/);
+      const lrcMatch = text.match(/LRC-\d+/);
+      if (dtMatch) pageid = dtMatch[0];
+      else if (qsrMatch) pageid = qsrMatch[0];
+      else if (lrcMatch) pageid = lrcMatch[0];
+    }
+    const cidItems = aside.querySelectorAll('[data-cid]');
+    cidItems.forEach((item) => {
+      const cid = item.getAttribute('data-cid');
+      if (cid && !footnoteCids.includes(cid)) {
+        const itemText = item.textContent.trim();
+        if (!itemText.match(/^(DT1|QSR|LRC)-/)) footnoteCids.push(cid);
+      }
+    });
+    aside.remove();
+  }
+
+  if (pageid) {
+    main.setAttribute('data-pageid', pageid);
+    document.body.setAttribute('data-pageid', pageid);
+  }
+  if (footnoteCids.length > 0) {
+    main.setAttribute('data-footnotes', footnoteCids.join(', '));
+    document.body.setAttribute('data-footnotes', footnoteCids.join(', '));
+  }
+
   // --- Sidebar → Fragment ---
   const isSpanish = url && url.includes('/es/');
   const prefix = isSpanish ? '/es' : '';
@@ -145,6 +204,10 @@ export default function cleanup(document, url) {
       // Go up until we find an element that is NOT the main content area
       while (sidebarEl && sidebarEl.parentElement && sidebarEl.parentElement !== main && sidebarEl.parentElement !== document.body) {
         const parent = sidebarEl.parentElement;
+        // Stop at content column wrappers — never replace the main content area
+        if (parent.classList.contains('mainContentCol') || parent.id === 'mainColumns') {
+          break;
+        }
         // Stop if parent contains significantly more content (it's a layout wrapper)
         const parentChildren = Array.from(parent.children);
         if (parentChildren.length > 1 && parent.textContent.length > sidebarEl.textContent.length * 3) {
@@ -179,7 +242,8 @@ export default function cleanup(document, url) {
     }
   }
 
-  if (sidebarEl && sidebarEl !== main && sidebarEl !== document.body) {
+  if (sidebarEl && sidebarEl !== main && sidebarEl !== document.body
+    && !sidebarEl.classList.contains('mainContentCol') && sidebarEl.id !== 'contentBody') {
     const block = WebImporter.Blocks.createBlock(document, {
       name: 'Fragment',
       cells: [[[prefix + '/fragments/mortgage/talk-to-mortgage-consultant']]],
@@ -187,62 +251,6 @@ export default function cleanup(document, url) {
     sidebarEl.replaceWith(block);
   }
 
-  // --- Extract footnote CIDs from div.c20 ---
-  const footnoteCids = [];
-  let pageid = '';
-  const c20 = main.querySelectorAll('.c20');
-  c20.forEach((el) => {
-    // If div.c20equal exists, add Equal Housing Lender CID
-    if (el.querySelector('.c20equal')) {
-      footnoteCids.push('tcm:84-226264-16');
-    }
-    const cidItems = el.querySelectorAll('[data-cid]');
-    cidItems.forEach((item) => {
-      const cid = item.getAttribute('data-cid');
-      if (!cid) return;
-      const text = item.textContent.trim();
-      // Check if this is a pageid entry (DT1-, QSR-, LRC-)
-      const dtMatch = text.match(/DT1-\d+-\d+-\d+-[\d.]+/);
-      const qsrMatch = text.match(/QSR-\d+-\d+\.\d+\.\d+/);
-      const lrcMatch = text.match(/LRC-\d+/);
-      if (dtMatch) pageid = dtMatch[0];
-      else if (qsrMatch) pageid = qsrMatch[0];
-      else if (lrcMatch) pageid = lrcMatch[0];
-      else if (!footnoteCids.includes(cid)) footnoteCids.push(cid);
-    });
-    el.remove();
-  });
-
-  // --- Extract metadata from aside/complementary ---
-  const asides = document.querySelectorAll('aside, [role="complementary"]');
-  for (const aside of asides) {
-    const text = aside.textContent || '';
-
-    // Extract pageid if not already found from c20
-    if (!pageid) {
-      const dtMatch = text.match(/DT1-\d+-\d+-\d+-[\d.]+/);
-      const qsrMatch = text.match(/QSR-\d+-\d+\.\d+\.\d+/);
-      const lrcMatch = text.match(/LRC-\d+/);
-      if (dtMatch) pageid = dtMatch[0];
-      else if (qsrMatch) pageid = qsrMatch[0];
-      else if (lrcMatch) pageid = lrcMatch[0];
-    }
-
-    // Extract footnote CIDs from aside data-cid elements too
-    const cidItems = aside.querySelectorAll('[data-cid]');
-    cidItems.forEach((item) => {
-      const cid = item.getAttribute('data-cid');
-      if (cid && !footnoteCids.includes(cid)) {
-        const itemText = item.textContent.trim();
-        if (!itemText.match(/^(DT1|QSR|LRC)-/)) footnoteCids.push(cid);
-      }
-    });
-
-    aside.remove();
-  }
-
-  if (pageid) main.setAttribute('data-pageid', pageid);
-  if (footnoteCids.length > 0) main.setAttribute('data-footnotes', footnoteCids.join(', '));
 
   // --- Remove contentBottom AFTER footnote extraction ---
   main.querySelectorAll('.contentBottom, #contentBottom, [id*="contentBottom"]').forEach((el) => el.remove());
@@ -296,24 +304,24 @@ export default function cleanup(document, url) {
     }
   });
 
-  // Primary buttons → wrap in <strong>
-  main.querySelectorAll('a.ps-btn-primary, a.ps-btn, a[class*="ps-btn-primary"]').forEach((a) => {
-    const strong = document.createElement('strong');
-    const newA = document.createElement('a');
-    newA.setAttribute('href', a.getAttribute('href') || '');
-    newA.textContent = a.textContent.trim();
-    strong.appendChild(newA);
-    a.replaceWith(strong);
-  });
-
-  // Secondary buttons → wrap in <em>
-  main.querySelectorAll('a.ps-btn-secondary, a[class*="ps-btn-secondary"]').forEach((a) => {
+  // Secondary buttons → wrap in <em> (check secondary FIRST before primary, since a.c93.secondarybtn matches both)
+  main.querySelectorAll('a.ps-btn-secondary, a[class*="ps-btn-secondary"], a.c93.secondarybtn').forEach((a) => {
     const em = document.createElement('em');
     const newA = document.createElement('a');
     newA.setAttribute('href', a.getAttribute('href') || '');
     newA.textContent = a.textContent.trim();
     em.appendChild(newA);
     a.replaceWith(em);
+  });
+
+  // Primary buttons → wrap in <strong>
+  main.querySelectorAll('a.ps-btn-primary, a.ps-btn, a[class*="ps-btn-primary"], a.c93:not(.secondarybtn)').forEach((a) => {
+    const strong = document.createElement('strong');
+    const newA = document.createElement('a');
+    newA.setAttribute('href', a.getAttribute('href') || '');
+    newA.textContent = a.textContent.trim();
+    strong.appendChild(newA);
+    a.replaceWith(strong);
   });
 
   // Strip trailing '>' from link text
