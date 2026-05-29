@@ -305,6 +305,44 @@
   background-repeat: no-repeat;
 }
 
+/* === Variant: align-center === */
+
+.cards.align-center > ul > li .cards-card-body {
+  text-align: center;
+  align-items: center;
+}
+
+/* === Variant: callout — single card CTA (e.g., "Start your application") === */
+
+.cards.callout > ul {
+  flex-flow: column nowrap;
+  align-items: flex-start;
+}
+
+.cards.callout > ul > li {
+  background: var(--wf-bg-light, #f9f7f6);
+  border: none;
+  padding: 24px;
+  max-width: 300px;
+  flex: 0 0 auto;
+}
+
+.cards.callout > ul > li > .cards-card-body {
+  padding: 0;
+}
+
+.cards.callout > ul > li > .cards-card-body h3 {
+  font-size: var(--heading-font-size-m, 22px);
+  font-weight: 700;
+  margin: 0 0 16px;
+}
+
+@media (width < 768px) {
+  .cards.callout > ul > li {
+    max-width: 100%;
+  }
+}
+
 /* bg-image + icons: icons on top, text below on gradient */
 .cards.bg-image.icons .cards-card-image img {
   width: 64px;
@@ -332,6 +370,6 @@
 /* === Variant: no-border === */
 
 .cards.no-border > ul > li {
-    border: none;
-    box-shadow: none;
+  border: none;
+  box-shadow: none;
 }
