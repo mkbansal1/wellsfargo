@@ -190,7 +190,7 @@ function postProcess(filePath) {
 
   // 7. Wrap bare text in block cells with <p> tags
   html = html.replace(/<div>([^<]+)<\/div>/g, (match, text) => {
-    if (text.length < 200) return '<div><p>' + text + '</p></div>';
+    if (text.length < 500) return '<div><p>' + text + '</p></div>';
     return match;
   });
 
@@ -201,8 +201,8 @@ function postProcess(filePath) {
     const line = wrapLines[wi];
     // Skip lines that already start with plain <div> (section wrapper) or <div><
     if (line.startsWith('<div><') || line.startsWith('<div>\n')) continue;
-    // Wrap lines starting with <div class="..."> (block-level elements without section wrapper)
-    if (line.startsWith('<div class="') && !line.startsWith('<div class="metadata"')) {
+    // Wrap lines starting with <div class="..."> (including metadata)
+    if (line.startsWith('<div class="')) {
       wrapLines[wi] = '<div>' + line + '</div>';
     }
   }
