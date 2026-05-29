@@ -67,7 +67,7 @@ var CustomImportScript = (() => {
           }
         });
         panelIds.forEach(({ label, panelId }) => {
-          const panel = document.getElementById(panelId);
+          const panel = document.getElementById(panelId) || document.getElementById("#" + panelId) || document.querySelector('[id="' + panelId + '"]') || document.querySelector('[id="#' + panelId + '"]');
           if (!panel) {
             tabData.push({ label, content: "" });
             return;
@@ -109,16 +109,17 @@ var CustomImportScript = (() => {
         });
       }
       while (main.firstChild) main.removeChild(main.firstChild);
+      const section = document.createElement("div");
       if (h1Text) {
         const h1El = document.createElement("h1");
         h1El.textContent = h1Text;
-        main.appendChild(h1El);
+        section.appendChild(h1El);
       }
       const appFragment = WebImporter.Blocks.createBlock(document, {
         name: "Fragment",
         cells: [[["/fragments/private-foundations/start-your-application"]]]
       });
-      main.appendChild(appFragment);
+      section.appendChild(appFragment);
       if (tabData.length > 0) {
         const tabCells = tabData.map((tab) => {
           const contentEl = document.createElement("div");
@@ -129,13 +130,14 @@ var CustomImportScript = (() => {
           name: "Tabs (Yellow, Top, Tab-Fill, Panel-Border)",
           cells: tabCells
         });
-        main.appendChild(tabBlock);
+        section.appendChild(tabBlock);
       }
       const contactFragment = WebImporter.Blocks.createBlock(document, {
         name: "Fragment",
         cells: [[["/fragments/private-foundations/contact-cards"]]]
       });
-      main.appendChild(contactFragment);
+      section.appendChild(contactFragment);
+      main.appendChild(section);
       WebImporter.rules.createMetadata(main, document);
       const allTables = main.querySelectorAll("table");
       let metaTable = null;
