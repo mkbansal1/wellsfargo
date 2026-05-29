@@ -61,13 +61,13 @@
 /* Authored as | Columns (panel) | — white columns on gray background */
 .columns.panel {
   background: var(--wf-bg-gray, #e2dede);
-  padding: 1px;
+  padding: 16px;
 }
 
 .columns.panel > div {
   background: transparent;
   padding: 0;
-  gap: 0;
+  gap: 16px;
 }
 
 .columns.panel > div > div {
@@ -77,6 +77,7 @@
 
 .columns.panel > div > .columns-img-col {
   padding: 0;
+  margin-bottom: -16px;
 }
 
 .columns.panel > div > .columns-img-col img {
@@ -118,6 +119,8 @@
 
   .columns.panel.columns-2-cols > div > .columns-img-col {
     flex: 0 0 40%;
+    margin-bottom: 0;
+    margin-right: -16px;
   }
 
   .columns.panel.columns-2-cols > div > .columns-img-col img {
@@ -138,6 +141,8 @@
 
   .columns.panel.columns-3-cols > div > .columns-img-col {
     flex: 0 0 40%;
+    margin-bottom: 0;
+    margin-right: -16px;
   }
 
   .columns.panel.columns-3-cols > div > .columns-img-col img {
@@ -150,7 +155,6 @@
 
   .columns.panel.columns-3-cols > div > div:nth-child(3) {
     flex: 0 0 100%;
-    border-top: 1px solid var(--wf-bg-gray, #e2dede);
   }
 }
 
@@ -162,6 +166,7 @@
 
   .columns.panel.columns-3-cols > div > .columns-img-col {
     flex: 0 0 30%;
+    margin-right: -16px;
   }
 
   .columns.panel.columns-3-cols > div > div:nth-child(2) {
