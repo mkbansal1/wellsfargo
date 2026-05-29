@@ -504,6 +504,7 @@ var CustomImportScript = (() => {
       }
       flattenMain(main);
       main.querySelectorAll('.hatched, [class*="hatched"]').forEach((el) => {
+        if (el.classList.contains("c55") || el.querySelector(".c55")) return;
         el.remove();
       });
       if (extractedHero) {
@@ -598,40 +599,29 @@ var CustomImportScript = (() => {
           c60.replaceWith(block);
         }
       });
-      main.querySelectorAll(".c55body").forEach((c55) => {
+      main.querySelectorAll(".c55").forEach((c55) => {
+        if (processed.has(c55)) return;
         const img = c55.querySelector("img");
-        const contentDiv = c55.querySelector(".c55content") || c55.querySelector("article");
-        if (!img || !contentDiv) return;
-        const article = contentDiv.querySelector("article") || contentDiv;
-        const heading = article.querySelector("strong, h3, h2");
-        const paragraphs = article.querySelectorAll("p");
-        const link = article.querySelector("a");
-        const col2Content = [];
-        if (heading) {
-          const h3 = document.createElement("h3");
-          h3.textContent = heading.textContent.trim();
-          col2Content.push(h3);
-        }
-        paragraphs.forEach((p) => {
-          if (p.querySelector("strong") === heading) return;
-          if (p.querySelector("a") && p.textContent.trim() === (link ? link.textContent.trim() : "")) return;
-          if (p.textContent.trim()) col2Content.push(p.cloneNode(true));
-        });
-        if (link) {
-          const ctaP = document.createElement("p");
-          const em = document.createElement("em");
-          const a = document.createElement("a");
-          a.setAttribute("href", link.getAttribute("href") || "");
-          a.textContent = link.textContent.trim().replace(/\s*Abre.*$/, "");
-          em.appendChild(a);
-          ctaP.appendChild(em);
-          col2Content.push(ctaP);
-        }
+        if (!img) return;
         const pic = img.closest("picture") || img;
+        const contentClone = c55.cloneNode(true);
+        const clonedImg = contentClone.querySelector("img");
+        if (clonedImg) {
+          const imgWrapper = clonedImg.closest("picture") || clonedImg.closest("p") || clonedImg;
+          imgWrapper.remove();
+        }
+        const col2Content = [];
+        contentClone.querySelectorAll("p, ul, ol").forEach((el) => {
+          if (!el.textContent.trim()) return;
+          if (el.tagName === "P" && el.parentElement.closest("p")) return;
+          col2Content.push(el.cloneNode(true));
+        });
+        if (col2Content.length === 0) return;
         const block = WebImporter.Blocks.createBlock(document, {
           name: "Columns (panel)",
           cells: [[[pic.cloneNode(true)], col2Content]]
         });
+        processed.add(c55);
         c55.replaceWith(block);
       });
       const showHideItems = main.querySelectorAll(".rebranded-show-hide");

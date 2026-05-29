@@ -305,8 +305,9 @@ export default {
     // Re-run flatten in case we still have single-child wrappers
     flattenMain(main);
 
-    // Phase 0.6: Remove hatched background divs (decorative only)
+    // Phase 0.6: Remove hatched background divs (decorative only, skip content-bearing ones like c55)
     main.querySelectorAll('.hatched, [class*="hatched"]').forEach((el) => {
+      if (el.classList.contains('c55') || el.querySelector('.c55')) return;
       el.remove();
     });
 
@@ -413,45 +414,39 @@ export default {
       }
     });
 
-    // Phase 0.9: Columns (panel) from div.c55body
-    // Pattern: div.c55body > img (illustration) + div.c55content > article (text + CTA)
-    main.querySelectorAll('.c55body').forEach((c55) => {
+    
+    // Phase 0.9: Columns (panel) from div.c55
+    // Pattern: div.c55 contains an image + text content. Image → col 1, text → col 2.
+    main.querySelectorAll('.c55').forEach((c55) => {
+      if (processed.has(c55)) return;
       const img = c55.querySelector('img');
-      const contentDiv = c55.querySelector('.c55content') || c55.querySelector('article');
-      if (!img || !contentDiv) return;
+      if (!img) return;
 
-      const article = contentDiv.querySelector('article') || contentDiv;
-      const heading = article.querySelector('strong, h3, h2');
-      const paragraphs = article.querySelectorAll('p');
-      const link = article.querySelector('a');
-
-      const col2Content = [];
-      if (heading) {
-        const h3 = document.createElement('h3');
-        h3.textContent = heading.textContent.trim();
-        col2Content.push(h3);
-      }
-      paragraphs.forEach((p) => {
-        if (p.querySelector('strong') === heading) return;
-        if (p.querySelector('a') && p.textContent.trim() === (link ? link.textContent.trim() : '')) return;
-        if (p.textContent.trim()) col2Content.push(p.cloneNode(true));
-      });
-      if (link) {
-        const ctaP = document.createElement('p');
-        const em = document.createElement('em');
-        const a = document.createElement('a');
-        a.setAttribute('href', link.getAttribute('href') || '');
-        a.textContent = link.textContent.trim().replace(/\s*Abre.*$/, '');
-        em.appendChild(a);
-        ctaP.appendChild(em);
-        col2Content.push(ctaP);
-      }
-
+      // Col 1: image
       const pic = img.closest('picture') || img;
+
+      // Col 2: clone c55, remove image, collect remaining paragraphs
+      const contentClone = c55.cloneNode(true);
+      const clonedImg = contentClone.querySelector('img');
+      if (clonedImg) {
+        const imgWrapper = clonedImg.closest('picture') || clonedImg.closest('p') || clonedImg;
+        imgWrapper.remove();
+      }
+      const col2Content = [];
+      contentClone.querySelectorAll('p, ul, ol').forEach((el) => {
+        if (!el.textContent.trim()) return;
+        // Skip nested paragraphs already inside a captured parent
+        if (el.tagName === 'P' && el.parentElement.closest('p')) return;
+        col2Content.push(el.cloneNode(true));
+      });
+
+      if (col2Content.length === 0) return;
+
       const block = WebImporter.Blocks.createBlock(document, {
         name: 'Columns (panel)',
         cells: [[[pic.cloneNode(true)], col2Content]],
       });
+      processed.add(c55);
       c55.replaceWith(block);
     });
 
