@@ -208,18 +208,19 @@ function postProcess(filePath) {
   }
   html = wrapLines.join('\n');
 
-  // 7c. Add section-metadata (heading-bar) to sections with H2 headings
+  // 7c. Add section-metadata to sections with H2 headings
   const smLines = html.split('\n');
   for (let si = 0; si < smLines.length; si++) {
     const line = smLines[si];
-    // Skip metadata line
     if (line.includes('class="metadata"')) continue;
-    // If line has an H2 and doesn't already have section-metadata, add one
-    if (line.includes('<h2') && !line.includes('section-metadata')) {
-      const sectionMeta = '<div class="section-metadata"><div><div><p>style</p></div><div><p>heading-bar</p></div></div></div>';
-      // Insert before the final </div> of the section
-      smLines[si] = line.replace(/<\/div>$/, sectionMeta + '</div>');
-    }
+    if (!line.includes('<h2') || line.includes('section-metadata')) continue;
+
+    // Determine style: if H2 is followed by a major block, use center-align + heading-bar
+    const hasMajorBlock = /class="(cards|accordion|tabs|columns|carousel)/.test(line);
+    const style = hasMajorBlock ? 'heading-bar, center-align' : 'heading-bar';
+
+    const sectionMeta = '<div class="section-metadata"><div><div><p>style</p></div><div><p>' + style + '</p></div></div></div>';
+    smLines[si] = line.replace(/<\/div>$/, sectionMeta + '</div>');
   }
   html = smLines.join('\n');
 
