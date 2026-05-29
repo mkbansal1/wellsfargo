@@ -662,8 +662,8 @@ export default {
     WebImporter.rules.createMetadata(main, document);
 
     // Add pageid and footnotes to the Metadata block (the LAST table in main)
-    const pageid = main.getAttribute('data-pageid');
-    const footnotes = main.getAttribute('data-footnotes');
+    const pageid = main.getAttribute('data-pageid') || document.body.getAttribute('data-pageid') || '';
+    const footnotes = main.getAttribute('data-footnotes') || document.body.getAttribute('data-footnotes') || '';
 
     if (pageid || footnotes) {
       // Find the metadata table — it's the last table and should have "Metadata" in its header

@@ -114,6 +114,57 @@ var CustomImportScript = (() => {
         el.remove();
       }
     });
+    const footnoteCids = [];
+    let pageid = "";
+    const c20 = main.querySelectorAll(".c20");
+    c20.forEach((el) => {
+      if (el.querySelector(".c20equal")) {
+        footnoteCids.push("tcm:84-226264-16");
+      }
+      const cidItems = el.querySelectorAll("[data-cid]");
+      cidItems.forEach((item) => {
+        const cid = item.getAttribute("data-cid");
+        if (!cid) return;
+        const text = item.textContent.trim();
+        const dtMatch = text.match(/DT1-\d+-\d+-\d+-[\d.]+/);
+        const qsrMatch = text.match(/QSR-\d+-\d+\.\d+\.\d+/);
+        const lrcMatch = text.match(/LRC-\d+/);
+        if (dtMatch) pageid = dtMatch[0];
+        else if (qsrMatch) pageid = qsrMatch[0];
+        else if (lrcMatch) pageid = lrcMatch[0];
+        else if (!footnoteCids.includes(cid)) footnoteCids.push(cid);
+      });
+      el.remove();
+    });
+    const asides = document.querySelectorAll('aside, [role="complementary"]');
+    for (const aside of asides) {
+      const text = aside.textContent || "";
+      if (!pageid) {
+        const dtMatch = text.match(/DT1-\d+-\d+-\d+-[\d.]+/);
+        const qsrMatch = text.match(/QSR-\d+-\d+\.\d+\.\d+/);
+        const lrcMatch = text.match(/LRC-\d+/);
+        if (dtMatch) pageid = dtMatch[0];
+        else if (qsrMatch) pageid = qsrMatch[0];
+        else if (lrcMatch) pageid = lrcMatch[0];
+      }
+      const cidItems = aside.querySelectorAll("[data-cid]");
+      cidItems.forEach((item) => {
+        const cid = item.getAttribute("data-cid");
+        if (cid && !footnoteCids.includes(cid)) {
+          const itemText = item.textContent.trim();
+          if (!itemText.match(/^(DT1|QSR|LRC)-/)) footnoteCids.push(cid);
+        }
+      });
+      aside.remove();
+    }
+    if (pageid) {
+      main.setAttribute("data-pageid", pageid);
+      document.body.setAttribute("data-pageid", pageid);
+    }
+    if (footnoteCids.length > 0) {
+      main.setAttribute("data-footnotes", footnoteCids.join(", "));
+      document.body.setAttribute("data-footnotes", footnoteCids.join(", "));
+    }
     const isSpanish = url && url.includes("/es/");
     const prefix = isSpanish ? "/es" : "";
     let sidebarEl = null;
@@ -162,51 +213,6 @@ var CustomImportScript = (() => {
       });
       sidebarEl.replaceWith(block);
     }
-    const footnoteCids = [];
-    let pageid = "";
-    const c20 = main.querySelectorAll(".c20");
-    c20.forEach((el) => {
-      if (el.querySelector(".c20equal")) {
-        footnoteCids.push("tcm:84-226264-16");
-      }
-      const cidItems = el.querySelectorAll("[data-cid]");
-      cidItems.forEach((item) => {
-        const cid = item.getAttribute("data-cid");
-        if (!cid) return;
-        const text = item.textContent.trim();
-        const dtMatch = text.match(/DT1-\d+-\d+-\d+-[\d.]+/);
-        const qsrMatch = text.match(/QSR-\d+-\d+\.\d+\.\d+/);
-        const lrcMatch = text.match(/LRC-\d+/);
-        if (dtMatch) pageid = dtMatch[0];
-        else if (qsrMatch) pageid = qsrMatch[0];
-        else if (lrcMatch) pageid = lrcMatch[0];
-        else if (!footnoteCids.includes(cid)) footnoteCids.push(cid);
-      });
-      el.remove();
-    });
-    const asides = document.querySelectorAll('aside, [role="complementary"]');
-    for (const aside of asides) {
-      const text = aside.textContent || "";
-      if (!pageid) {
-        const dtMatch = text.match(/DT1-\d+-\d+-\d+-[\d.]+/);
-        const qsrMatch = text.match(/QSR-\d+-\d+\.\d+\.\d+/);
-        const lrcMatch = text.match(/LRC-\d+/);
-        if (dtMatch) pageid = dtMatch[0];
-        else if (qsrMatch) pageid = qsrMatch[0];
-        else if (lrcMatch) pageid = lrcMatch[0];
-      }
-      const cidItems = aside.querySelectorAll("[data-cid]");
-      cidItems.forEach((item) => {
-        const cid = item.getAttribute("data-cid");
-        if (cid && !footnoteCids.includes(cid)) {
-          const itemText = item.textContent.trim();
-          if (!itemText.match(/^(DT1|QSR|LRC)-/)) footnoteCids.push(cid);
-        }
-      });
-      aside.remove();
-    }
-    if (pageid) main.setAttribute("data-pageid", pageid);
-    if (footnoteCids.length > 0) main.setAttribute("data-footnotes", footnoteCids.join(", "));
     main.querySelectorAll('.contentBottom, #contentBottom, [id*="contentBottom"]').forEach((el) => el.remove());
     main.querySelectorAll("div.title2-SemiBold").forEach((el) => {
       const h3 = document.createElement("h3");
@@ -794,8 +800,8 @@ var CustomImportScript = (() => {
       const hr = document.createElement("hr");
       main.appendChild(hr);
       WebImporter.rules.createMetadata(main, document);
-      const pageid = main.getAttribute("data-pageid");
-      const footnotes = main.getAttribute("data-footnotes");
+      const pageid = main.getAttribute("data-pageid") || document.body.getAttribute("data-pageid") || "";
+      const footnotes = main.getAttribute("data-footnotes") || document.body.getAttribute("data-footnotes") || "";
       if (pageid || footnotes) {
         const allTables = main.querySelectorAll("table");
         let metaTable = null;

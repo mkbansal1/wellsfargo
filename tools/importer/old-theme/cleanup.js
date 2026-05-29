@@ -128,6 +128,62 @@ export default function cleanup(document, url) {
     }
   });
 
+  // --- Extract footnote CIDs from div.c20 (BEFORE sidebar detection which may remove #contentBottom) ---
+  const footnoteCids = [];
+  let pageid = '';
+  const c20 = main.querySelectorAll('.c20');
+  c20.forEach((el) => {
+    if (el.querySelector('.c20equal')) {
+      footnoteCids.push('tcm:84-226264-16');
+    }
+    const cidItems = el.querySelectorAll('[data-cid]');
+    cidItems.forEach((item) => {
+      const cid = item.getAttribute('data-cid');
+      if (!cid) return;
+      const text = item.textContent.trim();
+      const dtMatch = text.match(/DT1-\d+-\d+-\d+-[\d.]+/);
+      const qsrMatch = text.match(/QSR-\d+-\d+\.\d+\.\d+/);
+      const lrcMatch = text.match(/LRC-\d+/);
+      if (dtMatch) pageid = dtMatch[0];
+      else if (qsrMatch) pageid = qsrMatch[0];
+      else if (lrcMatch) pageid = lrcMatch[0];
+      else if (!footnoteCids.includes(cid)) footnoteCids.push(cid);
+    });
+    el.remove();
+  });
+
+  // Extract from aside/complementary too
+  const asides = document.querySelectorAll('aside, [role="complementary"]');
+  for (const aside of asides) {
+    const text = aside.textContent || '';
+    if (!pageid) {
+      const dtMatch = text.match(/DT1-\d+-\d+-\d+-[\d.]+/);
+      const qsrMatch = text.match(/QSR-\d+-\d+\.\d+\.\d+/);
+      const lrcMatch = text.match(/LRC-\d+/);
+      if (dtMatch) pageid = dtMatch[0];
+      else if (qsrMatch) pageid = qsrMatch[0];
+      else if (lrcMatch) pageid = lrcMatch[0];
+    }
+    const cidItems = aside.querySelectorAll('[data-cid]');
+    cidItems.forEach((item) => {
+      const cid = item.getAttribute('data-cid');
+      if (cid && !footnoteCids.includes(cid)) {
+        const itemText = item.textContent.trim();
+        if (!itemText.match(/^(DT1|QSR|LRC)-/)) footnoteCids.push(cid);
+      }
+    });
+    aside.remove();
+  }
+
+  if (pageid) {
+    main.setAttribute('data-pageid', pageid);
+    document.body.setAttribute('data-pageid', pageid);
+  }
+  if (footnoteCids.length > 0) {
+    main.setAttribute('data-footnotes', footnoteCids.join(', '));
+    document.body.setAttribute('data-footnotes', footnoteCids.join(', '));
+  }
+
   // --- Sidebar → Fragment ---
   const isSpanish = url && url.includes('/es/');
   const prefix = isSpanish ? '/es' : '';
@@ -195,62 +251,6 @@ export default function cleanup(document, url) {
     sidebarEl.replaceWith(block);
   }
 
-  // --- Extract footnote CIDs from div.c20 ---
-  const footnoteCids = [];
-  let pageid = '';
-  const c20 = main.querySelectorAll('.c20');
-  c20.forEach((el) => {
-    // If div.c20equal exists, add Equal Housing Lender CID
-    if (el.querySelector('.c20equal')) {
-      footnoteCids.push('tcm:84-226264-16');
-    }
-    const cidItems = el.querySelectorAll('[data-cid]');
-    cidItems.forEach((item) => {
-      const cid = item.getAttribute('data-cid');
-      if (!cid) return;
-      const text = item.textContent.trim();
-      // Check if this is a pageid entry (DT1-, QSR-, LRC-)
-      const dtMatch = text.match(/DT1-\d+-\d+-\d+-[\d.]+/);
-      const qsrMatch = text.match(/QSR-\d+-\d+\.\d+\.\d+/);
-      const lrcMatch = text.match(/LRC-\d+/);
-      if (dtMatch) pageid = dtMatch[0];
-      else if (qsrMatch) pageid = qsrMatch[0];
-      else if (lrcMatch) pageid = lrcMatch[0];
-      else if (!footnoteCids.includes(cid)) footnoteCids.push(cid);
-    });
-    el.remove();
-  });
-
-  // --- Extract metadata from aside/complementary ---
-  const asides = document.querySelectorAll('aside, [role="complementary"]');
-  for (const aside of asides) {
-    const text = aside.textContent || '';
-
-    // Extract pageid if not already found from c20
-    if (!pageid) {
-      const dtMatch = text.match(/DT1-\d+-\d+-\d+-[\d.]+/);
-      const qsrMatch = text.match(/QSR-\d+-\d+\.\d+\.\d+/);
-      const lrcMatch = text.match(/LRC-\d+/);
-      if (dtMatch) pageid = dtMatch[0];
-      else if (qsrMatch) pageid = qsrMatch[0];
-      else if (lrcMatch) pageid = lrcMatch[0];
-    }
-
-    // Extract footnote CIDs from aside data-cid elements too
-    const cidItems = aside.querySelectorAll('[data-cid]');
-    cidItems.forEach((item) => {
-      const cid = item.getAttribute('data-cid');
-      if (cid && !footnoteCids.includes(cid)) {
-        const itemText = item.textContent.trim();
-        if (!itemText.match(/^(DT1|QSR|LRC)-/)) footnoteCids.push(cid);
-      }
-    });
-
-    aside.remove();
-  }
-
-  if (pageid) main.setAttribute('data-pageid', pageid);
-  if (footnoteCids.length > 0) main.setAttribute('data-footnotes', footnoteCids.join(', '));
 
   // --- Remove contentBottom AFTER footnote extraction ---
   main.querySelectorAll('.contentBottom, #contentBottom, [id*="contentBottom"]').forEach((el) => el.remove());
