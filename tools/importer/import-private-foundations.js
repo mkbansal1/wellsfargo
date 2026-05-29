@@ -97,11 +97,19 @@ export default {
             const value = nextEl ? nextEl.textContent.trim() : '';
 
             if (heading.includes('program areas') || heading === 'program areas') {
-              // May be a list or paragraph — get all text, join with commas
-              let values = value;
+              // May be a list, br-separated paragraph, or comma-separated text
+              let values = '';
               if (nextEl && nextEl.tagName === 'UL') {
                 const items = nextEl.querySelectorAll('li');
-                values = Array.from(items).map((li) => li.textContent.trim()).join(', ');
+                values = Array.from(items).map((li) => li.textContent.trim()).join(' | ');
+              } else if (nextEl) {
+                // Split by <br> tags or newlines
+                const rawHTML = nextEl.innerHTML || '';
+                if (rawHTML.includes('<br')) {
+                  values = rawHTML.split(/<br\s*\/?>/i).map((s) => s.replace(/<[^>]+>/g, '').trim()).filter(Boolean).join(' | ');
+                } else {
+                  values = value.split('\n').map((s) => s.trim()).filter(Boolean).join(' | ');
+                }
               }
               programAreas = values;
             } else if (heading.includes('states served') || heading === 'states served') {
