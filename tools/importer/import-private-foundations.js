@@ -26,11 +26,21 @@ export default {
     const h1 = main.querySelector('h1');
     const h1Text = h1 ? h1.textContent.trim() : '';
 
-    // --- Extract pageid from disclaimers ---
+    // --- Extract pageid and footnote CIDs ---
     let pageid = '';
     const allText = main.textContent || '';
     const dtMatch = allText.match(/DT1-\d+-\d+-\d+-[\d.]+/);
     if (dtMatch) pageid = dtMatch[0];
+
+    const footnoteCids = [];
+    main.querySelectorAll('[data-cid]').forEach((el) => {
+      const cid = el.getAttribute('data-cid');
+      if (!cid) return;
+      const text = el.textContent.trim();
+      // Skip pageid entries
+      if (text.match(/^(DT1|QSR|LRC)-/)) return;
+      if (!footnoteCids.includes(cid)) footnoteCids.push(cid);
+    });
 
     // --- Detect and extract tab panel content ---
     const tablist = main.querySelector('[role="tablist"]');
@@ -176,6 +186,11 @@ export default {
       if (pageid) {
         const row = document.createElement('tr');
         row.innerHTML = `<td>pageid</td><td>${pageid}</td>`;
+        tbody.appendChild(row);
+      }
+      if (footnoteCids.length > 0) {
+        const row = document.createElement('tr');
+        row.innerHTML = `<td>footnotes</td><td>${footnoteCids.join(', ')}</td>`;
         tbody.appendChild(row);
       }
     }

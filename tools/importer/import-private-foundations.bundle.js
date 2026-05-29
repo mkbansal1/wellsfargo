@@ -34,6 +34,14 @@ var CustomImportScript = (() => {
       const allText = main.textContent || "";
       const dtMatch = allText.match(/DT1-\d+-\d+-\d+-[\d.]+/);
       if (dtMatch) pageid = dtMatch[0];
+      const footnoteCids = [];
+      main.querySelectorAll("[data-cid]").forEach((el) => {
+        const cid = el.getAttribute("data-cid");
+        if (!cid) return;
+        const text = el.textContent.trim();
+        if (text.match(/^(DT1|QSR|LRC)-/)) return;
+        if (!footnoteCids.includes(cid)) footnoteCids.push(cid);
+      });
       const tablist = main.querySelector('[role="tablist"]');
       const tabData = [];
       let programAreas = "";
@@ -149,6 +157,11 @@ var CustomImportScript = (() => {
         if (pageid) {
           const row = document.createElement("tr");
           row.innerHTML = `<td>pageid</td><td>${pageid}</td>`;
+          tbody.appendChild(row);
+        }
+        if (footnoteCids.length > 0) {
+          const row = document.createElement("tr");
+          row.innerHTML = `<td>footnotes</td><td>${footnoteCids.join(", ")}</td>`;
           tbody.appendChild(row);
         }
       }
