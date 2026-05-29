@@ -110,17 +110,36 @@ function postProcess(filePath) {
     );
   }
 
-  // 4. Join orphaned lines (lines not starting with <div>) back to their parent
+  // 4. Join orphaned lines back to their parent, and merge bare heading lines with next line
   const lines = html.split('\n');
   const result = [];
   for (let i = 0; i < lines.length; i++) {
-    if (i > 0 && lines[i] && !lines[i].startsWith('<div>') && !lines[i].startsWith('<div><div')) {
-      result[result.length - 1] += lines[i];
+    const line = lines[i];
+    const isBlockStart = !line
+      || line.startsWith('<div')
+      || line.startsWith('<h1') || line.startsWith('<h2') || line.startsWith('<h3')
+      || line.startsWith('<h4') || line.startsWith('<h5') || line.startsWith('<h6')
+      || line.startsWith('<table') || line.startsWith('<p>');
+    if (i > 0 && line && !isBlockStart) {
+      result[result.length - 1] += line;
     } else {
-      result.push(lines[i]);
+      result.push(line);
     }
   }
-  html = result.join('\n');
+  // Merge bare heading lines (e.g. <h2>...</h2>) with the following line to form one section
+  const merged = [];
+  for (let i = 0; i < result.length; i++) {
+    const line = result[i];
+    const isBareHeading = /^<h[1-6][^>]*>.*<\/h[1-6]>$/.test(line.trim());
+    if (isBareHeading && i + 1 < result.length) {
+      // Wrap heading + next line in a section div
+      merged.push('<div>' + line + result[i + 1] + '</div>');
+      i++;
+    } else {
+      merged.push(line);
+    }
+  }
+  html = merged.join('\n');
 
   // 4b. Remove duplicate tab content (mobile view joined onto tabs line after orphan joining)
   const tabsLines2 = html.split('\n');
@@ -181,6 +200,14 @@ function postProcess(filePath) {
     const opens = (line.match(/<div/g) || []).length;
     const closes = (line.match(/<\/div>/g) || []).length;
     if (opens > closes) finalLines[idx] = line + '</div>'.repeat(opens - closes);
+    else if (closes > opens) {
+      // Remove excess trailing </div> tags
+      let fixed = line;
+      for (let d = 0; d < closes - opens; d++) {
+        fixed = fixed.replace(/<\/div>$/, '');
+      }
+      finalLines[idx] = fixed;
+    }
   });
   html = finalLines.join('\n');
 
