@@ -27,7 +27,12 @@ var CustomImportScript = (() => {
       const { document, url, params } = payload;
       const main = document.querySelector("main") || document.body;
       document.querySelectorAll("header, footer, nav, script, style, link, noscript, iframe").forEach((el) => el.remove());
-      document.querySelectorAll('.hidden, [class*="hidden"]').forEach((el) => el.remove());
+      document.querySelectorAll('.hidden, [class*="hidden"]').forEach((el) => {
+        if (el.classList.contains("is-tab-hidden")) return;
+        if (el.querySelector && el.querySelector('[role="tabpanel"], .is-tab-hidden')) return;
+        if (el.getAttribute("role") === "tabpanel") return;
+        el.remove();
+      });
       const h1 = main.querySelector("h1");
       const h1Text = h1 ? h1.textContent.trim() : "";
       let pageid = "";

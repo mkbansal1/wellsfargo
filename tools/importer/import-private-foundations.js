@@ -20,7 +20,14 @@ export default {
 
     // --- Remove non-content elements ---
     document.querySelectorAll('header, footer, nav, script, style, link, noscript, iframe').forEach((el) => el.remove());
-    document.querySelectorAll('.hidden, [class*="hidden"]').forEach((el) => el.remove());
+    // Remove hidden elements but preserve tab panels (which use is-tab-hidden class)
+    document.querySelectorAll('.hidden, [class*="hidden"]').forEach((el) => {
+      // Preserve tab panel containers and their parents
+      if (el.classList.contains('is-tab-hidden')) return;
+      if (el.querySelector && el.querySelector('[role="tabpanel"], .is-tab-hidden')) return;
+      if (el.getAttribute('role') === 'tabpanel') return;
+      el.remove();
+    });
 
     // --- Extract H1 ---
     const h1 = main.querySelector('h1');
