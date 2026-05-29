@@ -1,4 +1,3 @@
-/* eslint-disable */
 var CustomImportScript = (() => {
   var __defProp = Object.defineProperty;
   var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -529,6 +528,57 @@ var CustomImportScript = (() => {
   }
   function runParsers(main, document, url, params) {
     const processed = /* @__PURE__ */ new Set();
+    let learningNavProcessed = false;
+    main.querySelectorAll("nav").forEach((nav) => {
+      if (processed.has(nav) || learningNavProcessed) return;
+      const links = nav.querySelectorAll("a");
+      const learnLinks = Array.from(links).filter((a) => {
+        const href = a.getAttribute("href") || "";
+        return href.includes("/mortgage/learn") || href.includes("/es/mortgage/learn");
+      });
+      if (learnLinks.length >= 3) {
+        processed.add(nav);
+        learningNavProcessed = true;
+        let heroImg = null;
+        let prevEl = nav.previousElementSibling;
+        while (prevEl) {
+          const img = prevEl.querySelector("picture") || prevEl.querySelector("img");
+          if (img) {
+            heroImg = img.closest("picture") || img;
+            break;
+          }
+          prevEl = prevEl.previousElementSibling;
+        }
+        const ul = document.createElement("ul");
+        learnLinks.forEach((a) => {
+          const li = document.createElement("li");
+          const link = document.createElement("a");
+          link.setAttribute("href", a.getAttribute("href") || "");
+          link.textContent = a.textContent.trim();
+          li.appendChild(link);
+          ul.appendChild(li);
+        });
+        const cells = [];
+        if (heroImg) {
+          cells.push([[heroImg.cloneNode(true)]]);
+          const imgParent = heroImg.closest("p") || heroImg.parentElement;
+          if (imgParent && imgParent !== main) imgParent.remove();
+        }
+        cells.push([[ul]]);
+        const block = WebImporter.Blocks.createBlock(document, { name: "Learning Navigation", cells });
+        nav.replaceWith(block);
+        main.querySelectorAll("nav").forEach((dupNav) => {
+          const dupLinks = Array.from(dupNav.querySelectorAll("a")).filter((a) => {
+            const href = a.getAttribute("href") || "";
+            return href.includes("/mortgage/learn") || href.includes("/es/mortgage/learn");
+          });
+          if (dupLinks.length >= 3) {
+            processed.add(dupNav);
+            dupNav.remove();
+          }
+        });
+      }
+    });
     const fragmentPatterns = getFragmentPatterns(url);
     main.querySelectorAll(':scope > div, :scope > [class*="card-background"]').forEach((el) => {
       if (processed.has(el)) return;

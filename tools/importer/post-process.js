@@ -18,47 +18,103 @@ function postProcess(filePath) {
   html = html.replace(/https:\/\/www\.wellsfargo\.com\//g, '/');
   html = html.replace(/href="(\/[^"]+)\/"/g, 'href="$1"');
 
-  // 3. Fix first hero serialization issue (<p>Hero</p> → proper block div)
+  // 3. Fix hero serialization issue (<p>Hero...</p> → proper block div)
+  // The serializer outputs "Hero" as text prefix before image content instead of a block table.
+  // Fragment blocks inside hero content become sibling blocks in the same section.
   html = html.replace(
-    /<div><p>Hero<\/p>(.*?)(<div class="section-metadata">.*?<\/div><\/div>)<\/div>/,
-    (match, content, sectionMeta) => '<div><div class="hero"><div><div>' + content + '</div></div></div>' + sectionMeta + '</div>',
+    /<div><p>Hero(<picture>.*?<\/picture>)<\/p>(.*?)(<div class="section-metadata">.*?<\/div><\/div>)<\/div>/g,
+    (match, picture, content, sectionMeta) => {
+      // Extract fragment blocks from content — they stay in the section, just outside the hero
+      let heroContent = content;
+      let fragmentBlocks = '';
+      heroContent = heroContent.replace(/<div class="fragment">(<div><div>.*?<\/div><\/div>)<\/div>/g, (frag) => {
+        fragmentBlocks += frag;
+        return '';
+      });
+      return '<div><div class="hero"><div><div><p>' + picture + '</p>' + heroContent + '</div></div></div>'
+        + fragmentBlocks + sectionMeta + '</div>';
+    },
   );
 
-  // 4. Fix split lists: join orphaned <li> lines back into their <ul>/<ol>
-  // Handles two patterns:
-  //   Pattern A: line ends with <ul></div> (original pattern)
-  //   Pattern B: line ends with <ul> or <ol> (no </div> yet, </div> comes after </ul>)
+  // 3b. Fix Learning Navigation block serialization issues:
+  //   - Image before block → move inside as row 1
+  //   - UL in 2-column row → single column
+  //   - footnotes/pageid rows inside block → move to Metadata
+  let extractedFootnotes = '';
+  let extractedPageid = '';
+
+  const lnLines = html.split('\n');
+  for (let li = 0; li < lnLines.length; li++) {
+    const line = lnLines[li];
+    if (!line.includes('learning-navigation')) continue;
+
+    // Extract the image (picture tag before the block)
+    const imgMatch = line.match(/<picture><img src="[^"]*"[^>]*><\/picture>/);
+    // Extract the UL with nav links
+    const ulMatch = line.match(/<ul>.*?<\/ul>/);
+    // Extract footnotes CIDs
+    const fnMatch = line.match(/<div><div>(?:<p>)?footnotes(?:<\/p>)?<\/div><div>(?:<p>)?(tcm:[^<]+)(?:<\/p>)?<\/div><\/div>/);
+    if (fnMatch) extractedFootnotes = fnMatch[1];
+    // Extract pageid
+    const pidMatch = line.match(/<div><div>(?:<p>)?pageid(?:<\/p>)?<\/div><div>(?:<p>)?([^<]+?)(?:<\/p>)?<\/div><\/div>/);
+    if (pidMatch) extractedPageid = pidMatch[1].trim();
+
+    if (imgMatch && ulMatch) {
+      // Extract heading (h1) if present at the start
+      const h1Match = line.match(/^<div>(<h1[^>]*>.*?<\/h1>)/);
+      const h1 = h1Match ? h1Match[1] : '';
+
+      // Rebuild the section line with clean learning-navigation block
+      lnLines[li] = '<div>' + h1
+        + '<div class="learning-navigation">'
+        + '<div><div>' + imgMatch[0] + '</div></div>'
+        + '<div><div>' + ulMatch[0] + '</div></div>'
+        + '</div></div>';
+    }
+    break;
+  }
+  html = lnLines.join('\n');
+
+  // Append extracted footnotes/pageid to Metadata block at end of file
+  if (extractedFootnotes || extractedPageid) {
+    const metaInsertions = [];
+    if (extractedFootnotes) {
+      metaInsertions.push('<div><div><p>footnotes</p></div><div><p>' + extractedFootnotes + '</p></div></div>');
+    }
+    if (extractedPageid) {
+      metaInsertions.push('<div><div><p>pageid</p></div><div><p>' + extractedPageid + '</p></div></div>');
+    }
+    // Insert new rows before the metadata block's closing </div> (before section close)
+    // Structure: <div class="metadata"><div>row1</div><div>row2</div>[INSERT HERE]</div></div>
+    html = html.replace(
+      /(<div class="metadata">(?:<div>(?:<div>.*?<\/div>)+<\/div>)*?)(<\/div><\/div>\s*$)/,
+      '$1' + metaInsertions.join('') + '$2',
+    );
+  }
+
+  // 4. Join orphaned lines (lines not starting with <div>) back to their parent
   const lines = html.split('\n');
   const result = [];
-  let i = 0;
-  while (i < lines.length) {
-    if (/<(?:ul|ol)><\/div>$/.test(lines[i])) {
-      // Pattern A: <ul></div> at end — strip the </div>, collect <li>s, re-add </div>
-      let combined = lines[i].replace(/<(ul|ol)><\/div>$/, '<$1>');
-      i++;
-      while (i < lines.length && !lines[i].startsWith('<div>') && !lines[i].startsWith('<div><div')) {
-        combined += lines[i];
-        i++;
-      }
-      result.push(combined);
-    } else if (/<(?:ul|ol)>$/.test(lines[i])) {
-      // Pattern B: line ends with <ul> or <ol> — collect subsequent lines until </ul> or </ol>
-      let combined = lines[i];
-      i++;
-      while (i < lines.length && !lines[i].startsWith('<div>') && !lines[i].startsWith('<div><div')) {
-        combined += lines[i];
-        i++;
-      }
-      result.push(combined);
+  for (let i = 0; i < lines.length; i++) {
+    if (i > 0 && lines[i] && !lines[i].startsWith('<div>') && !lines[i].startsWith('<div><div')) {
+      result[result.length - 1] += lines[i];
     } else {
       result.push(lines[i]);
-      i++;
     }
   }
   html = result.join('\n');
 
-  // 5. Separate fragment blocks into their own sections
-  html = html.replace(/(<\/div>)<div class="fragment">/g, '$1</div>\n<div><div class="fragment">');
+  // 5. Separate fragment blocks into their own sections (but not when following a hero block)
+  const sepLines = html.split('\n');
+  for (let si = 0; si < sepLines.length; si++) {
+    const line = sepLines[si];
+    if (!line.includes('<div class="fragment">')) continue;
+    // If this line also has a hero block, don't separate the fragment
+    if (line.includes('class="hero"')) continue;
+    // Otherwise, separate fragment into its own section
+    sepLines[si] = line.replace(/(<\/div>)<div class="fragment">/g, '$1</div>\n<div><div class="fragment">');
+  }
+  html = sepLines.join('\n');
 
   // 7. Wrap bare text in block cells with <p> tags
   html = html.replace(/<div>([^<]+)<\/div>/g, (match, text) => {

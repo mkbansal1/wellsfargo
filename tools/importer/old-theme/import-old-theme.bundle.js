@@ -34,7 +34,9 @@ var CustomImportScript = (() => {
       "#ot-sdk-btn-floating",
       ".ep-modal",
       ".signon-container",
-      ".contentBottom",
+      ".hidden",
+      '[class*="hidden"]',
+      "#persistent-cta",
       "iframe",
       "noscript",
       ".visuallyHidden",
@@ -203,6 +205,7 @@ var CustomImportScript = (() => {
     }
     if (pageid) main.setAttribute("data-pageid", pageid);
     if (footnoteCids.length > 0) main.setAttribute("data-footnotes", footnoteCids.join(", "));
+    main.querySelectorAll('.contentBottom, #contentBottom, [id*="contentBottom"]').forEach((el) => el.remove());
     main.querySelectorAll("div.title2-SemiBold").forEach((el) => {
       const h3 = document.createElement("h3");
       h3.innerHTML = el.innerHTML;
@@ -485,6 +488,76 @@ var CustomImportScript = (() => {
       flattenMain(main);
       main.querySelectorAll('.hatched, [class*="hatched"]').forEach((el) => {
         el.remove();
+      });
+      const contentTop = main.querySelector('#contentTop, [id*="contentTop"]');
+      if (contentTop) {
+        const heroImg = contentTop.querySelector("img");
+        const heroH2 = contentTop.querySelector("h2");
+        const heroDesc = contentTop.querySelector("p");
+        let ctaLink = contentTop.querySelector('a[href*="wellsfargo"], a[href*="secure"], a.ps-btn-primary, a.ps-btn');
+        if (!ctaLink) ctaLink = contentTop.querySelector("a");
+        if (!ctaLink && contentTop.nextElementSibling && contentTop.nextElementSibling.tagName === "A") {
+          ctaLink = contentTop.nextElementSibling;
+        }
+        if (heroH2 && ctaLink) {
+          const cellContent = [];
+          if (heroImg) {
+            const pic = heroImg.closest("picture") || heroImg;
+            cellContent.push(pic.cloneNode(true));
+          }
+          const h2 = document.createElement("h2");
+          h2.textContent = heroH2.textContent.trim();
+          cellContent.push(h2);
+          if (heroDesc && heroDesc.textContent.trim()) {
+            const p = document.createElement("p");
+            p.textContent = heroDesc.textContent.trim();
+            cellContent.push(p);
+          }
+          const ctaP = document.createElement("p");
+          const strong = document.createElement("strong");
+          const a = document.createElement("a");
+          a.setAttribute("href", ctaLink.getAttribute("href") || "");
+          a.textContent = ctaLink.textContent.trim();
+          strong.appendChild(a);
+          ctaP.appendChild(strong);
+          cellContent.push(ctaP);
+          const block = WebImporter.Blocks.createBlock(document, { name: "Hero", cells: [[cellContent]] });
+          contentTop.replaceWith(block);
+          if (ctaLink.parentElement && !ctaLink.closest("#contentTop")) ctaLink.remove();
+        }
+      }
+      const processed = /* @__PURE__ */ new Set();
+      main.querySelectorAll(".c60").forEach((c60) => {
+        if (processed.has(c60)) return;
+        const childDivs = Array.from(c60.querySelectorAll(":scope > div"));
+        if (childDivs.length < 2) return;
+        const firstImg = c60.querySelector("img");
+        const src = (firstImg && (firstImg.getAttribute("src") || "")).toLowerCase();
+        const width = parseInt(firstImg && firstImg.getAttribute("width") || "0", 10);
+        const isIcon = width > 0 && width <= 100 || src.includes("64x64") || src.includes("icon") || src.includes("gradient-64") || src.includes("-64x");
+        const variant = isIcon ? "Cards (icons, bg-image)" : "Cards (separator)";
+        const cells = [];
+        childDivs.forEach((div) => {
+          const img = div.querySelector("img");
+          const heading = div.querySelector("h2, h3, h4");
+          const contentCell = [];
+          if (heading) {
+            const h3 = document.createElement("h3");
+            h3.textContent = heading.textContent.trim();
+            contentCell.push(h3);
+          }
+          div.querySelectorAll("p").forEach((p) => {
+            if (p.querySelector("img")) return;
+            if (p.textContent.trim()) contentCell.push(p.cloneNode(true));
+          });
+          if (img || contentCell.length > 0) {
+            cells.push([img || "", contentCell]);
+          }
+        });
+        if (cells.length > 0) {
+          const block = WebImporter.Blocks.createBlock(document, { name: variant, cells });
+          c60.replaceWith(block);
+        }
       });
       const showHideItems = main.querySelectorAll(".rebranded-show-hide");
       if (showHideItems.length > 0) {
