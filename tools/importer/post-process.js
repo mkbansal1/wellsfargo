@@ -75,6 +75,24 @@ function postProcess(filePath) {
   }
   html = lnLines.join('\n');
 
+  // 3c. Fix Tabs block: remove footnotes/pageid rows absorbed by serializer
+  const tabLines = html.split('\n');
+  for (let ti = 0; ti < tabLines.length; ti++) {
+    const line = tabLines[ti];
+    if (!line.includes('class="tabs')) continue;
+    // Extract footnotes/pageid from inside the tabs block
+    const fnMatch = line.match(/<div><div>(?:<p>)?footnotes(?:<\/p>)?<\/div><div>(?:<p>)?(tcm:[^<]+)(?:<\/p>)?<\/div><\/div>/);
+    if (fnMatch && !extractedFootnotes) extractedFootnotes = fnMatch[1];
+    const pidMatch = line.match(/<div><div>(?:<p>)?pageid(?:<\/p>)?<\/div><div>(?:<p>)?([^<]+?)(?:<\/p>)?<\/div><\/div>/);
+    if (pidMatch && !extractedPageid) extractedPageid = pidMatch[1].trim();
+    // Remove the footnotes/pageid rows from the tabs block
+    tabLines[ti] = line
+      .replace(/<div><div>(?:<p>)?footnotes(?:<\/p>)?<\/div><div>(?:<p>)?tcm:[^<]+(?:<\/p>)?<\/div><\/div>/g, '')
+      .replace(/<div><div>(?:<p>)?pageid(?:<\/p>)?<\/div><div>(?:<p>)?[^<]+(?:<\/p>)?<\/div><\/div>/g, '');
+    break;
+  }
+  html = tabLines.join('\n');
+
   // Append extracted footnotes/pageid to Metadata block at end of file
   if (extractedFootnotes || extractedPageid) {
     const metaInsertions = [];
@@ -103,6 +121,41 @@ function postProcess(filePath) {
     }
   }
   html = result.join('\n');
+
+  // 4b. Remove duplicate tab content (mobile view joined onto tabs line after orphan joining)
+  const tabsLines2 = html.split('\n');
+  for (let ti = 0; ti < tabsLines2.length; ti++) {
+    const line = tabsLines2[ti];
+    if (!line.includes('class="tabs')) continue;
+
+    const tabsStart = line.indexOf('class="tabs');
+    const blockStart = line.lastIndexOf('<div', tabsStart);
+    let depth = 0;
+    let tabsEndPos = -1;
+    for (let ci = blockStart; ci < line.length; ci++) {
+      if (line.substring(ci, ci + 4) === '<div') { depth++; ci += 3; }
+      else if (line.substring(ci, ci + 6) === '</div>') {
+        depth--;
+        if (depth === 0) { tabsEndPos = ci + 6; break; }
+        ci += 5;
+      }
+    }
+    if (tabsEndPos === -1) break;
+
+    const afterTabs = line.substring(tabsEndPos);
+    if (afterTabs.length < 50) break;
+    const nextBlock = afterTabs.match(/<div class="(?:fragment|section-metadata|metadata)">/);
+    if (nextBlock) {
+      tabsLines2[ti] = line.substring(0, tabsEndPos) + afterTabs.substring(nextBlock.index);
+    } else {
+      const lastClose = afterTabs.lastIndexOf('</div>');
+      if (lastClose >= 0) {
+        tabsLines2[ti] = line.substring(0, tabsEndPos) + afterTabs.substring(lastClose);
+      }
+    }
+    break;
+  }
+  html = tabsLines2.join('\n');
 
   // 5. Separate fragment blocks into their own sections (but not when following a hero block)
   const sepLines = html.split('\n');

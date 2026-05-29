@@ -190,6 +190,153 @@ var CustomImportScript = (() => {
     element.replaceWith(block);
   }
 
+  // tools/importer/parsers/tabs.js
+  var KNOWN_REFERENCE_TABS = [
+    { id: "nationalbanks", label: "National banks", slug: "tab-national-banks" },
+    { id: "regionalandcommunitybanks", label: "Regional and community banks", slug: "tab-regional-and-community-banks" },
+    { id: "creditunions", label: "Credit unions", slug: "tab-credit-unions" },
+    { id: "mortgagebrokers", label: "Mortgage brokers", slug: "tab-mortgage-brokers" },
+    { id: "onlineonlymortgagelenders", label: "Online-only mortgage lenders", slug: "tab-online-only-mortgage-lenders" }
+  ];
+  function isKnownReferenceTab(anchorId) {
+    return KNOWN_REFERENCE_TABS.find((t) => t.id === anchorId);
+  }
+  function parseReferenceTabs(container, document, url, tabAnchors) {
+    let pagePath = "";
+    try {
+      const urlObj = new URL(url);
+      pagePath = urlObj.pathname.replace(/\/$/, "").replace(/^\//, "");
+    } catch (e) {
+      pagePath = url.replace(/^https?:\/\/[^/]+/, "").replace(/\/$/, "").replace(/^\//, "");
+    }
+    const fragmentBase = "/fragments/" + pagePath;
+    const tabData = [];
+    const elementsToRemove = /* @__PURE__ */ new Set();
+    let firstTabLabelEl = null;
+    for (const tab of KNOWN_REFERENCE_TABS) {
+      const anchor = container.querySelector(`a[href="#${tab.id}"]`);
+      if (!anchor) continue;
+      const labelEl = anchor.closest("p") || anchor.closest("div");
+      if (!labelEl) continue;
+      if (!firstTabLabelEl) firstTabLabelEl = labelEl;
+      const panelEl = labelEl.nextElementSibling;
+      if (panelEl) elementsToRemove.add(panelEl);
+      elementsToRemove.add(labelEl);
+      tabData.push({
+        label: tab.label,
+        fragmentPath: fragmentBase + "/" + tab.slug
+      });
+    }
+    if (tabData.length < 3) return false;
+    const allParagraphs = container.querySelectorAll("p");
+    for (const p of allParagraphs) {
+      const anchor = p.querySelector('a[href^="#"]');
+      if (!anchor) continue;
+      const href = (anchor.getAttribute("href") || "").replace("#", "");
+      if (isKnownReferenceTab(href)) {
+        elementsToRemove.add(p);
+        const next = p.nextElementSibling;
+        if (next && (next.querySelector("h3") || (next.className || "").includes("cards"))) {
+          elementsToRemove.add(next);
+        }
+      }
+    }
+    for (const p of allParagraphs) {
+      const anchors = p.querySelectorAll('a[href^="#"]');
+      if (anchors.length >= 3) {
+        const matchCount = Array.from(anchors).filter((a) => isKnownReferenceTab((a.getAttribute("href") || "").replace("#", ""))).length;
+        if (matchCount >= 3) elementsToRemove.add(p);
+      }
+    }
+    const cells = tabData.map((tab) => [[tab.label], [tab.fragmentPath]]);
+    const block = WebImporter.Blocks.createBlock(document, { name: "Tabs (reference)", cells });
+    if (firstTabLabelEl && firstTabLabelEl.parentNode) {
+      firstTabLabelEl.parentNode.insertBefore(block, firstTabLabelEl);
+    }
+    elementsToRemove.forEach((el) => {
+      if (el.parentNode) el.remove();
+    });
+    return true;
+  }
+  function parseGenericTabs(container, document, tabAnchors) {
+    const tabData = [];
+    const elementsToRemove = /* @__PURE__ */ new Set();
+    let firstTabLabelEl = null;
+    for (const { id, label, anchorEl } of tabAnchors) {
+      const labelEl = anchorEl.closest("p") || anchorEl.parentElement;
+      if (!labelEl) continue;
+      if (!firstTabLabelEl) firstTabLabelEl = labelEl;
+      const panelEl = labelEl.nextElementSibling;
+      if (!panelEl) continue;
+      const panelContent = panelEl.innerHTML || "";
+      tabData.push({ label, content: panelContent });
+      elementsToRemove.add(labelEl);
+      elementsToRemove.add(panelEl);
+    }
+    if (tabData.length < 2) return false;
+    const allParagraphs = container.querySelectorAll("p");
+    const knownIds = tabAnchors.map((t) => t.id);
+    for (const p of allParagraphs) {
+      const anchors = p.querySelectorAll('a[href^="#"]');
+      if (anchors.length >= tabAnchors.length) {
+        const matchCount = Array.from(anchors).filter((a) => knownIds.includes((a.getAttribute("href") || "").replace("#", ""))).length;
+        if (matchCount >= tabAnchors.length) elementsToRemove.add(p);
+      }
+    }
+    for (const p of allParagraphs) {
+      if (elementsToRemove.has(p)) continue;
+      const anchor = p.querySelector('a[href^="#"]');
+      if (!anchor) continue;
+      const href = (anchor.getAttribute("href") || "").replace("#", "");
+      if (knownIds.includes(href)) {
+        elementsToRemove.add(p);
+        const next = p.nextElementSibling;
+        if (next && (next.querySelector("h3") || next.querySelector("p"))) {
+          elementsToRemove.add(next);
+        }
+      }
+    }
+    const cells = tabData.map((tab) => {
+      const contentEl = document.createElement("div");
+      contentEl.innerHTML = tab.content;
+      return [[tab.label], [contentEl]];
+    });
+    const block = WebImporter.Blocks.createBlock(document, { name: "Tabs", cells });
+    if (firstTabLabelEl && firstTabLabelEl.parentNode) {
+      firstTabLabelEl.parentNode.insertBefore(block, firstTabLabelEl);
+    }
+    elementsToRemove.forEach((el) => {
+      if (el.parentNode) el.remove();
+    });
+    return true;
+  }
+  function parse2(container, { document, url, params }) {
+    if (!url || !container) return false;
+    const allAnchors = container.querySelectorAll('a[href^="#"]');
+    const tabAnchors = [];
+    const seenIds = /* @__PURE__ */ new Set();
+    for (const a of allAnchors) {
+      const href = (a.getAttribute("href") || "").replace("#", "");
+      if (!href || href === "skip" || seenIds.has(href)) continue;
+      if (/^[a-z][a-z0-9]*$/.test(href) || /^[a-z]+[a-z!]*$/.test(href)) {
+        const label = a.textContent.trim();
+        if (label && label.length > 2 && label.length < 80) {
+          seenIds.add(href);
+          tabAnchors.push({ id: href, label, anchorEl: a });
+        }
+      }
+    }
+    if (tabAnchors.length < 2) return false;
+    const knownCount = tabAnchors.filter((t) => isKnownReferenceTab(t.id)).length;
+    if (knownCount >= 3) {
+      return parseReferenceTabs(container, document, url, tabAnchors);
+    }
+    if (tabAnchors.length >= 2) {
+      return parseGenericTabs(container, document, tabAnchors);
+    }
+    return false;
+  }
+
   // tools/importer/import-es-product-landing.js
   function parseHero(element, { document, isFirstHero }) {
     const img = element.querySelector(
@@ -579,6 +726,7 @@ var CustomImportScript = (() => {
         });
       }
     });
+    parse2(main, { document, url, params });
     const fragmentPatterns = getFragmentPatterns(url);
     main.querySelectorAll(':scope > div, :scope > [class*="card-background"]').forEach((el) => {
       if (processed.has(el)) return;
