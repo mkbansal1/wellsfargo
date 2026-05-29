@@ -227,6 +227,33 @@ export default {
     // Phase 0: Cleanup (removes header, footer, breadcrumbs, sidebar → fragment, etc.)
     cleanup(document, url);
 
+    // Extract H1 and hero from shell-level siblings before narrowing to content body
+    const shell = document.querySelector('#shell') || document.querySelector('.t8');
+    let extractedH1 = null;
+    let extractedHero = null;
+
+    if (shell) {
+      // H1 from div.c42 > #title
+      const titleDiv = shell.querySelector('.c42 h1, #title h1');
+      if (titleDiv) {
+        extractedH1 = document.createElement('h1');
+        extractedH1.textContent = titleDiv.textContent.trim();
+      }
+
+      // Hero from #contentTop
+      const contentTop = shell.querySelector('#contentTop, [id*="contentTop"]');
+      if (contentTop) {
+        const heroImg = contentTop.querySelector('img');
+        const heroH2 = contentTop.querySelector('h2');
+        const heroDesc = contentTop.querySelector('p');
+        let ctaLink = contentTop.querySelector('a');
+        if (heroH2) {
+          extractedHero = { img: heroImg, h2: heroH2, desc: heroDesc, cta: ctaLink };
+        }
+        contentTop.remove();
+      }
+    }
+
     // Re-resolve main after cleanup — prefer the most specific content container
     main = document.querySelector('#contentBody')
       || document.querySelector('#mainColumns')
@@ -283,38 +310,56 @@ export default {
       el.remove();
     });
 
-    // Phase 0.7: Hero detection
-    // HERO: Detect #contentTop with image + H2 + description + CTA link
+    // Phase 0.7: Prepend extracted H1 and Hero to main
+    if (extractedHero) {
+      const cellContent = [];
+      if (extractedHero.img) {
+        const pic = extractedHero.img.closest('picture') || extractedHero.img;
+        cellContent.push(pic.cloneNode(true));
+      }
+      const h2 = document.createElement('h2');
+      h2.textContent = extractedHero.h2.textContent.trim();
+      cellContent.push(h2);
+      if (extractedHero.desc && extractedHero.desc.textContent.trim()) {
+        const p = document.createElement('p');
+        p.textContent = extractedHero.desc.textContent.trim();
+        cellContent.push(p);
+      }
+      if (extractedHero.cta) {
+        const ctaP = document.createElement('p');
+        const strong = document.createElement('strong');
+        const a = document.createElement('a');
+        a.setAttribute('href', extractedHero.cta.getAttribute('href') || '');
+        a.textContent = extractedHero.cta.textContent.trim();
+        strong.appendChild(a);
+        ctaP.appendChild(strong);
+        cellContent.push(ctaP);
+      }
+      const heroBlock = WebImporter.Blocks.createBlock(document, { name: 'Hero', cells: [[cellContent]] });
+      main.insertBefore(heroBlock, main.firstChild);
+    }
+    if (extractedH1) {
+      main.insertBefore(extractedH1, main.firstChild);
+    }
+
+    // Fallback: Phase 0.7 legacy hero detection (for pages where contentTop is inside main)
     const contentTop = main.querySelector('#contentTop, [id*="contentTop"]');
     if (contentTop) {
       const heroImg = contentTop.querySelector('img');
       const heroH2 = contentTop.querySelector('h2');
       const heroDesc = contentTop.querySelector('p');
-      // CTA: look inside contentTop first, then as next sibling
-      let ctaLink = contentTop.querySelector('a[href*="wellsfargo"], a[href*="secure"], a.ps-btn-primary, a.ps-btn');
-      if (!ctaLink) ctaLink = contentTop.querySelector('a');
-      if (!ctaLink && contentTop.nextElementSibling && contentTop.nextElementSibling.tagName === 'A') {
-        ctaLink = contentTop.nextElementSibling;
-      }
-
+      let ctaLink = contentTop.querySelector('a');
       if (heroH2 && ctaLink) {
         const cellContent = [];
-        // Add image
-        if (heroImg) {
-          const pic = heroImg.closest('picture') || heroImg;
-          cellContent.push(pic.cloneNode(true));
-        }
-        // Add H2
+        if (heroImg) cellContent.push((heroImg.closest('picture') || heroImg).cloneNode(true));
         const h2 = document.createElement('h2');
         h2.textContent = heroH2.textContent.trim();
         cellContent.push(h2);
-        // Add description
         if (heroDesc && heroDesc.textContent.trim()) {
           const p = document.createElement('p');
           p.textContent = heroDesc.textContent.trim();
           cellContent.push(p);
         }
-        // Add CTA as bold link
         const ctaP = document.createElement('p');
         const strong = document.createElement('strong');
         const a = document.createElement('a');
@@ -323,11 +368,8 @@ export default {
         strong.appendChild(a);
         ctaP.appendChild(strong);
         cellContent.push(ctaP);
-
         const block = WebImporter.Blocks.createBlock(document, { name: 'Hero', cells: [[cellContent]] });
         contentTop.replaceWith(block);
-        // Remove CTA if it was a sibling
-        if (ctaLink.parentElement && !ctaLink.closest('#contentTop')) ctaLink.remove();
       }
     }
 

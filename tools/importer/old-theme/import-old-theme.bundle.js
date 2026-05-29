@@ -453,6 +453,27 @@ var CustomImportScript = (() => {
       const { document, url, params } = payload;
       let main = document.querySelector("main") || document.querySelector("#contentBody") || document.querySelector("#mainColumns") || document.querySelector("#shell") || document.body;
       cleanup(document, url);
+      const shell = document.querySelector("#shell") || document.querySelector(".t8");
+      let extractedH1 = null;
+      let extractedHero = null;
+      if (shell) {
+        const titleDiv = shell.querySelector(".c42 h1, #title h1");
+        if (titleDiv) {
+          extractedH1 = document.createElement("h1");
+          extractedH1.textContent = titleDiv.textContent.trim();
+        }
+        const contentTop2 = shell.querySelector('#contentTop, [id*="contentTop"]');
+        if (contentTop2) {
+          const heroImg = contentTop2.querySelector("img");
+          const heroH2 = contentTop2.querySelector("h2");
+          const heroDesc = contentTop2.querySelector("p");
+          let ctaLink = contentTop2.querySelector("a");
+          if (heroH2) {
+            extractedHero = { img: heroImg, h2: heroH2, desc: heroDesc, cta: ctaLink };
+          }
+          contentTop2.remove();
+        }
+      }
       main = document.querySelector("#contentBody") || document.querySelector("#mainColumns") || document.querySelector("main") || document.querySelector("#shell") || document.querySelector(".t8") || document.body;
       function flattenMain(el) {
         let changed = true;
@@ -485,22 +506,45 @@ var CustomImportScript = (() => {
       main.querySelectorAll('.hatched, [class*="hatched"]').forEach((el) => {
         el.remove();
       });
+      if (extractedHero) {
+        const cellContent = [];
+        if (extractedHero.img) {
+          const pic = extractedHero.img.closest("picture") || extractedHero.img;
+          cellContent.push(pic.cloneNode(true));
+        }
+        const h2 = document.createElement("h2");
+        h2.textContent = extractedHero.h2.textContent.trim();
+        cellContent.push(h2);
+        if (extractedHero.desc && extractedHero.desc.textContent.trim()) {
+          const p = document.createElement("p");
+          p.textContent = extractedHero.desc.textContent.trim();
+          cellContent.push(p);
+        }
+        if (extractedHero.cta) {
+          const ctaP = document.createElement("p");
+          const strong = document.createElement("strong");
+          const a = document.createElement("a");
+          a.setAttribute("href", extractedHero.cta.getAttribute("href") || "");
+          a.textContent = extractedHero.cta.textContent.trim();
+          strong.appendChild(a);
+          ctaP.appendChild(strong);
+          cellContent.push(ctaP);
+        }
+        const heroBlock = WebImporter.Blocks.createBlock(document, { name: "Hero", cells: [[cellContent]] });
+        main.insertBefore(heroBlock, main.firstChild);
+      }
+      if (extractedH1) {
+        main.insertBefore(extractedH1, main.firstChild);
+      }
       const contentTop = main.querySelector('#contentTop, [id*="contentTop"]');
       if (contentTop) {
         const heroImg = contentTop.querySelector("img");
         const heroH2 = contentTop.querySelector("h2");
         const heroDesc = contentTop.querySelector("p");
-        let ctaLink = contentTop.querySelector('a[href*="wellsfargo"], a[href*="secure"], a.ps-btn-primary, a.ps-btn');
-        if (!ctaLink) ctaLink = contentTop.querySelector("a");
-        if (!ctaLink && contentTop.nextElementSibling && contentTop.nextElementSibling.tagName === "A") {
-          ctaLink = contentTop.nextElementSibling;
-        }
+        let ctaLink = contentTop.querySelector("a");
         if (heroH2 && ctaLink) {
           const cellContent = [];
-          if (heroImg) {
-            const pic = heroImg.closest("picture") || heroImg;
-            cellContent.push(pic.cloneNode(true));
-          }
+          if (heroImg) cellContent.push((heroImg.closest("picture") || heroImg).cloneNode(true));
           const h2 = document.createElement("h2");
           h2.textContent = heroH2.textContent.trim();
           cellContent.push(h2);
@@ -519,7 +563,6 @@ var CustomImportScript = (() => {
           cellContent.push(ctaP);
           const block = WebImporter.Blocks.createBlock(document, { name: "Hero", cells: [[cellContent]] });
           contentTop.replaceWith(block);
-          if (ctaLink.parentElement && !ctaLink.closest("#contentTop")) ctaLink.remove();
         }
       }
       const processed = /* @__PURE__ */ new Set();
