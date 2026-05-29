@@ -127,7 +127,7 @@
     height: 100%;
   }
 
-  .columns.panel.columns-2-cols > div > div:not(.columns-img-col) {
+  .columns.panel.columns-2-cols:not([class*="ratio-"]) > div > div:not(.columns-img-col) {
     flex: 1;
   }
 }
