@@ -16,7 +16,7 @@ function getUniqueAreas(data) {
     const val = item.areas || item['program-areas'] || '';
     val.split('|').forEach((a) => {
       const trimmed = a.trim();
-      if (trimmed) areas.add(trimmed);
+      if (trimmed && trimmed.toLowerCase() !== 'all program areas') areas.add(trimmed);
     });
   });
   return [...areas].sort();
@@ -28,7 +28,7 @@ function getUniqueStates(data) {
     const val = item.states || '';
     val.split(',').forEach((s) => {
       const trimmed = s.trim();
-      if (trimmed && trimmed.toLowerCase() !== 'all') states.add(trimmed);
+      if (trimmed && trimmed.toLowerCase() !== 'all' && trimmed.toLowerCase() !== 'all states') states.add(trimmed);
     });
   });
   return [...states].sort();
