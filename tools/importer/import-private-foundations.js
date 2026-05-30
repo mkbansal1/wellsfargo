@@ -73,9 +73,12 @@ export default {
         }
       });
 
-      // Extract content from each panel by ID
+      // Extract content from each panel by ID (try multiple ID formats)
       panelIds.forEach(({ label, panelId }) => {
-        const panel = document.getElementById(panelId);
+        const panel = document.getElementById(panelId)
+          || document.getElementById('#' + panelId)
+          || document.querySelector('[id="' + panelId + '"]')
+          || document.querySelector('[id="#' + panelId + '"]');
         if (!panel) {
           tabData.push({ label, content: '' });
           return;
@@ -129,11 +132,14 @@ export default {
     // Clear main
     while (main.firstChild) main.removeChild(main.firstChild);
 
+    // Wrap all content in a single div (= one DA section, no separators)
+    const section = document.createElement('div');
+
     // 1. H1
     if (h1Text) {
       const h1El = document.createElement('h1');
       h1El.textContent = h1Text;
-      main.appendChild(h1El);
+      section.appendChild(h1El);
     }
 
     // 2. Fragment: Start your application
@@ -141,7 +147,7 @@ export default {
       name: 'Fragment',
       cells: [[['/fragments/private-foundations/start-your-application']]],
     });
-    main.appendChild(appFragment);
+    section.appendChild(appFragment);
 
     // 3. Tabs block
     if (tabData.length > 0) {
@@ -154,7 +160,7 @@ export default {
         name: 'Tabs (Yellow, Top, Tab-Fill, Panel-Border)',
         cells: tabCells,
       });
-      main.appendChild(tabBlock);
+      section.appendChild(tabBlock);
     }
 
     // 4. Fragment: Contact cards
@@ -162,9 +168,11 @@ export default {
       name: 'Fragment',
       cells: [[['/fragments/private-foundations/contact-cards']]],
     });
-    main.appendChild(contactFragment);
+    section.appendChild(contactFragment);
 
-    // 5. Metadata
+    main.appendChild(section);
+
+    // 5. Metadata (separate from content section)
     WebImporter.rules.createMetadata(main, document);
 
     // Add custom metadata rows to the metadata table
