@@ -208,13 +208,22 @@ function postProcess(filePath) {
   for (let si = 0; si < smLines.length; si++) {
     const line = smLines[si];
     if (line.includes('class="metadata"')) continue;
+    // If line already has section-metadata AND has accordion, add narrow-width
+    if (line.includes('section-metadata') && line.includes('class="accordion')) {
+      if (!line.includes('narrow-width')) {
+        smLines[si] = line.replace(/(<p>)(.*?heading-bar.*?)(<\/p>)/, '$1$2, narrow-width$3');
+      }
+      continue;
+    }
     if (!line.includes('<h2') || line.includes('section-metadata')) continue;
-    // Skip lines where H2 is inside a block (tabs, accordion, etc.) — not a standalone section heading
-    if (line.includes('class="tabs') || line.includes('class="accordion')) continue;
+    // Skip lines where H2 is inside a tabs block — not a standalone section heading
+    if (line.includes('class="tabs')) continue;
 
     // Determine style: if H2 is followed by a major block, use center-align + heading-bar
     const hasMajorBlock = /class="(cards|accordion|tabs|columns|carousel)/.test(line);
-    const style = hasMajorBlock ? 'heading-bar, center-align' : 'heading-bar';
+    const hasAccordion = /class="accordion/.test(line);
+    let style = hasMajorBlock ? 'heading-bar, center-align' : 'heading-bar';
+    if (hasAccordion) style += ', narrow-width';
 
     const sectionMeta = '<div class="section-metadata"><div><div><p>style</p></div><div><p>' + style + '</p></div></div></div>';
     smLines[si] = line.replace(/<\/div>$/, sectionMeta + '</div>');
