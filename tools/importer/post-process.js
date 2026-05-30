@@ -8,11 +8,13 @@ const { glob } = require('fs').promises ? { glob: null } : {};
 function postProcess(filePath) {
   let html = fs.readFileSync(filePath, 'utf8');
 
-  // 1. Fix footnote references (both patterns)
+  // 1. Fix footnote references
   // Pattern 1: <a href="...tcm:..."><sup>Opens a modal dialog for footnote N</sup></a>
   html = html.replace(/<a href="([^"]*tcm:[^"]*)"[^>]*><sup>Opens a modal dialog for footnote (\d+)<\/sup>\s*<\/a>/g, '<sup><a href="$1">$2</a></sup>');
   // Pattern 2: <a href="...tcm:...">Opens a modal dialog for footnote N</a> (inside <sup>)
   html = html.replace(/<a href="([^"]*tcm:[^"]*)"[^>]*>Opens a modal dialog for footnote (\d+)<\/a>/g, '<a href="$1">$2</a>');
+  // Pattern 3: <a href="#tcm:..."><sup>N</sup></a> → <sup><a href="#tcm:...">N</a></sup>
+  html = html.replace(/<a href="(#tcm:[^"]+)"><sup>(\d+)<\/sup><\/a>/g, '<sup><a href="$1">$2</a></sup>');
 
   // 2. Convert absolute wellsfargo.com links to relative and strip trailing slash
   html = html.replace(/https:\/\/www\.wellsfargo\.com\//g, '/');
