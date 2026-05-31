@@ -74,7 +74,7 @@
    Tablet & Desktop (≥768px)
    ======================================== */
 @media (width >= 768px) {
-  /* Default variant: image at original width, text flows around it */
+  /* Default variant: image at original width, text wraps around it */
   .text-image > div {
     display: block;
   }
@@ -92,8 +92,7 @@
   }
 
   .text-image .text-image-content {
-    overflow: hidden;
-    padding: 0;
+    display: contents;
   }
 
   .text-image .text-image-content > :first-child {
