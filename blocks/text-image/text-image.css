@@ -74,25 +74,26 @@
    Tablet & Desktop (≥768px)
    ======================================== */
 @media (width >= 768px) {
-  /* Default variant: image original size on left, text overlaps ~30% bottom */
+  /* Default variant: image at original width, text flows around it */
   .text-image > div {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto;
-    align-items: start;
+    display: block;
   }
 
   .text-image .text-image-image {
-    grid-column: 1;
-    grid-row: 1;
+    float: left;
+    width: auto;
+    margin-right: 24px;
+    margin-bottom: 16px;
+  }
+
+  .text-image .text-image-image img {
+    width: auto;
+    max-width: 100%;
   }
 
   .text-image .text-image-content {
-    grid-column: 2;
-    grid-row: 1;
-    align-self: start;
-    position: relative;
-    padding: 0 24px;
+    overflow: hidden;
+    padding: 0;
   }
 
   .text-image .text-image-content > :first-child {
