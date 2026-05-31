@@ -38,6 +38,16 @@ function postProcess(filePath) {
     },
   );
 
+  // 3a. Fix hero where "Hero" is in its own <p> tag, picture in next <p> tag
+  // Pattern: <p>Hero</p><p><picture>...</picture></p> → <div class="hero overlay-bottom">
+  html = html.replace(
+    /<p>Hero<\/p><p>(<picture>.*?<\/picture>)<\/p>(.*?)(<div class="section-metadata">.*?<\/div><\/div>)<\/div>/g,
+    (match, picture, content, sectionMeta) => {
+      return '<div class="hero overlay-bottom"><div><div><p>' + picture + '</p>' + content + '</div></div></div>'
+        + sectionMeta + '</div>';
+    },
+  );
+
   // 3b. Fix Learning Navigation block serialization issues:
   //   - Image before block → move inside as row 1
   //   - UL in 2-column row → single column
@@ -110,6 +120,27 @@ function postProcess(filePath) {
       /(<div class="metadata">(?:<div>(?:<div>.*?<\/div>)+<\/div>)*?)(<\/div><\/div>\s*$)/,
       '$1' + metaInsertions.join('') + '$2',
     );
+  }
+
+  // 3d. Replace "Helpful resources" sections and help-cta-default fragment with
+  // the combined personal-loans helpful-resources fragment (for personal-loans pages)
+  if (filePath.includes('personal-loans')) {
+    const fragLines = html.split('\n');
+    const filtered = [];
+    for (let fi = 0; fi < fragLines.length; fi++) {
+      const line = fragLines[fi];
+      // Remove "Helpful resources" section (cards block with that heading)
+      if (line.includes('id="helpful-resources"') || (line.includes('<h2') && line.includes('Helpful resources'))) {
+        continue;
+      }
+      // Replace help-cta-default fragment with personal-loans/helpful-resources
+      if (line.includes('/fragments/help-cta-default')) {
+        filtered.push('<div><div class="fragment"><div><div><p>/fragments/personal-loans/helpful-resources</p></div></div></div></div>');
+        continue;
+      }
+      filtered.push(line);
+    }
+    html = filtered.join('\n');
   }
 
   // 4. Join orphaned lines into sections
