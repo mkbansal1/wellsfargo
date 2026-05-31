@@ -8,11 +8,13 @@ const { glob } = require('fs').promises ? { glob: null } : {};
 function postProcess(filePath) {
   let html = fs.readFileSync(filePath, 'utf8');
 
-  // 1. Fix footnote references (both patterns)
+  // 1. Fix footnote references
   // Pattern 1: <a href="...tcm:..."><sup>Opens a modal dialog for footnote N</sup></a>
   html = html.replace(/<a href="([^"]*tcm:[^"]*)"[^>]*><sup>Opens a modal dialog for footnote (\d+)<\/sup>\s*<\/a>/g, '<sup><a href="$1">$2</a></sup>');
   // Pattern 2: <a href="...tcm:...">Opens a modal dialog for footnote N</a> (inside <sup>)
   html = html.replace(/<a href="([^"]*tcm:[^"]*)"[^>]*>Opens a modal dialog for footnote (\d+)<\/a>/g, '<a href="$1">$2</a>');
+  // Pattern 3: <a href="#tcm:..."><sup>N</sup></a> → <sup><a href="#tcm:...">N</a></sup>
+  html = html.replace(/<a href="(#tcm:[^"]+)"><sup>(\d+)<\/sup><\/a>/g, '<sup><a href="$1">$2</a></sup>');
 
   // 2. Convert absolute wellsfargo.com links to relative and strip trailing slash
   html = html.replace(/https:\/\/www\.wellsfargo\.com\//g, '/');
@@ -208,13 +210,22 @@ function postProcess(filePath) {
   for (let si = 0; si < smLines.length; si++) {
     const line = smLines[si];
     if (line.includes('class="metadata"')) continue;
+    // If line already has section-metadata AND has accordion, add narrow-width
+    if (line.includes('section-metadata') && line.includes('class="accordion')) {
+      if (!line.includes('narrow-width')) {
+        smLines[si] = line.replace(/(<p>)(.*?heading-bar.*?)(<\/p>)/, '$1$2, narrow-width$3');
+      }
+      continue;
+    }
     if (!line.includes('<h2') || line.includes('section-metadata')) continue;
-    // Skip lines where H2 is inside a block (tabs, accordion, etc.) — not a standalone section heading
-    if (line.includes('class="tabs') || line.includes('class="accordion')) continue;
+    // Skip lines where H2 is inside a tabs block — not a standalone section heading
+    if (line.includes('class="tabs')) continue;
 
     // Determine style: if H2 is followed by a major block, use center-align + heading-bar
     const hasMajorBlock = /class="(cards|accordion|tabs|columns|carousel)/.test(line);
-    const style = hasMajorBlock ? 'heading-bar, center-align' : 'heading-bar';
+    const hasAccordion = /class="accordion/.test(line);
+    let style = hasMajorBlock ? 'heading-bar, center-align' : 'heading-bar';
+    if (hasAccordion) style += ', narrow-width';
 
     const sectionMeta = '<div class="section-metadata"><div><div><p>style</p></div><div><p>' + style + '</p></div></div></div>';
     smLines[si] = line.replace(/<\/div>$/, sectionMeta + '</div>');
