@@ -409,8 +409,13 @@ export default async function decorate(block) {
   nav.append(primaryNav);
 
   // build sub-nav only when on the exact top-level nav page
-  const subNav = buildSubNav(navLists, isTopLevel ? activeNavIdx : -1);
+  const subNavIdx = isTopLevel ? activeNavIdx : -1;
+  const subNav = buildSubNav(navLists, subNavIdx);
   nav.append(subNav);
+
+  if (subNavIdx < 0) {
+    document.querySelector('header')?.classList.add('no-subnav');
+  }
 
   // build mobile menu
   const mobileMenu = buildMobileNav(navLists, utilities);
