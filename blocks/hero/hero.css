@@ -161,7 +161,7 @@
 }
 
 .hero.overlay-bottom .hero-content h2::before {
-  margin-bottom: 10px;
+  margin: 0 auto 10px;
 }
 
 .hero.overlay-bottom .hero-content p {
