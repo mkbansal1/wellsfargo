@@ -160,6 +160,10 @@
   margin: 0;
 }
 
+.hero.overlay-bottom .hero-content h2::before {
+  margin-bottom: 10px;
+}
+
 .hero.overlay-bottom .hero-content p {
   max-width: none;
   text-align: center;
