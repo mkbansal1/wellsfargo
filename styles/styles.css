@@ -396,8 +396,12 @@ main .section.heading-bar h2::before {
   display: block;
   width: 96px;
   height: 2px;
-  margin: 0 auto 25px;
+  margin: 0 0 25px;
   background-color: var(--heading-bar-color);
+}
+
+main .section.heading-bar.center-align h2::before {
+  margin: 0 auto 25px;
 }
 
 /* wealth theme — loaded from /styles/themes/wealth.css via scripts.js */
