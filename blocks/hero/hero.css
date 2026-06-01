@@ -145,7 +145,7 @@
   margin-top: -32px;
   margin-left: 20px;
   margin-right: 20px;
-  padding: 32px 32px 40px;
+  padding: 24px 32px;
   text-align: center;
   background-color: var(--wf-bg-light);
   border-radius: 12px;
@@ -189,6 +189,6 @@
     margin-right: auto;
     width: 75%;
     max-width: none;
-    padding: 40px 80px 48px;
+    padding: 24px 80px;
   }
 }
