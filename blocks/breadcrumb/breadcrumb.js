@@ -74,21 +74,20 @@ async function buildBreadcrumbFromPath() {
   const items = [];
   const isSpanish = pathname.startsWith('/es/');
 
-  const homeTitle = isSpanish ? 'Personal' : 'Personal';
-  const homePath = isSpanish ? '/es/' : '/';
+  const homePath = isSpanish ? '/es' : '/';
+  const homeTitle = isSpanish ? 'Inicio' : 'Personal';
   items.push(createBreadcrumbItem(homeTitle, homePath));
 
-  let accumulated = '';
-  for (let i = 0; i < segments.length; i += 1) {
+  const startIdx = isSpanish ? 1 : 0;
+  let accumulated = isSpanish ? '/es' : '';
+  for (let i = startIdx; i < segments.length; i += 1) {
     const segment = segments[i];
     accumulated += `/${segment}`;
     const isLast = i === segments.length - 1;
 
-    if (segment !== 'es') {
-      /* eslint-disable no-await-in-loop */
-      const title = await lookupTitle(accumulated);
-      items.push(createBreadcrumbItem(title, isLast ? null : accumulated));
-    }
+    /* eslint-disable no-await-in-loop */
+    const title = await lookupTitle(accumulated);
+    items.push(createBreadcrumbItem(title, isLast ? null : accumulated));
   }
 
   return items;
