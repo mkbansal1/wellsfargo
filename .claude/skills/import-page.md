@@ -190,6 +190,7 @@ Use `import-governance-bios.js` pattern:
 7. **ES pages** — Use `/es/` prefix in output path. Fragment paths should also use `/es/` prefix.
 8. **Missing footnotes report** — After import, check all referenced CIDs against the footnotes.json sheet and report any missing ones in table format.
 9. **Hero variant selection** — Use `overlay-bottom` when the source page shows image on top with text/heading in a card overlapping the bottom of the image (centered text below image). Use default Hero when text is positioned on the left side overlaying the full image.
+10. **Never paraphrase or translate** — Import text VERBATIM from the source page. Never reword, summarize, or translate headings, paragraphs, or link text. If the page redirected to Spanish but the requested URL is English, you MUST re-navigate to get the English content. Never manually translate Spanish text to English.
 
 ## Output: Missing Footnotes Report
 
