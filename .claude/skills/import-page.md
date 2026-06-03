@@ -68,7 +68,7 @@ Use the block library to find the best match. Available blocks:
 
 | Block | Variants | Use When |
 |-------|----------|----------|
-| **Hero** | default, `overlay-bottom` | Full-width banner image + heading + CTA |
+| **Hero** | default, `overlay-bottom` | Full-width banner image + heading + CTA. Use `overlay-bottom` when the text/heading overlaps the bottom of the image in a centered card (image above, text card overlapping bottom). Use default when text is overlaid on the left side of the image. |
 | **Cards** | `icons`, `bg-image`, `separator`, `compact`, `align-center` | Grid of items with image/icon + title + text |
 | **Accordion** | `compact` | Expandable Q&A or FAQ sections (H3 + content pairs) |
 | **Tabs** | `Yellow`, `Top`, `Tab-Fill`, `Panel-Border` | Tabbed content panels |
@@ -171,6 +171,7 @@ Use `import-governance-bios.js` pattern:
 6. **Div balance** — Every line must have equal `<div>` opens and `</div>` closes.
 7. **ES pages** — Use `/es/` prefix in output path. Fragment paths should also use `/es/` prefix.
 8. **Missing footnotes report** — After import, check all referenced CIDs against the footnotes.json sheet and report any missing ones in table format.
+9. **Hero variant selection** — Use `overlay-bottom` when the source page shows image on top with text/heading in a card overlapping the bottom of the image (centered text below image). Use default Hero when text is positioned on the left side overlaying the full image.
 
 ## Output: Missing Footnotes Report
 
