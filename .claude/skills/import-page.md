@@ -85,7 +85,7 @@ Use the block library to find the best match. Available blocks:
 | **Cards** | `icons`, `bg-image`, `separator`, `compact`, `align-center` | Grid of items with image/icon + title + text |
 | **Accordion** | `compact` | Expandable Q&A or FAQ sections (H3 + content pairs) |
 | **Tabs** | `Yellow`, `Top`, `Tab-Fill`, `Panel-Border` | Tabbed content panels |
-| **Columns** | `panel`, `ratio-25-75`, `ratio-33-67`, `ratio-67-33`, `ratio-75-25` | Side-by-side content |
+| **Columns** | `panel`, `ratio-25-75`, `ratio-33-67`, `ratio-67-33`, `ratio-75-25` | Side-by-side content. Use `panel` variant when layout shows image on left + text on right inside a card/panel container with border or shadow. |
 | **Text Image** | default (float wrap), `image-left`, `image-right`, `image-top`, `compact-image` | Image + text layout |
 | **Fragment** | — | Shared content referenced by path |
 | **Contact Bar** | — | Phone/hours/location info |
