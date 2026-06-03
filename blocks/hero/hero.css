@@ -70,52 +70,55 @@
 
 /* === Sign-on overlay (multi-row hero: row 1 positioned top-left) === */
 .hero .hero-signon {
-  position: relative;
-  background: rgb(20 20 20 / 85%);
-  color: #fff;
-  padding: 20px 24px;
-  text-align: left;
-}
-
-.hero .hero-signon h2 {
-  font-size: var(--heading-font-size-s);
-  font-weight: 600;
-  color: #fff;
-  margin: 0 0 12px;
-}
-
-.hero .hero-signon p {
-  font-size: var(--body-font-size-xs);
-  color: rgb(255 255 255 / 80%);
-  margin: 4px 0;
-}
-
-.hero .hero-signon a:any-link {
-  color: #fff;
-}
-
-.hero .hero-signon a:hover {
-  text-decoration: underline;
-}
-
-.hero .hero-signon .button-wrapper {
-  margin: 12px 0;
-}
-
-.hero .hero-signon .button-wrapper a.button {
-  min-width: 120px;
-  padding: 8px 24px;
+  display: none;
 }
 
 @media (width >= 1024px) {
   .hero .hero-signon {
+    display: block;
     position: absolute;
-    top: 0;
-    left: 0;
+    top: 20px;
+    left: 20px;
     z-index: 2;
-    max-width: 280px;
-    padding: 24px 32px;
-    border-radius: 0 0 12px;
+    width: 328px;
+    background: rgb(20 20 20 / 90%);
+    color: #fff;
+    padding: 24px 28px;
+    text-align: left;
+    border-radius: 8px;
+  }
+
+  .hero .hero-signon h2 {
+    font-size: var(--heading-font-size-s);
+    font-weight: 600;
+    color: #fff;
+    margin: 0 0 12px;
+  }
+
+  .hero .hero-signon p {
+    font-size: var(--body-font-size-xs);
+    color: rgb(255 255 255 / 80%);
+    margin: 6px 0;
+  }
+
+  .hero .hero-signon a:any-link {
+    color: #fff;
+  }
+
+  .hero .hero-signon a:hover {
+    text-decoration: underline;
+  }
+
+  .hero .hero-signon .button-wrapper {
+    margin: 12px 0;
+  }
+
+  .hero .hero-signon .button-wrapper a.button {
+    min-width: 120px;
+    padding: 10px 32px;
+    background: var(--wf-red);
+    border-color: var(--wf-red);
+    color: #fff;
   }
 }
 
