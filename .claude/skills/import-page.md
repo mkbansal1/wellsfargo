@@ -4,9 +4,18 @@ Import and migrate Wells Fargo pages to AEM Edge Delivery Services (Document Aut
 
 ## Invocation
 
-User provides one or more URLs to import. Example:
-- "Import https://www.wellsfargo.com/personal-loans/rates/"
-- "Import these pages: [list of URLs]"
+User provides one or more URLs to import. Examples:
+
+**Single page:**
+> Import https://www.wellsfargo.com/about/inclusion/
+
+**Multiple pages:**
+> Import these pages:
+> - https://www.wellsfargo.com/es/mortgage/manage-account/disaster-recovery/
+> - https://www.wellsfargo.com/about/inclusion/
+
+**With context:**
+> Import https://www.wellsfargo.com/mortgage/rates/ — use fragment /fragments/mortgage/helpful-resources for the sidebar
 
 ## Workflow
 
