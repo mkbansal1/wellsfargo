@@ -46,10 +46,14 @@ Navigate to the source URL using Playwright and detect the theme:
 
 ### Step 2: Determine Output Path
 
-Derive from URL:
+Derive from URL — the last path segment becomes the filename, parent segments become the directory:
 - `https://www.wellsfargo.com/personal-loans/rates/` → `content/personal-loans/rates.plain.html`
 - `https://www.wellsfargo.com/es/mortgage/refinance/` → `content/es/mortgage/refinance.plain.html`
 - `https://www.wellsfargo.com/about/corporate/governance/black/` → `content/about/corporate/governance/black.plain.html`
+- `https://www.wellsfargo.com/about/` → `content/about.plain.html`
+- `https://www.wellsfargo.com/personal-loans/` → `content/personal-loans.plain.html`
+
+**Rule:** The trailing path segment is ALWAYS the filename (not `index.plain.html` inside a folder). A URL like `/about/` maps to `content/about.plain.html`, NOT `content/about/index.plain.html`.
 
 ### Step 3: Extract Content
 
