@@ -87,7 +87,7 @@ Use the block library to find the best match. Available blocks:
 | Block | Variants | Use When |
 |-------|----------|----------|
 | **Hero** | default, `overlay-bottom` | Full-width banner image + heading + CTA. Use `overlay-bottom` when the text/heading overlaps the bottom of the image in a centered card (image above, text card overlapping bottom). Use default when text is overlaid on the left side of the image. |
-| **Cards** | `icons`, `bg-image`, `separator`, `compact`, `align-center` | Grid of items with image/icon + title + text |
+| **Cards** | `icons`, `bg-image`, `separator`, `compact`, `align-center` | Grid of items with image/icon + title + text. Use `icons bg-image` ONLY for small icon images (64x64 or similar). For full-size card images (616x353 or similar), use plain `cards` with no variant. |
 | **Accordion** | `compact` | Expandable Q&A or FAQ sections (H3 + content pairs) |
 | **Tabs** | `Yellow`, `Top`, `Tab-Fill`, `Panel-Border` | Tabbed content panels |
 | **Columns** | `panel`, `ratio-25-75`, `ratio-33-67`, `ratio-67-33`, `ratio-75-25` | Side-by-side content. Use `panel` variant when layout shows image on left + text on right inside a card/panel container with border or shadow. |
