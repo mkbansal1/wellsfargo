@@ -109,8 +109,8 @@ Each section (line in .plain.html) can have section-metadata:
 | `cream` | Cream/yellow background (#FFF7E2) |
 
 **Rules:**
-- Sections with H2 + major block (Cards, Accordion, Tabs) → `heading-bar, center-align`
-- Sections with H2 + Accordion → `heading-bar, center-align, narrow-width`
+- Sections with H2 + Cards or Tabs → `heading-bar, center-align`
+- Sections with Accordion (with or without H2) → ALWAYS include `narrow-width` (e.g., `heading-bar, center-align, narrow-width`)
 - Hero overlay-bottom sections → `center-align, heading-bar`
 - Plain H2 sections → `heading-bar` only (left-aligned by default)
 
