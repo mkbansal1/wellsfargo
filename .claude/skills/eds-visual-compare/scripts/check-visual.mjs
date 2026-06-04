@@ -122,7 +122,7 @@ async function capture(browser, url, vpName, authCred) {
   const page = await ctx.newPage();
 
   try {
-    const resp = await page.goto(url, { waitUntil: 'networkidle', timeout: 45000 });
+    const resp = await page.goto(url, { waitUntil: 'load', timeout: 60000 });
     const status = resp?.status() ?? 0;
 
     // Detect WAF / bot block
