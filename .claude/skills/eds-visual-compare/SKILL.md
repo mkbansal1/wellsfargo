@@ -59,7 +59,7 @@ mkdir -p /tmp/eds-visual-report
 Once the sitemap JSON and output directory are confirmed, dispatch a `general-purpose` sub-agent:
 
 ```
-Run this command and return: full stdout summary + list of failed pages with diff % per viewport + report path.
+Run this command and return the results as described below.
 
 cd .claude/skills/eds-visual-compare && node scripts/check-visual.mjs \
   <SITEMAP_JSON> \
@@ -72,9 +72,42 @@ cd .claude/skills/eds-visual-compare && node scripts/check-visual.mjs \
   [--viewports=desktop,tablet,mobile] \
   [--auth-prod=user:pass] \
   [--auth-eds=user:pass]
+
+Return:
+1. Full stdout output from the script
+2. A structured summary with these exact sections:
+   - Run metadata: date/time, threshold, viewports, prod URL, EDS URL
+   - Stats table: Pages checked / Failed (>threshold%) / Passed / Prod Blocked / Errors
+   - Per-page results table: Page path | Desktop % | Tablet % | Mobile % | Max Diff — sorted by max diff descending
+   - Height mismatches table: for every viewport where prod and EDS heights differ, show Page | Viewport | Prod Height | EDS Height | Delta
+   - Priority fix list: rank pages by max diff, note likely cause (missing section, height delta, layout shift)
+3. Report path
 ```
 
 **Must run from `.claude/skills/eds-visual-compare/`** so Node.js resolves the local `playwright`, `pixelmatch`, and `pngjs` packages.
+
+### Step 4: Present summary
+
+After the sub-agent returns, always present the full structured summary directly in the conversation. Do not just show the report path — the user must be able to read the results without opening the file. Format as markdown tables.
+
+### Step 5: Offer zip export
+
+After presenting the summary, always ask:
+
+> "Would you like the report saved as a zip file in the project?"
+
+If the user says yes:
+
+1. Determine the dated filename using the current date: `YYYY-MM-DD` format (e.g. `2026-06-04`)
+2. Ensure the output directory exists:
+   ```bash
+   mkdir -p testing/visual-comparison
+   ```
+3. Create the zip from the report output directory:
+   ```bash
+   zip -r testing/visual-comparison/<YYYY-MM-DD>.zip <OUTPUT_DIR>
+   ```
+4. Confirm to the user: `Report saved to testing/visual-comparison/<YYYY-MM-DD>.zip`
 
 ---
 
