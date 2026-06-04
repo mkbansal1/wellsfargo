@@ -70,6 +70,23 @@
   background: #b5151e;
 }
 
+/* dark: orange gradient background with white text */
+.text-image.dark {
+  background: linear-gradient(rgb(206 76 0), rgb(163 61 1));
+  border-radius: 8px;
+  padding: 24px;
+}
+
+.text-image.dark .text-image-content {
+  color: #fff;
+}
+
+.text-image.dark .text-image-content h2,
+.text-image.dark .text-image-content h3,
+.text-image.dark .text-image-content p {
+  color: #fff;
+}
+
 /* ========================================
    Tablet & Desktop (≥768px)
    ======================================== */
@@ -112,6 +129,7 @@
   }
 
   .text-image.image-left .text-image-content {
+    display: block;
     flex: 1;
     margin-bottom: 0;
     padding: 0 32px;
@@ -130,6 +148,7 @@
   }
 
   .text-image.image-right .text-image-content {
+    display: block;
     flex: 1;
     margin-bottom: 0;
     padding: 0 32px;
@@ -166,6 +185,7 @@
   }
 
   .text-image.compact-image .text-image-content {
+    display: block;
     flex: 1;
     margin-bottom: 0;
     padding: 0 32px;
@@ -174,5 +194,12 @@
   /* compact-image + image-right combo */
   .text-image.compact-image.image-right > div {
     flex-direction: row-reverse;
+  }
+
+  /* center: vertically center text against image */
+  .text-image.image-left.center > div,
+  .text-image.image-right.center > div,
+  .text-image.compact-image.center > div {
+    align-items: center;
   }
 }
