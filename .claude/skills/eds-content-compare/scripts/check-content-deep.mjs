@@ -82,12 +82,39 @@ async function extractDomContent(page) {
     const noise = ['script', 'style', 'noscript', 'iframe', 'svg', 'header', 'nav', 'footer', 'sup'];
     const clone = document.body.cloneNode(true);
     noise.forEach(tag => clone.querySelectorAll(tag).forEach(el => el.remove()));
+    // Remove cookie consent modals, share drawers, and language-switcher banners
+    // that appear in prod DOM but not EDS — they inflate prod word counts
+    const uiSelectors = [
+      '[class*="cookie"]', '[id*="cookie"]',
+      '[class*="consent"]', '[id*="consent"]',
+      '[class*="privacy-manager"]', '[id*="privacy-manager"]',
+      '[class*="share-this"]', '[id*="share-this"]',
+      '[class*="share-page"]', '[id*="share-page"]',
+      '[class*="language-selector"]', '[id*="language-selector"]',
+      '[aria-label*="cookie" i]', '[aria-label*="consent" i]',
+      '[aria-label*="share this page" i]',
+    ];
+    uiSelectors.forEach(sel => {
+      try { clone.querySelectorAll(sel).forEach(el => el.remove()); } catch (_) {}
+    });
+
+    // Known prod-only UI noise headings (share widget, language banner, cookie sections)
+    const noiseHeadings = new Set([
+      'share this page',
+      'esta página solo está disponible en inglés',
+      'notice of the right to opt-out of sharing personal information for targeted advertising',
+      'manage preferences',
+      'strictly necessary, functional and performance & analytical',
+      'strictly necessary',
+      'performance & analytical',
+      'functional',
+    ]);
 
     // Headings
     const headings = [];
     clone.querySelectorAll('h1,h2,h3,h4,h5,h6').forEach(el => {
       const text = el.textContent.replace(/\s+/g, ' ').trim();
-      if (text) headings.push({ level: parseInt(el.tagName[1]), text });
+      if (text && !noiseHeadings.has(text.toLowerCase())) headings.push({ level: parseInt(el.tagName[1]), text });
     });
 
     // CTAs — buttons and prominent links
@@ -114,7 +141,7 @@ async function extractDomContent(page) {
     const allEls = [...clone.querySelectorAll('h1,h2,h3')];
     allEls.forEach((h, i) => {
       const headingText = h.textContent.replace(/\s+/g, ' ').trim();
-      if (!headingText) return;
+      if (!headingText || noiseHeadings.has(headingText.toLowerCase())) return;
 
       // Collect text nodes until next h1/h2/h3
       const contentParts = [];
