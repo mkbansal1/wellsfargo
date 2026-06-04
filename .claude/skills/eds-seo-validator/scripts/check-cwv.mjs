@@ -165,31 +165,82 @@ function csvCell(v) {
   return `"${String(v ?? '').replace(/"/g, '""')}"`;
 }
 
-// ─── Main ──────────────────────────────────────────────────────────────────────
-const urls         = JSON.parse(readFileSync(sitemapJsonFile, 'utf8'));
-const targetUrls   = urls.map(toTargetUrl);
-const uniqueUrls   = [...new Set(targetUrls)];
+// ─── Helpers ───────────────────────────────────────────────────────────────────
+const avg = (arr, fn) => {
+  const vals = arr.map(fn).filter(v => v != null && !Number.isNaN(v));
+  return vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : null;
+};
 
-const isBoth = strategies.length > 1;
-
-function deriveOutputPath(baseCsv, strat) {
-  if (!isBoth) return baseCsv;
-  return baseCsv.replace(/\.csv$/i, `-${strat}.csv`);
+function scoreBucketsFor(valid) {
+  const b = { excellent: 0, good: 0, needs_improvement: 0, poor: 0 };
+  valid.forEach(r => {
+    const s = r.lab?.score;
+    if (s == null) return;
+    if (s >= 90) b.excellent++;
+    else if (s >= 75) b.good++;
+    else if (s >= 50) b.needs_improvement++;
+    else b.poor++;
+  });
+  return b;
 }
 
+// ─── Main ──────────────────────────────────────────────────────────────────────
+const urls       = JSON.parse(readFileSync(sitemapJsonFile, 'utf8'));
+const targetUrls = urls.map(toTargetUrl);
+const uniqueUrls = [...new Set(targetUrls)];
+const isBoth     = strategies.length > 1;
+
+// Run each strategy sequentially, tag each result with its strategy
+const allResults = [];
+
 for (const strat of strategies) {
-const csvPath = deriveOutputPath(outputCsvFile, strat);
+  console.error(`\nCWV check: ${uniqueUrls.length} URLs | strategy: ${strat} | key: ${apiKey ? 'YES' : 'NO (rate limited)'}`);
+  if (!apiKey) console.error('  Tip: add --key=YOUR_API_KEY for faster checks (free at console.cloud.google.com)');
+  if (baseUrl) console.error(`  Base URL: ${baseUrl}`);
 
-console.error(`\nCWV check: ${uniqueUrls.length} URLs | strategy: ${strat} | key: ${apiKey ? 'YES' : 'NO (rate limited)'}`);
-if (!apiKey) console.error('  Tip: add --key=YOUR_API_KEY for faster checks (free at console.cloud.google.com)');
-if (baseUrl) console.error(`  Base URL: ${baseUrl}`);
+  const results = await runWithConcurrency(uniqueUrls, url => checkUrl(url, strat), CONCURRENCY, DELAY_MS);
+  results.forEach(r => allResults.push({ ...r, strat }));
 
-const results = await runWithConcurrency(uniqueUrls, url => checkUrl(url, strat), CONCURRENCY, DELAY_MS);
+  // Per-strategy console summary
+  const valid   = results.filter(r => !r.error && r.lab);
+  const errored = results.filter(r => r.error);
+  const noData  = results.filter(r => !r.error && r.field?.overall === 'NO_DATA');
+  const sb      = scoreBucketsFor(valid);
 
-// ─── CSV output ────────────────────────────────────────────────────────────────
+  console.log(`\n=== CWV Summary (${strat}) ===`);
+  console.log(`Total URLs:          ${results.length}`);
+  console.log(`Checked:             ${valid.length}`);
+  console.log(`Errors / skipped:    ${errored.length}`);
+  console.log(`No CrUX field data:  ${noData.length}`);
+  console.log(`\n--- Lab Averages (Lighthouse / ${strat}) ---`);
+  console.log(`  Perf score avg:  ${avg(valid, r => r.lab?.score) ?? 'n/a'}`);
+  console.log(`  LCP avg:         ${avg(valid, r => r.lab?.lcp_ms) ?? 'n/a'} ms`);
+  console.log(`  FCP avg:         ${avg(valid, r => r.lab?.fcp_ms) ?? 'n/a'} ms`);
+  console.log(`  TTFB avg:        ${avg(valid, r => r.lab?.ttfb_ms) ?? 'n/a'} ms`);
+  console.log(`  TBT avg:         ${avg(valid, r => r.lab?.tbt_ms) ?? 'n/a'} ms`);
+  console.log('\n--- Performance Score Distribution ---');
+  console.log(`  90–100 (Excellent):        ${sb.excellent}`);
+  console.log(`  75–89  (Good):             ${sb.good}`);
+  console.log(`  50–74  (Needs improvement):${sb.needs_improvement}`);
+  console.log(`  0–49   (Poor):             ${sb.poor}`);
+
+  const worst = valid.filter(r => (r.issues || []).length > 0)
+    .sort((a, b) => (b.issues || []).length - (a.issues || []).length)
+    .slice(0, 5);
+  if (worst.length) {
+    console.log('\n--- Pages with Most Issues ---');
+    worst.forEach(r => console.log(`  [score ${r.lab?.score ?? '?'}] ${r.url} — ${(r.issues || []).join(', ')}`));
+  }
+  if (errored.length) {
+    console.log('\n--- Errors ---');
+    errored.slice(0, 10).forEach(r => console.log(`  ${r.url}: ${r.error}`));
+  }
+}
+
+// ─── Combined CSV ──────────────────────────────────────────────────────────────
 const CSV_COLUMNS = [
+  ...(isBoth ? ['strategy'] : []),
   'url',
-  // Lab (Lighthouse)
   'lab_perf_score',
   'lab_lcp_ms', 'lab_lcp_rating', 'lab_lcp_display',
   'lab_fcp_ms', 'lab_fcp_rating', 'lab_fcp_display',
@@ -198,22 +249,21 @@ const CSV_COLUMNS = [
   'lab_tbt_ms', 'lab_tbt_rating',
   'lab_speed_index_ms',
   'lab_tti_ms',
-  // Field (CrUX p75)
   'field_overall',
   'field_lcp_p75_ms', 'field_lcp_category',
   'field_fcp_p75_ms', 'field_fcp_category',
   'field_cls_p75',    'field_cls_category',
   'field_inp_p75_ms', 'field_inp_category',
   'field_ttfb_p75_ms',
-  // Summary
   'issues_count', 'issues',
   'error',
 ];
 
-const rows = results.map(r => {
+const rows = allResults.map(r => {
   const l = r.lab   || {};
   const f = r.field || {};
   return [
+    ...(isBoth ? [r.strat] : []),
     r.url,
     l.score,
     l.lcp_ms,  rate(l.lcp_ms,  T.lcp),  l.lcp_display,
@@ -235,66 +285,11 @@ const rows = results.map(r => {
   ].map(csvCell).join(',');
 });
 
-writeFileSync(csvPath, [CSV_COLUMNS.map(csvCell).join(','), ...rows].join('\n') + '\n');
+writeFileSync(outputCsvFile, [CSV_COLUMNS.map(csvCell).join(','), ...rows].join('\n') + '\n');
+console.log(`\nCSV report: ${outputCsvFile}`);
 
-// ─── Summary ───────────────────────────────────────────────────────────────────
-const valid    = results.filter(r => !r.error && r.lab);
-const errored  = results.filter(r => r.error);
-const noData   = results.filter(r => !r.error && r.field?.overall === 'NO_DATA');
-
-const avg = (arr, fn) => {
-  const vals = arr.map(fn).filter(v => v != null && !Number.isNaN(v));
-  return vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : null;
-};
-
-console.log('\n=== CWV Summary ===');
-console.log(`Total URLs:          ${results.length}`);
-console.log(`Checked:             ${valid.length}`);
-console.log(`Errors / skipped:    ${errored.length}`);
-console.log(`No CrUX field data:  ${noData.length}`);
-console.log(`\n--- Lab Averages (Lighthouse / ${strat}) ---`);
-console.log(`  Perf score avg:  ${avg(valid, r => r.lab?.score) ?? 'n/a'}`);
-console.log(`  LCP avg:         ${avg(valid, r => r.lab?.lcp_ms) ?? 'n/a'} ms`);
-console.log(`  FCP avg:         ${avg(valid, r => r.lab?.fcp_ms) ?? 'n/a'} ms`);
-console.log(`  CLS avg:         ${avg(valid, r => r.lab?.cls)?.toFixed ? (avg(valid, r => r.lab?.cls) / 1000).toFixed(3) : 'n/a'}`);
-console.log(`  TTFB avg:        ${avg(valid, r => r.lab?.ttfb_ms) ?? 'n/a'} ms`);
-console.log(`  TBT avg:         ${avg(valid, r => r.lab?.tbt_ms) ?? 'n/a'} ms`);
-
-// Score distribution
-const scoreBuckets = { excellent: 0, good: 0, needs_improvement: 0, poor: 0 };
-valid.forEach(r => {
-  const s = r.lab?.score;
-  if (s == null) return;
-  if (s >= 90) scoreBuckets.excellent++;
-  else if (s >= 75) scoreBuckets.good++;
-  else if (s >= 50) scoreBuckets.needs_improvement++;
-  else scoreBuckets.poor++;
-});
-console.log('\n--- Performance Score Distribution ---');
-console.log(`  90–100 (Excellent):        ${scoreBuckets.excellent}`);
-console.log(`  75–89  (Good):             ${scoreBuckets.good}`);
-console.log(`  50–74  (Needs improvement):${scoreBuckets.needs_improvement}`);
-console.log(`  0–49   (Poor):             ${scoreBuckets.poor}`);
-
-// Worst pages
-const worst = valid.filter(r => (r.issues || []).length > 0)
-  .sort((a, b) => (b.lab?.score ?? 0) - (a.lab?.score ?? 0))
-  .sort((a, b) => (b.issues || []).length - (a.issues || []).length)
-  .slice(0, 5);
-if (worst.length) {
-  console.log('\n--- Pages with Most Issues ---');
-  worst.forEach(r => console.log(`  [score ${r.lab?.score ?? '?'}] ${r.url} — ${(r.issues || []).join(', ')}`));
-}
-
-if (errored.length) {
-  console.log('\n--- Errors ---');
-  errored.slice(0, 10).forEach(r => console.log(`  ${r.url}: ${r.error}`));
-}
-
-console.log(`\nCSV report: ${csvPath}`);
-
-// ─── HTML report ──────────────────────────────────────────────────────────────
-const htmlPath = csvPath.replace(/\.csv$/i, '.html');
+// ─── Combined HTML report ──────────────────────────────────────────────────────
+const htmlPath = outputCsvFile.replace(/\.csv$/i, '.html');
 
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
@@ -322,7 +317,44 @@ const sortPriority = r => {
   return 0;
 };
 
-const sortedResults = [...results].sort((a, b) => sortPriority(a) - sortPriority(b));
+// Build per-strategy stats for HTML summary cards
+const statsByStrat = {};
+for (const strat of strategies) {
+  const sr    = allResults.filter(r => r.strat === strat);
+  const valid = sr.filter(r => !r.error && r.lab);
+  statsByStrat[strat] = {
+    total:   sr.length,
+    valid:   valid.length,
+    errored: sr.filter(r => r.error).length,
+    avgScore: avg(valid, r => r.lab?.score),
+    sb:      scoreBucketsFor(valid),
+  };
+}
+
+const stratBadge = strat =>
+  `<span style="background:${strat==='mobile'?'#2980b9':'#8e44ad'};color:#fff;padding:2px 7px;border-radius:4px;font-size:11px;font-weight:700">${strat}</span>`;
+
+const statsHtml = strategies.map(strat => {
+  const s = statsByStrat[strat];
+  const heading = isBoth ? `<h3 style="margin:0 0 10px;font-size:13px;color:#444">${stratBadge(strat)}</h3>` : '';
+  return `${heading}<div class="stats">
+  <div class="stat"><div class="n">${s.total}</div><div class="l">Total Pages</div></div>
+  <div class="stat"><div class="n" style="color:#2c3e50">${s.avgScore ?? '—'}</div><div class="l">Avg Perf Score</div></div>
+  <div class="stat"><div class="n" style="color:#27ae60">${s.sb.excellent}</div><div class="l">Excellent (90+)</div></div>
+  <div class="stat"><div class="n" style="color:#27ae60">${s.sb.good}</div><div class="l">Good (75–89)</div></div>
+  <div class="stat"><div class="n" style="color:#e67e22">${s.sb.needs_improvement}</div><div class="l">Needs Work (50–74)</div></div>
+  <div class="stat"><div class="n" style="color:#e74c3c">${s.sb.poor}</div><div class="l">Poor (&lt;50)</div></div>
+  <div class="stat"><div class="n" style="color:#95a5a6">${s.errored}</div><div class="l">Errors</div></div>
+</div>`;
+}).join('<hr style="margin:16px 0;border:none;border-top:1px solid #ddd">');
+
+// Sort: by strategy order, then worst-first within each strategy
+const sortedResults = [...allResults].sort((a, b) => {
+  const so = strategies.indexOf(a.strat) - strategies.indexOf(b.strat);
+  return so !== 0 ? so : sortPriority(a) - sortPriority(b);
+});
+
+const stratHeader = isBoth ? '<th>Strategy</th>' : '';
 
 const allRows = sortedResults.map(r => {
   const path = (() => { try { return new URL(r.url).pathname; } catch (_) { return r.url; } })();
@@ -333,9 +365,11 @@ const allRows = sortedResults.map(r => {
     ? `<ul style="margin:0;padding-left:16px">${(r.issues || []).map(i => `<li>${esc(i)}</li>`).join('')}</ul>`
     : '';
   const scoreDisplay = l.score != null ? `<strong>${l.score}</strong>` : r.error ? `<span style="color:#999">${esc(r.error.slice(0, 60))}</span>` : '—';
+  const stratCell = isBoth ? `<td>${stratBadge(r.strat)}</td>` : '';
   return `
     <tr class="${rc}">
       <td>${scoreLabel(r)}</td>
+      ${stratCell}
       <td><a href="${esc(r.url)}" target="_blank">${esc(path)}</a></td>
       <td style="text-align:center">${scoreDisplay}</td>
       <td>${metricCell(l.lcp_ms, rate(l.lcp_ms, T.lcp), l.lcp_display)}</td>
@@ -347,8 +381,6 @@ const allRows = sortedResults.map(r => {
     </tr>`;
 }).join('');
 
-const avgScore = avg(valid, r => r.lab?.score);
-
 const htmlContent = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -358,7 +390,7 @@ const htmlContent = `<!DOCTYPE html>
   body { font-family:Arial,sans-serif; font-size:13px; color:#222; margin:0; padding:20px; background:#f5f5f5; }
   h1 { font-size:20px; margin-bottom:4px; }
   .meta { color:#666; font-size:12px; margin-bottom:20px; }
-  .stats { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:20px; }
+  .stats { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:12px; }
   .stat { background:#fff; border-radius:8px; padding:12px 20px; box-shadow:0 1px 3px rgba(0,0,0,.1); }
   .stat .n { font-size:28px; font-weight:700; }
   .stat .l { font-size:11px; color:#666; text-transform:uppercase; }
@@ -381,19 +413,11 @@ const htmlContent = `<!DOCTYPE html>
 </head>
 <body>
 <h1>EDS Core Web Vitals Report</h1>
-<div class="meta">Generated ${new Date().toISOString()} · ${results.length} pages · strategy: ${strat}</div>
-<div class="stats">
-  <div class="stat"><div class="n">${results.length}</div><div class="l">Total Pages</div></div>
-  <div class="stat"><div class="n" style="color:#2c3e50">${avgScore ?? '—'}</div><div class="l">Avg Perf Score</div></div>
-  <div class="stat"><div class="n" style="color:#27ae60">${scoreBuckets.excellent}</div><div class="l">Excellent (90+)</div></div>
-  <div class="stat"><div class="n" style="color:#27ae60">${scoreBuckets.good}</div><div class="l">Good (75–89)</div></div>
-  <div class="stat"><div class="n" style="color:#e67e22">${scoreBuckets.needs_improvement}</div><div class="l">Needs Work (50–74)</div></div>
-  <div class="stat"><div class="n" style="color:#e74c3c">${scoreBuckets.poor}</div><div class="l">Poor (&lt;50)</div></div>
-  <div class="stat"><div class="n" style="color:#95a5a6">${errored.length}</div><div class="l">Errors</div></div>
-</div>
-<h2 style="font-size:15px">All pages (${results.length})</h2>
+<div class="meta">Generated ${new Date().toISOString()} · ${uniqueUrls.length} pages · ${strategies.join(' + ')}</div>
+${statsHtml}
+<h2 style="font-size:15px;margin-top:24px">All results (${allResults.length})</h2>
 <table>
-  <thead><tr><th>Result</th><th>Page</th><th>Score</th><th>LCP</th><th>FCP</th><th>CLS</th><th>TTFB</th><th>Field</th><th>Issues</th></tr></thead>
+  <thead><tr><th>Result</th>${stratHeader}<th>Page</th><th>Score</th><th>LCP</th><th>FCP</th><th>CLS</th><th>TTFB</th><th>Field</th><th>Issues</th></tr></thead>
   <tbody>${allRows}</tbody>
 </table>
 </body>
@@ -401,4 +425,3 @@ const htmlContent = `<!DOCTYPE html>
 
 writeFileSync(htmlPath, htmlContent);
 console.log(`HTML report: ${htmlPath}`);
-} // end for (const strat of strategies)
