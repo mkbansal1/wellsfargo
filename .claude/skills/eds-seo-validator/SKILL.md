@@ -11,7 +11,7 @@ Four modes depending on depth required:
 | Mode | Script | How | Speed | Use For |
 |------|--------|-----|-------|---------|
 | **Fast** | `check-seo.js` | HTTP fetch + regex | ~2–3 min / 100 pages | Metadata + OG/Twitter tags on EDS |
-| **Deep** | `check-seo-deep.cjs` | Playwright Chromium | ~8–10 min / 73 pages | 68/80 checklist items incl. CWV, JSON-LD, headings, mobile, accessibility |
+| **Deep** | `check-seo-deep.js` | Playwright Chromium | ~8–10 min / 73 pages | 68/80 checklist items incl. CWV, JSON-LD, headings, mobile, accessibility |
 | **CWV** | `check-cwv.js` | PageSpeed Insights API | ~1–3 min / 20 pages | Lighthouse lab scores + CrUX real-user field data (LCP, FCP, CLS, INP, TTFB) |
 | **Compare** | `check-seo-compare.mjs` | HTTP fetch + regex (both sites) | ~3–5 min / 100 pages | Side-by-side diff: production vs EDS — surfaces migration gaps |
 
@@ -62,11 +62,11 @@ node <SCRIPT_PATH> \
   <OUTPUT_CSV> \
   [--auth=user:pass] \
   [--key=API_KEY] \
-  [--strategy=mobile]
+  [--strategy=mobile|desktop|both]
 
-For check-seo-deep.cjs: first cd to .claude/skills/eds-seo-validator/ (project root) then run node scripts/check-seo-deep.cjs ...
-For check-cwv.mjs and check-seo-compare.mjs: run from the project root as .mjs bypasses "type": "commonjs"
-For check-seo.js: run from the project root — node .claude/skills/eds-seo-validator/scripts/check-seo.js
+For check-seo-deep.js: first cd to ~/.claude/skills/eds-seo-validator/ then run node scripts/check-seo-deep.js ...
+For check-cwv.mjs: run from any directory as it uses .mjs extension. Default strategy is `both` (runs mobile then desktop, combined single CSV + HTML output).
+For check-seo.js: run from a directory without a package.json that sets "type": "commonjs" — use the project-level copy at /Users/nishantgupta/Developer/Code/wellsfargo/.claude/skills/eds-seo-validator/scripts/check-seo.js
 ```
 
 **Parallel execution:** If the user asks for both fast + CWV, or fast + deep, dispatch both sub-agents simultaneously in the same message.
@@ -131,7 +131,7 @@ Once sitemap file, base URL, and optional auth are confirmed, dispatch a sub-age
 ```
 Run this command and return: full output + summary (total, passed, issue counts, top issues, worst pages) + CSV path.
 
-node .claude/skills/eds-seo-validator/scripts/check-seo.js \
+node /Users/nishantgupta/Developer/brand-concierge-capstone/wknd-adventure-concierge/.claude/skills/eds-seo-validator/scripts/check-seo.js \
   <SITEMAP_JSON> \
   "<BASE_URL>" \
   /tmp/eds-seo-report.csv \
@@ -178,7 +178,7 @@ node .claude/skills/eds-seo-validator/scripts/check-seo.js \
 
 ---
 
-## Mode 2: Deep SEO Check (`check-seo-deep.cjs`)
+## Mode 2: Deep SEO Check (`check-seo-deep.js`)
 
 ### When to use
 - Full pre-launch SEO audit
@@ -190,11 +190,11 @@ node .claude/skills/eds-seo-validator/scripts/check-seo.js \
 Playwright and Chromium must be installed in the skill directory:
 
 ```bash
-# Check playwright is installed (run from project root)
-cd .claude/skills/eds-seo-validator && node -e "require('playwright'); console.log('OK')"
+# Check playwright is installed
+cd ~/.claude/skills/eds-seo-validator && node -e "require('playwright'); console.log('OK')"
 
 # Install if missing
-cd .claude/skills/eds-seo-validator && npm install playwright && npx playwright install chromium
+cd ~/.claude/skills/eds-seo-validator && npm install playwright && npx playwright install chromium
 ```
 
 ### Dispatch sub-agent
@@ -204,14 +204,14 @@ Once sitemap file, base URL, and optional auth are confirmed, dispatch a sub-age
 ```
 Run this command and return: full output + structured summary (total, passed, issue counts by section, top 20 most common issues with counts, top 5 worst pages, site-level check results, CWV averages) + CSV path.
 
-cd .claude/skills/eds-seo-validator && node scripts/check-seo-deep.cjs \
+cd ~/.claude/skills/eds-seo-validator && node scripts/check-seo-deep.js \
   <SITEMAP_JSON> \
   "<BASE_URL>" \
   /tmp/eds-seo-deep-report.csv \
   [--auth=user:pass]
 ```
 
-**Note:** Must run from `.claude/skills/eds-seo-validator/` (project root) so Node.js resolves the local `playwright` package. Run `npm install && npx playwright install chromium` there first if `node_modules` is absent.
+**Note:** Must run from `~/.claude/skills/eds-seo-validator/` so Node.js resolves the local `playwright` package.
 
 ### What it checks (68 of 80 checklist items)
 
@@ -299,18 +299,20 @@ Optional: Get a free Google API key to avoid rate limiting (1 req/2s without key
 
 ### Dispatch sub-agent
 
-Once sitemap file, optional base URL, API key, and strategy are confirmed, dispatch a sub-agent:
+Once sitemap file, optional base URL, and API key are confirmed, dispatch a sub-agent:
 
 ```
-Run this command and return: full output + structured summary (total pages, avg Lighthouse perf score, count of GOOD/NEEDS_IMPROVEMENT/POOR per metric, top 5 worst pages by score, any pages with NO_DATA for field metrics) + CSV path.
+Run this command and return: full stdout output + structured summary per strategy (mobile and desktop): avg Lighthouse perf score, LCP/FCP/TTFB/TBT averages, score distribution (Excellent/Good/Needs Work/Poor), top 5 worst pages with scores and issues, error count. Also return the CSV and HTML file paths.
 
-node .claude/skills/eds-seo-validator/scripts/check-cwv.mjs \
+node ~/.claude/skills/eds-seo-validator/scripts/check-cwv.mjs \
   <SITEMAP_JSON> \
   <OUTPUT_CSV> \
   [--base-url="<EDS_BASE_URL>"] \
   [--key=API_KEY] \
-  [--strategy=mobile]
+  [--strategy=mobile|desktop|both]
 ```
+
+Default strategy is `both` — omit `--strategy` to run mobile then desktop automatically. Output is a **single combined CSV** (with a `strategy` column) and a **single combined HTML** (per-strategy stat cards + one table with a Strategy badge column). Use `--strategy=mobile` or `--strategy=desktop` for a single-strategy run.
 
 **Note:** Use `.mjs` extension — the skill directory's `package.json` sets `"type": "commonjs"` for the Playwright deep script; `.mjs` bypasses this per-file. The script can run from any directory.
 
@@ -380,7 +382,7 @@ Once sitemap file, prod base URL, and EDS base URL are confirmed, dispatch a sub
 ```
 Run this command and return: full stdout output + structured summary (total, fully matched, has gaps count, not migrated count, top gaps by field, worst pages list) + CSV path.
 
-node .claude/skills/eds-seo-validator/scripts/check-seo-compare.mjs \
+node ~/.claude/skills/eds-seo-validator/scripts/check-seo-compare.mjs \
   <SITEMAP_JSON> \
   "<PROD_BASE_URL>" \
   "<EDS_BASE_URL>" \
@@ -455,7 +457,7 @@ Uses Node.js 18+ native `fetch` + regex — no Playwright needed.
 
 ```
 Quick metadata check on EDS?                  → fast mode     (check-seo.js)
-Pre-launch full audit on EDS?                 → deep mode     (check-seo-deep.cjs)
+Pre-launch full audit on EDS?                 → deep mode     (check-seo-deep.js)
 JSON-LD / headings / mobile / accessibility?  → deep mode
 Just OG/Twitter tags on EDS?                  → fast mode
 Lighthouse scores + INP?                      → CWV mode      (check-cwv.js)
@@ -468,7 +470,7 @@ SEO parity: prod vs EDS? Nothing missed?      → compare mode  (check-seo-compa
 
 ## SEO Validation Checklist Reference
 
-The full 80-item checklist is at `.claude/skills/eds-seo-validator/SEO_Validation_Checklist.md`.
+The full 80-item checklist is at `~/.claude/skills/eds-seo-validator/SEO_Validation_Checklist.md`.
 
 Each section below shows which script covers it and which items are skipped (and why).
 
@@ -488,7 +490,7 @@ Each section below shows which script covers it and which items are skipped (and
 | 12 | **Mobile & Responsive** — viewport, horizontal scroll, content parity | — | ✓ | — | — | §12.5 touch target spacing; §12.6 Googlebot content parity |
 | 13 | **Pagination & JS Content** — rel=next/prev, dynamic content | — | ✓ (partial) | — | — | §13.2 §13.3 §13.4 Googlebot/dynamic indexing |
 
-**Total checklist items: 80 — deep mode covers 68, skips 12** (see `check-seo-deep.cjs` header for the full skip list with reasons).
+**Total checklist items: 80 — deep mode covers 68, skips 12** (see `check-seo-deep.js` header for the full skip list with reasons).
 
 ### Items requiring human review (cannot be automated)
 - **§1.4 §1.8 §3.5** — keyword targeting (requires a per-page keyword map)
