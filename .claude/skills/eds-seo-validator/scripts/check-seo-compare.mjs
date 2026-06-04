@@ -133,9 +133,17 @@ function extractMeta(html) {
   };
 }
 
+// ─── HTML entity decoder ──────────────────────────────────────────────────────
+function decodeHtml(str) {
+  return (str || '').replace(/&#x([0-9a-f]+);/gi, (_, hex) => String.fromCodePoint(parseInt(hex, 16)))
+    .replace(/&#(\d+);/g, (_, dec) => String.fromCodePoint(Number(dec)))
+    .replace(/&amp;/gi, '&').replace(/&lt;/gi, '<').replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"').replace(/&apos;/gi, "'").replace(/&nbsp;/gi, ' ');
+}
+
 // ─── Normalise before comparison (trim + collapse whitespace + lowercase URLs) ─
 function normalise(value, isUrl = false) {
-  const v = (value || '').replace(/\s+/g, ' ').trim();
+  const v = decodeHtml((value || '').replace(/\s+/g, ' ').trim());
   if (isUrl) {
     try { return new URL(v).pathname + new URL(v).search; } catch { return v.toLowerCase(); }
   }
