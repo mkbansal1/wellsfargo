@@ -93,6 +93,18 @@ const CRITICAL_FIELDS = new Set([
   'title', 'description', 'canonical', 'ogTitle', 'ogDescription', 'ogImage', 'h1',
 ]);
 
+// ─── WAF / bot-block detector ─────────────────────────────────────────────────
+const WAF_TITLES = new Set([
+  'request rejected', 'access denied', 'forbidden', '403 forbidden',
+  '401 unauthorized', 'blocked', 'security check',
+]);
+
+function isWafBlocked(html) {
+  if (!html) return false;
+  const title = (html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] || '').replace(/\s+/g, ' ').trim().toLowerCase();
+  return WAF_TITLES.has(title);
+}
+
 // ─── HTML extractor (regex — no dependencies) ─────────────────────────────────
 function extractMeta(html) {
   const metaContent = (nameOrProp, attr = 'name') => {
@@ -202,7 +214,8 @@ async function processUrl(originalUrl) {
     fetchHtml(edsUrl,  authEdsHeaders),
   ]);
 
-  const prodMeta = prod.html ? extractMeta(prod.html) : null;
+  const prodBlocked = prod.status === 200 && isWafBlocked(prod.html);
+  const prodMeta = prod.html && !prodBlocked ? extractMeta(prod.html) : null;
   const edsMeta  = eds.html  ? extractMeta(eds.html)  : null;
 
   // Determine migration status
@@ -211,7 +224,7 @@ async function processUrl(originalUrl) {
     migrationStatus = 'BOTH_NOT_FOUND';
   } else if (eds.status !== 200) {
     migrationStatus = 'NOT_MIGRATED';
-  } else if (prod.status !== 200) {
+  } else if (prod.status !== 200 || prodBlocked) {
     migrationStatus = 'PROD_NOT_FOUND';
   } else {
     migrationStatus = 'CHECK_PENDING'; // resolved after diffs
