@@ -308,3 +308,98 @@ if (worst.length) {
   console.log('\n--- Pages with Most Issues ---');
   worst.forEach(r => console.log(`  ${r.eds_url} (${r.issues.length} issues)`));
 }
+
+// ─── HTML report ──────────────────────────────────────────────────────────────
+const htmlPath = outputCsvFile.replace(/\.csv$/i, '.html');
+
+const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+const pageLabel = r => {
+  if (r.http_status !== 200) return `<span class="label label-error">ERROR</span>`;
+  if (r.issues.length === 0) return `<span class="label label-pass">PASS</span>`;
+  return `<span class="label label-fail">FAILED</span>`;
+};
+
+const issueBadge = issue => {
+  let cat = 'other';
+  if (issue.startsWith('MISSING:')) cat = 'missing';
+  else if (issue.includes('too short') || issue.includes('too long')) cat = 'length';
+  else if (issue.includes('not accessible') || issue.includes('fetch failed')) cat = 'image';
+  const colours = { missing: '#e74c3c', length: '#e67e22', image: '#8e44ad', other: '#2980b9' };
+  return `<span style="background:${colours[cat]};color:#fff;padding:1px 5px;border-radius:3px;font-size:10px">${cat.toUpperCase()}</span> ${esc(issue)}`;
+};
+
+const sortedResults = [...results].sort((a, b) => {
+  const aErr = a.http_status !== 200;
+  const bErr = b.http_status !== 200;
+  if (!aErr && a.issues.length > 0 && !bErr && b.issues.length > 0) return b.issues.length - a.issues.length;
+  if (!aErr && a.issues.length > 0) return -1;
+  if (!bErr && b.issues.length > 0) return 1;
+  if (aErr && !bErr) return 1;
+  if (!aErr && bErr) return -1;
+  return 0;
+});
+
+const allRows = sortedResults.map(r => {
+  const path = (() => { try { return new URL(r.eds_url || r.original_url).pathname; } catch (_) { return r.eds_url || r.original_url; } })();
+  const issueHtml = r.issues.length
+    ? `<ul style="margin:0;padding-left:16px">${r.issues.map(i => `<li>${issueBadge(i)}</li>`).join('')}</ul>`
+    : '';
+  const rc = r.http_status !== 200 ? 'row-error' : r.issues.length === 0 ? 'row-pass' : 'row-fail';
+  return `
+    <tr class="${rc}">
+      <td>${pageLabel(r)}</td>
+      <td><a href="${esc(r.eds_url)}" target="_blank">${esc(path)}</a></td>
+      <td style="text-align:center">${r.issues.length || ''}</td>
+      <td style="text-align:center">${esc(String(r.http_status))}</td>
+      <td>${issueHtml}</td>
+    </tr>`;
+}).join('');
+
+const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>EDS SEO Validator</title>
+<style>
+  body { font-family:Arial,sans-serif; font-size:13px; color:#222; margin:0; padding:20px; background:#f5f5f5; }
+  h1 { font-size:20px; margin-bottom:4px; }
+  .meta { color:#666; font-size:12px; margin-bottom:20px; }
+  .stats { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:20px; }
+  .stat { background:#fff; border-radius:8px; padding:12px 20px; box-shadow:0 1px 3px rgba(0,0,0,.1); }
+  .stat .n { font-size:28px; font-weight:700; }
+  .stat .l { font-size:11px; color:#666; text-transform:uppercase; }
+  table { width:100%; border-collapse:collapse; background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.1); }
+  th { background:#2c3e50; color:#fff; padding:8px 10px; text-align:left; font-size:12px; }
+  td { padding:7px 10px; border-bottom:1px solid #eee; vertical-align:top; font-size:12px; }
+  tr.row-pass td { background:#f0faf4; }
+  tr.row-fail td { background:#fff5f5; }
+  tr.row-error td { background:#f8f8f8; color:#999; }
+  .label { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:700; letter-spacing:.4px; }
+  .label-pass  { background:#27ae60; color:#fff; }
+  .label-fail  { background:#e74c3c; color:#fff; }
+  .label-error { background:#95a5a6; color:#fff; }
+  ul { list-style:disc; }
+  li { margin-bottom:3px; }
+  a { color:#2980b9; }
+</style>
+</head>
+<body>
+<h1>EDS SEO Validator</h1>
+<div class="meta">Generated ${new Date().toISOString()} · ${total} pages · ${edsBase}</div>
+<div class="stats">
+  <div class="stat"><div class="n">${total}</div><div class="l">Total Pages</div></div>
+  <div class="stat"><div class="n" style="color:#27ae60">${passed}</div><div class="l">Passed</div></div>
+  <div class="stat"><div class="n" style="color:#e74c3c">${withIssues - notFetched}</div><div class="l">Failed</div></div>
+  <div class="stat"><div class="n" style="color:#95a5a6">${notFetched}</div><div class="l">Not Fetched</div></div>
+</div>
+<h2 style="font-size:15px">All pages (${total})</h2>
+<table>
+  <thead><tr><th>Result</th><th>Page</th><th>Issues</th><th>HTTP</th><th>Details</th></tr></thead>
+  <tbody>${allRows}</tbody>
+</table>
+</body>
+</html>`;
+
+writeFileSync(htmlPath, htmlContent);
+console.log(`\nHTML report: ${htmlPath}`);

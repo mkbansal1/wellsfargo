@@ -281,3 +281,112 @@ if (errored.length) {
 }
 
 console.log(`\nCSV report: ${outputCsvFile}`);
+
+// ─── HTML report ──────────────────────────────────────────────────────────────
+const htmlPath = outputCsvFile.replace(/\.csv$/i, '.html');
+
+const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+const scoreLabel = r => {
+  if (r.error) return `<span class="label label-error">ERROR</span>`;
+  const s = r.lab?.score;
+  if (s == null) return `<span class="label label-error">N/A</span>`;
+  if (s >= 90) return `<span class="label label-good">GOOD</span>`;
+  if (s >= 75) return `<span class="label label-fair">FAIR</span>`;
+  return `<span class="label label-poor">POOR</span>`;
+};
+
+const metricCell = (value, rating, display) => {
+  const colours = { GOOD: '#27ae60', NEEDS_IMPROVEMENT: '#e67e22', POOR: '#e74c3c' };
+  const col = colours[rating] ?? '#666';
+  return `<span style="color:${col};font-weight:600">${esc(display ?? (value != null ? String(value) : '—'))}</span>`;
+};
+
+const sortPriority = r => {
+  if (r.error) return 2;
+  const s = r.lab?.score ?? -1;
+  if (s < 0) return 2;
+  if (s >= 90) return 3;
+  if (s >= 75) return 1;
+  return 0;
+};
+
+const sortedResults = [...results].sort((a, b) => sortPriority(a) - sortPriority(b));
+
+const allRows = sortedResults.map(r => {
+  const path = (() => { try { return new URL(r.url).pathname; } catch (_) { return r.url; } })();
+  const l = r.lab ?? {};
+  const f = r.field ?? {};
+  const rc = r.error ? 'row-error' : (l.score ?? 0) >= 90 ? 'row-good' : (l.score ?? 0) >= 75 ? 'row-fair' : 'row-poor';
+  const issueHtml = (r.issues || []).length
+    ? `<ul style="margin:0;padding-left:16px">${(r.issues || []).map(i => `<li>${esc(i)}</li>`).join('')}</ul>`
+    : '';
+  const scoreDisplay = l.score != null ? `<strong>${l.score}</strong>` : r.error ? `<span style="color:#999">${esc(r.error.slice(0, 60))}</span>` : '—';
+  return `
+    <tr class="${rc}">
+      <td>${scoreLabel(r)}</td>
+      <td><a href="${esc(r.url)}" target="_blank">${esc(path)}</a></td>
+      <td style="text-align:center">${scoreDisplay}</td>
+      <td>${metricCell(l.lcp_ms, rate(l.lcp_ms, T.lcp), l.lcp_display)}</td>
+      <td>${metricCell(l.fcp_ms, rate(l.fcp_ms, T.fcp), l.fcp_display)}</td>
+      <td>${metricCell(l.cls, rate(l.cls, T.cls), l.cls_display)}</td>
+      <td>${metricCell(l.ttfb_ms, rate(l.ttfb_ms, T.ttfb), l.ttfb_display)}</td>
+      <td>${f.overall ? `<span style="color:${f.overall==='FAST'?'#27ae60':f.overall==='SLOW'?'#e74c3c':'#e67e22'}">${esc(f.overall)}</span>` : '—'}</td>
+      <td>${issueHtml}</td>
+    </tr>`;
+}).join('');
+
+const avgScore = avg(valid, r => r.lab?.score);
+
+const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>EDS CWV Report</title>
+<style>
+  body { font-family:Arial,sans-serif; font-size:13px; color:#222; margin:0; padding:20px; background:#f5f5f5; }
+  h1 { font-size:20px; margin-bottom:4px; }
+  .meta { color:#666; font-size:12px; margin-bottom:20px; }
+  .stats { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:20px; }
+  .stat { background:#fff; border-radius:8px; padding:12px 20px; box-shadow:0 1px 3px rgba(0,0,0,.1); }
+  .stat .n { font-size:28px; font-weight:700; }
+  .stat .l { font-size:11px; color:#666; text-transform:uppercase; }
+  table { width:100%; border-collapse:collapse; background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.1); }
+  th { background:#2c3e50; color:#fff; padding:8px 10px; text-align:left; font-size:12px; }
+  td { padding:7px 10px; border-bottom:1px solid #eee; vertical-align:top; font-size:12px; }
+  tr.row-good td { background:#f0faf4; }
+  tr.row-fair td { background:#fffbf0; }
+  tr.row-poor td { background:#fff5f5; }
+  tr.row-error td { background:#f8f8f8; color:#999; }
+  .label { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:700; letter-spacing:.4px; }
+  .label-good  { background:#27ae60; color:#fff; }
+  .label-fair  { background:#e67e22; color:#fff; }
+  .label-poor  { background:#e74c3c; color:#fff; }
+  .label-error { background:#95a5a6; color:#fff; }
+  ul { list-style:disc; margin:0; padding-left:16px; }
+  li { margin-bottom:3px; }
+  a { color:#2980b9; }
+</style>
+</head>
+<body>
+<h1>EDS Core Web Vitals Report</h1>
+<div class="meta">Generated ${new Date().toISOString()} · ${results.length} pages · strategy: ${strategy}</div>
+<div class="stats">
+  <div class="stat"><div class="n">${results.length}</div><div class="l">Total Pages</div></div>
+  <div class="stat"><div class="n" style="color:#2c3e50">${avgScore ?? '—'}</div><div class="l">Avg Perf Score</div></div>
+  <div class="stat"><div class="n" style="color:#27ae60">${scoreBuckets.excellent}</div><div class="l">Excellent (90+)</div></div>
+  <div class="stat"><div class="n" style="color:#27ae60">${scoreBuckets.good}</div><div class="l">Good (75–89)</div></div>
+  <div class="stat"><div class="n" style="color:#e67e22">${scoreBuckets.needs_improvement}</div><div class="l">Needs Work (50–74)</div></div>
+  <div class="stat"><div class="n" style="color:#e74c3c">${scoreBuckets.poor}</div><div class="l">Poor (&lt;50)</div></div>
+  <div class="stat"><div class="n" style="color:#95a5a6">${errored.length}</div><div class="l">Errors</div></div>
+</div>
+<h2 style="font-size:15px">All pages (${results.length})</h2>
+<table>
+  <thead><tr><th>Result</th><th>Page</th><th>Score</th><th>LCP</th><th>FCP</th><th>CLS</th><th>TTFB</th><th>Field</th><th>Issues</th></tr></thead>
+  <tbody>${allRows}</tbody>
+</table>
+</body>
+</html>`;
+
+writeFileSync(htmlPath, htmlContent);
+console.log(`HTML report: ${htmlPath}`);
