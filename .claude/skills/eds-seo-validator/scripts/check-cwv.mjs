@@ -6,7 +6,7 @@
  * Options:
  *   --key=API_KEY           Google API key (recommended — without key: 1 req/2s rate limit)
  *   --base-url=URL          Remap sitemap URLs to this base (e.g. EDS preview domain)
- *   --strategy=mobile|desktop  Default: mobile (Google uses mobile for ranking)
+ *   --strategy=mobile|desktop|both  Default: both (runs mobile then desktop)
  *
  * Without --base-url, uses original sitemap URLs directly (checks the live site).
  *
@@ -21,13 +21,14 @@ import { URL } from 'url';
 const [,, sitemapJsonFile, outputCsvFile, ...flags] = process.argv;
 
 if (!sitemapJsonFile || !outputCsvFile) {
-  console.error('Usage: node check-cwv.js <sitemap-json> <output-csv> [--key=API_KEY] [--base-url=URL] [--strategy=mobile|desktop]');
+  console.error('Usage: node check-cwv.js <sitemap-json> <output-csv> [--key=API_KEY] [--base-url=URL] [--strategy=mobile|desktop|both]');
   process.exit(1);
 }
 
-const apiKey   = flags.find(f => f.startsWith('--key='))?.slice(6)      || '';
-const baseUrl  = flags.find(f => f.startsWith('--base-url='))?.slice(11) || '';
-const strategy = flags.find(f => f.startsWith('--strategy='))?.slice(11) || 'mobile';
+const apiKey      = flags.find(f => f.startsWith('--key='))?.slice(6)      || '';
+const baseUrl     = flags.find(f => f.startsWith('--base-url='))?.slice(11) || '';
+const strategyFlag = flags.find(f => f.startsWith('--strategy='))?.slice(11) || 'both';
+const strategies  = strategyFlag === 'both' ? ['mobile', 'desktop'] : [strategyFlag];
 
 const CONCURRENCY = apiKey ? 3 : 1;
 const DELAY_MS    = apiKey ? 300 : 2000; // be polite; PSI without key ~1 req/2s
@@ -62,8 +63,8 @@ function toTargetUrl(originalUrl) {
 }
 
 // ─── PSI API call ──────────────────────────────────────────────────────────────
-async function checkUrl(url) {
-  const params = new URLSearchParams({ url, strategy });
+async function checkUrl(url, strat) {
+  const params = new URLSearchParams({ url, strategy: strat });
   if (apiKey) params.set('key', apiKey);
   const apiUrl = `${PSI_BASE}?${params}`;
 
@@ -169,11 +170,21 @@ const urls         = JSON.parse(readFileSync(sitemapJsonFile, 'utf8'));
 const targetUrls   = urls.map(toTargetUrl);
 const uniqueUrls   = [...new Set(targetUrls)];
 
-console.error(`\nCWV check: ${uniqueUrls.length} URLs | strategy: ${strategy} | key: ${apiKey ? 'YES' : 'NO (rate limited)'}`);
+const isBoth = strategies.length > 1;
+
+function deriveOutputPath(baseCsv, strat) {
+  if (!isBoth) return baseCsv;
+  return baseCsv.replace(/\.csv$/i, `-${strat}.csv`);
+}
+
+for (const strat of strategies) {
+const csvPath = deriveOutputPath(outputCsvFile, strat);
+
+console.error(`\nCWV check: ${uniqueUrls.length} URLs | strategy: ${strat} | key: ${apiKey ? 'YES' : 'NO (rate limited)'}`);
 if (!apiKey) console.error('  Tip: add --key=YOUR_API_KEY for faster checks (free at console.cloud.google.com)');
 if (baseUrl) console.error(`  Base URL: ${baseUrl}`);
 
-const results = await runWithConcurrency(uniqueUrls, checkUrl, CONCURRENCY, DELAY_MS);
+const results = await runWithConcurrency(uniqueUrls, url => checkUrl(url, strat), CONCURRENCY, DELAY_MS);
 
 // ─── CSV output ────────────────────────────────────────────────────────────────
 const CSV_COLUMNS = [
@@ -224,7 +235,7 @@ const rows = results.map(r => {
   ].map(csvCell).join(',');
 });
 
-writeFileSync(outputCsvFile, [CSV_COLUMNS.map(csvCell).join(','), ...rows].join('\n') + '\n');
+writeFileSync(csvPath, [CSV_COLUMNS.map(csvCell).join(','), ...rows].join('\n') + '\n');
 
 // ─── Summary ───────────────────────────────────────────────────────────────────
 const valid    = results.filter(r => !r.error && r.lab);
@@ -241,7 +252,7 @@ console.log(`Total URLs:          ${results.length}`);
 console.log(`Checked:             ${valid.length}`);
 console.log(`Errors / skipped:    ${errored.length}`);
 console.log(`No CrUX field data:  ${noData.length}`);
-console.log(`\n--- Lab Averages (Lighthouse / ${strategy}) ---`);
+console.log(`\n--- Lab Averages (Lighthouse / ${strat}) ---`);
 console.log(`  Perf score avg:  ${avg(valid, r => r.lab?.score) ?? 'n/a'}`);
 console.log(`  LCP avg:         ${avg(valid, r => r.lab?.lcp_ms) ?? 'n/a'} ms`);
 console.log(`  FCP avg:         ${avg(valid, r => r.lab?.fcp_ms) ?? 'n/a'} ms`);
@@ -280,10 +291,10 @@ if (errored.length) {
   errored.slice(0, 10).forEach(r => console.log(`  ${r.url}: ${r.error}`));
 }
 
-console.log(`\nCSV report: ${outputCsvFile}`);
+console.log(`\nCSV report: ${csvPath}`);
 
 // ─── HTML report ──────────────────────────────────────────────────────────────
-const htmlPath = outputCsvFile.replace(/\.csv$/i, '.html');
+const htmlPath = csvPath.replace(/\.csv$/i, '.html');
 
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
@@ -370,7 +381,7 @@ const htmlContent = `<!DOCTYPE html>
 </head>
 <body>
 <h1>EDS Core Web Vitals Report</h1>
-<div class="meta">Generated ${new Date().toISOString()} · ${results.length} pages · strategy: ${strategy}</div>
+<div class="meta">Generated ${new Date().toISOString()} · ${results.length} pages · strategy: ${strat}</div>
 <div class="stats">
   <div class="stat"><div class="n">${results.length}</div><div class="l">Total Pages</div></div>
   <div class="stat"><div class="n" style="color:#2c3e50">${avgScore ?? '—'}</div><div class="l">Avg Perf Score</div></div>
@@ -390,3 +401,4 @@ const htmlContent = `<!DOCTYPE html>
 
 writeFileSync(htmlPath, htmlContent);
 console.log(`HTML report: ${htmlPath}`);
+} // end for (const strat of strategies)
