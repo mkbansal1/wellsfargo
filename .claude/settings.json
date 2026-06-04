@@ -9,7 +9,12 @@
       "Bash(node /Users/nishantgupta/Developer/Code/wellsfargo/.claude/skills/eds-seo-validator/scripts/*)",
       "Bash(cd .claude/skills/eds-seo-validator && node scripts/*)",
       "Bash(cd .claude/skills/eds-seo-validator && npm install*)",
-      "Bash(cd .claude/skills/eds-seo-validator && npx playwright install*)"
+      "Bash(cd .claude/skills/eds-seo-validator && npx playwright install*)",
+      "Bash(cd .claude/skills/eds-visual-compare && node scripts/*)",
+      "Bash(cd .claude/skills/eds-visual-compare && npm install*)",
+      "Bash(cd .claude/skills/eds-visual-compare && npx playwright install*)",
+      "Bash(node /Users/nishantgupta/Developer/Code/wellsfargo/.claude/skills/eds-visual-compare/scripts/*)",
+      "Bash(mkdir -p /tmp/eds-visual-report*)"
     ]
   }
 }
