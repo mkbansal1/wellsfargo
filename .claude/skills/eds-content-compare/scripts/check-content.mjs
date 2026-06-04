@@ -114,8 +114,13 @@ function jaccard(setA, setB) {
   return inter / (setA.size + setB.size - inter);
 }
 
+function extractMain(html) {
+  const m = html.match(/<main[\s>]([\s\S]*?)<\/main>/i);
+  return m ? m[1] : html;
+}
+
 function extractContent(html) {
-  let h = stripBlocks(html, 'script', 'style', 'nav', 'header', 'footer', 'noscript', 'iframe', 'svg', 'sup');
+  let h = stripBlocks(extractMain(html), 'script', 'style', 'nav', 'header', 'footer', 'noscript', 'iframe', 'svg', 'sup');
 
   // Headings
   const headings = [];
@@ -140,7 +145,7 @@ function extractContent(html) {
 
 // Extract sections: heading (H1–H3) + text content that follows it
 function extractSections(html) {
-  let h = stripBlocks(html, 'script', 'style', 'nav', 'header', 'footer', 'noscript', 'iframe', 'sup');
+  let h = stripBlocks(extractMain(html), 'script', 'style', 'nav', 'header', 'footer', 'noscript', 'iframe', 'sup');
 
   const positions = [];
   for (const m of h.matchAll(/<h([1-3])[^>]*>([\s\S]*?)<\/h\1>/gi)) {

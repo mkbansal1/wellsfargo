@@ -79,8 +79,9 @@ async function expandHidden(page) {
 async function extractDomContent(page) {
   return page.evaluate(() => {
     // Remove noise elements
-    const noise = ['script', 'style', 'noscript', 'iframe', 'svg', 'header', 'nav', 'footer', 'sup'];
-    const clone = document.body.cloneNode(true);
+    const noise = ['script', 'style', 'noscript', 'iframe', 'svg', 'nav', 'sup'];
+    const root = document.querySelector('main') ?? document.body;
+    const clone = root.cloneNode(true);
     noise.forEach(tag => clone.querySelectorAll(tag).forEach(el => el.remove()));
     // Remove cookie consent modals, share drawers, and language-switcher banners
     // that appear in prod DOM but not EDS — they inflate prod word counts
