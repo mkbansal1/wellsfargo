@@ -133,6 +133,38 @@ function decorateButtons(main) {
 }
 
 /**
+ * Groups consecutive align-left + align-right section pairs into a
+ * .split-layout wrapper (70 % left / 30 % right).
+ * Called after all sections have loaded so that section-metadata blocks
+ * have already applied their data-align attributes.
+ * @param {Element} main The main element
+ */
+function wrapAlignedSections(main) {
+  const sections = [...main.querySelectorAll('.section[data-align]')];
+  // Group into pairs: each left is matched with the next right
+  let i = 0;
+  while (i < sections.length) {
+    const sec = sections[i];
+    const align = sec.dataset.align;
+
+    if (align === 'left') {
+      // Look for the immediately following right-aligned section
+      const next = sections[i + 1];
+      if (next && next.dataset.align === 'right' && next.previousElementSibling === sec) {
+        const wrapper = document.createElement('div');
+        wrapper.classList.add('split-layout');
+        sec.parentNode.insertBefore(wrapper, sec);
+        wrapper.appendChild(sec);
+        wrapper.appendChild(next);
+        i += 2;
+        continue;
+      }
+    }
+    i += 1;
+  }
+}
+
+/**
  * Decorates the main element.
  * @param {Element} main The main element
  */
@@ -182,6 +214,9 @@ async function loadLazy(doc) {
 
   const main = doc.querySelector('main');
   await loadSections(main);
+
+  // Group align-left / align-right section pairs into split-layout wrappers
+  wrapAlignedSections(main);
 
   const { hash } = window.location;
   const element = hash ? doc.getElementById(hash.substring(1)) : false;

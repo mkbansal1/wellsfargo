@@ -404,4 +404,51 @@ main .section.heading-bar.center-align h2::before {
   margin: 0 auto 25px;
 }
 
+/* ============================================================
+   Split layout — align=left (70%) + align=right (30%)
+   Overall wrapper: max-width 1728 px, 52 px vertical margin.
+   ============================================================ */
+main > .split-layout {
+  display: grid;
+  grid-template-columns: 70% 30%;
+  align-items: start;
+  max-width: 1376px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 52px 0;
+  box-sizing: border-box;
+}
+
+/* Each section inside the split loses the default outer margin/padding
+   so the grid columns control all spacing */
+main > .split-layout > .section {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0; /* prevent grid blowout */
+  align-self: start;
+}
+
+/* Right column: sticky under the navigation bar so it stays
+   at the top while the longer left column scrolls */
+main > .split-layout > .section.align-right {
+  position: sticky;
+  top: var(--nav-height, 68px);
+}
+
+/* Standalone align-left section (no paired right sibling):
+   left-align all its content within the normal page flow */
+main > .section.align-left {
+  text-align: left;
+  margin-left: 0;
+  margin-right: auto;
+}
+
+/* On mobile, stack vertically */
+@media (width < 768px) {
+  main > .split-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* wealth theme — loaded from /styles/themes/wealth.css via scripts.js */
