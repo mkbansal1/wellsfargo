@@ -33,7 +33,8 @@ async function checkUrl(originalUrl) {
   let path;
   try {
     const parsed = new URL(originalUrl);
-    path = parsed.pathname + (parsed.search || '');
+    const raw = parsed.pathname.replace(/\/$/, '') || '/';
+    path = raw + (parsed.search || '');
   } catch {
     return { original_url: originalUrl, eds_url: '', status: 'INVALID_URL', redirect_location: '' };
   }

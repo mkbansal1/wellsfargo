@@ -179,7 +179,8 @@ async function processUrl(originalUrl) {
   let path;
   try {
     const parsed = new URL(originalUrl);
-    path = parsed.pathname + (parsed.search || '');
+    const raw = parsed.pathname.replace(/\/$/, '') || '/';
+    path = raw + (parsed.search || '');
   } catch {
     return makeErrorRow(originalUrl, '', '', 'INVALID_URL', 'INVALID_URL', 'Invalid URL in sitemap');
   }

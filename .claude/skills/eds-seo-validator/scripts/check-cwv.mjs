@@ -56,7 +56,8 @@ function toTargetUrl(originalUrl) {
   if (!baseUrl) return originalUrl;
   try {
     const p = new URL(originalUrl);
-    return `${baseUrl.replace(/\/$/, '')}${p.pathname}${p.search || ''}`;
+    const raw = p.pathname.replace(/\/$/, '') || '/';
+    return `${baseUrl.replace(/\/$/, '')}${raw}${p.search || ''}`;
   } catch { return originalUrl; }
 }
 

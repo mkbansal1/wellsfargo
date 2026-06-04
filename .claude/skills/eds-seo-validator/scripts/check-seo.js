@@ -176,7 +176,8 @@ async function processUrl(originalUrl) {
   let path;
   try {
     const parsed = new URL(originalUrl);
-    path = parsed.pathname + (parsed.search || '');
+    const raw = parsed.pathname.replace(/\/$/, '') || '/';
+    path = raw + (parsed.search || '');
   } catch {
     return { original_url: originalUrl, eds_url: '', http_status: 'INVALID_URL', meta: {}, issues: ['Invalid URL'] };
   }

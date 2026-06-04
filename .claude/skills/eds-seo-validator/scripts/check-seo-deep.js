@@ -62,7 +62,8 @@ const VALID_TWITTER_CARDS = ['summary', 'summary_large_image', 'app', 'player'];
 function toTargetUrl(originalUrl) {
   try {
     const p = new URL(originalUrl);
-    return `${targetBase}${p.pathname}${p.search || ''}`;
+    const raw = p.pathname.replace(/\/$/, '') || '/';
+    return `${targetBase}${raw}${p.search || ''}`;
   } catch { return null; }
 }
 
