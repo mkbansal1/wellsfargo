@@ -568,7 +568,6 @@ console.log(`\nCSV saved: ${CSV_PATH}`);
 
 const HTML_PATH = path.join(OUTPUT_DIR, 'index.html');
 
-const statusClass = n => n === 0 ? 'pass' : n <= 2 ? 'warn' : 'fail';
 const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
 const categoryBadge = cat => {
@@ -577,20 +576,42 @@ const categoryBadge = cat => {
   return `<span style="background:${bg};color:#fff;padding:1px 6px;border-radius:3px;font-size:11px;font-weight:600">${esc(cat)}</span>`;
 };
 
-const issueRows = pageResults
-  .filter(r => r.issueCount > 0)
-  .sort((a, b) => b.issueCount - a.issueCount)
+const pageLabel = pr => {
+  if (pr.issues.some(i => i.category === 'FETCH')) {
+    return `<span class="label label-error">ERROR</span>`;
+  }
+  if (pr.issueCount === 0) {
+    return `<span class="label label-pass">PASS</span>`;
+  }
+  return `<span class="label label-fail">FAILED</span>`;
+};
+
+const allRows = [...pageResults]
+  .sort((a, b) => {
+    // Order: FAILED (most issues first), then ERROR, then PASS
+    const aErr = a.issues.some(i => i.category === 'FETCH');
+    const bErr = b.issues.some(i => i.category === 'FETCH');
+    if (!aErr && !bErr) return b.issueCount - a.issueCount;
+    if (aErr && bErr) return 0;
+    if (!aErr && a.issueCount > 0) return -1; // FAILED before ERROR
+    if (!bErr && b.issueCount > 0) return 1;
+    if (a.issueCount === 0) return 1;  // PASS last
+    if (b.issueCount === 0) return -1;
+    return 0;
+  })
   .map(pr => {
     const pathname = (() => { try { return new URLClass(pr.originalUrl).pathname; } catch (_) { return pr.originalUrl; } })();
-    const issueHtml = pr.issues.map(i =>
-      `<li>${categoryBadge(i.category)} ${esc(i.issue)}</li>`
-    ).join('');
+    const issueHtml = pr.issues.length
+      ? `<ul style="margin:0;padding-left:16px">${pr.issues.map(i => `<li>${categoryBadge(i.category)} ${esc(i.issue)}</li>`).join('')}</ul>`
+      : '';
+    const rowClass = pr.issues.some(i => i.category === 'FETCH') ? 'row-error' : pr.issueCount === 0 ? 'row-pass' : 'row-fail';
     return `
-      <tr class="${statusClass(pr.issueCount)}">
+      <tr class="${rowClass}">
+        <td>${pageLabel(pr)}</td>
         <td><a href="${esc(pr.edsUrl)}" target="_blank">${esc(pathname)}</a></td>
-        <td style="text-align:center">${pr.issueCount}</td>
-        <td>${pr.status}</td>
-        <td><ul style="margin:0;padding-left:16px">${issueHtml}</ul></td>
+        <td style="text-align:center">${pr.issueCount || ''}</td>
+        <td style="text-align:center">${pr.status}</td>
+        <td>${issueHtml}</td>
       </tr>`;
   }).join('');
 
@@ -610,9 +631,13 @@ const html = `<!DOCTYPE html>
   table { width:100%; border-collapse:collapse; background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.1); }
   th { background:#2c3e50; color:#fff; padding:8px 10px; text-align:left; font-size:12px; }
   td { padding:7px 10px; border-bottom:1px solid #eee; vertical-align:top; font-size:12px; }
-  tr.pass td { background:#f0faf4; }
-  tr.warn td { background:#fefde8; }
-  tr.fail td { background:#fff5f5; }
+  tr.row-pass td { background:#f0faf4; }
+  tr.row-fail td { background:#fff5f5; }
+  tr.row-error td { background:#f8f8f8; color:#999; }
+  .label { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:700; letter-spacing:.4px; }
+  .label-pass  { background:#27ae60; color:#fff; }
+  .label-fail  { background:#e74c3c; color:#fff; }
+  .label-error { background:#95a5a6; color:#fff; }
   ul { list-style:disc; }
   li { margin-bottom:3px; }
   a { color:#2980b9; }
@@ -623,14 +648,15 @@ const html = `<!DOCTYPE html>
 <div class="meta">Generated ${new Date().toISOString()} · ${total} pages · ${EDS_BASE_CLEAN}</div>
 <div class="stats">
   <div class="stat"><div class="n">${total}</div><div class="l">Pages audited</div></div>
-  <div class="stat"><div class="n" style="color:#27ae60">${passed}</div><div class="l">Passed (0 issues)</div></div>
-  <div class="stat"><div class="n" style="color:#e74c3c">${withIssues}</div><div class="l">Pages with issues</div></div>
-  ${Object.entries(categoryCounts).map(([cat, n]) => `<div class="stat"><div class="n" style="color:#8e44ad">${n}</div><div class="l">${cat} issues</div></div>`).join('')}
+  <div class="stat"><div class="n" style="color:#27ae60">${passed}</div><div class="l">Passed</div></div>
+  <div class="stat"><div class="n" style="color:#e74c3c">${pageResults.filter(r => r.issueCount > 0 && !r.issues.some(i => i.category === 'FETCH')).length}</div><div class="l">Failed</div></div>
+  <div class="stat"><div class="n" style="color:#95a5a6">${pageResults.filter(r => r.issues.some(i => i.category === 'FETCH')).length}</div><div class="l">Error (404)</div></div>
+  ${Object.entries(categoryCounts).filter(([cat]) => cat !== 'FETCH').map(([cat, n]) => `<div class="stat"><div class="n" style="color:#8e44ad">${n}</div><div class="l">${cat} issues</div></div>`).join('')}
 </div>
-<h2 style="font-size:15px">Pages with issues (${withIssues})</h2>
+<h2 style="font-size:15px">All pages (${total})</h2>
 <table>
-  <thead><tr><th>Page</th><th>Issues</th><th>Status</th><th>Details</th></tr></thead>
-  <tbody>${issueRows}</tbody>
+  <thead><tr><th>Result</th><th>Page</th><th>Issues</th><th>HTTP</th><th>Details</th></tr></thead>
+  <tbody>${allRows}</tbody>
 </table>
 </body>
 </html>`;
