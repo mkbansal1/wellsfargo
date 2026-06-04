@@ -11,7 +11,7 @@ Four modes depending on depth required:
 | Mode | Script | How | Speed | Use For |
 |------|--------|-----|-------|---------|
 | **Fast** | `check-seo.js` | HTTP fetch + regex | ~2–3 min / 100 pages | Metadata + OG/Twitter tags on EDS |
-| **Deep** | `check-seo-deep.js` | Playwright Chromium | ~8–10 min / 73 pages | 68/80 checklist items incl. CWV, JSON-LD, headings, mobile, accessibility |
+| **Deep** | `check-seo-deep.cjs` | Playwright Chromium | ~8–10 min / 73 pages | 68/80 checklist items incl. CWV, JSON-LD, headings, mobile, accessibility |
 | **CWV** | `check-cwv.js` | PageSpeed Insights API | ~1–3 min / 20 pages | Lighthouse lab scores + CrUX real-user field data (LCP, FCP, CLS, INP, TTFB) |
 | **Compare** | `check-seo-compare.mjs` | HTTP fetch + regex (both sites) | ~3–5 min / 100 pages | Side-by-side diff: production vs EDS — surfaces migration gaps |
 
@@ -64,7 +64,7 @@ node <SCRIPT_PATH> \
   [--key=API_KEY] \
   [--strategy=mobile]
 
-For check-seo-deep.js: first cd to .claude/skills/eds-seo-validator/ (project root) then run node scripts/check-seo-deep.js ...
+For check-seo-deep.cjs: first cd to .claude/skills/eds-seo-validator/ (project root) then run node scripts/check-seo-deep.cjs ...
 For check-cwv.mjs and check-seo-compare.mjs: run from the project root as .mjs bypasses "type": "commonjs"
 For check-seo.js: run from the project root — node .claude/skills/eds-seo-validator/scripts/check-seo.js
 ```
@@ -178,7 +178,7 @@ node .claude/skills/eds-seo-validator/scripts/check-seo.js \
 
 ---
 
-## Mode 2: Deep SEO Check (`check-seo-deep.js`)
+## Mode 2: Deep SEO Check (`check-seo-deep.cjs`)
 
 ### When to use
 - Full pre-launch SEO audit
@@ -204,7 +204,7 @@ Once sitemap file, base URL, and optional auth are confirmed, dispatch a sub-age
 ```
 Run this command and return: full output + structured summary (total, passed, issue counts by section, top 20 most common issues with counts, top 5 worst pages, site-level check results, CWV averages) + CSV path.
 
-cd .claude/skills/eds-seo-validator && node scripts/check-seo-deep.js \
+cd .claude/skills/eds-seo-validator && node scripts/check-seo-deep.cjs \
   <SITEMAP_JSON> \
   "<BASE_URL>" \
   /tmp/eds-seo-deep-report.csv \
@@ -455,7 +455,7 @@ Uses Node.js 18+ native `fetch` + regex — no Playwright needed.
 
 ```
 Quick metadata check on EDS?                  → fast mode     (check-seo.js)
-Pre-launch full audit on EDS?                 → deep mode     (check-seo-deep.js)
+Pre-launch full audit on EDS?                 → deep mode     (check-seo-deep.cjs)
 JSON-LD / headings / mobile / accessibility?  → deep mode
 Just OG/Twitter tags on EDS?                  → fast mode
 Lighthouse scores + INP?                      → CWV mode      (check-cwv.js)
@@ -488,7 +488,7 @@ Each section below shows which script covers it and which items are skipped (and
 | 12 | **Mobile & Responsive** — viewport, horizontal scroll, content parity | — | ✓ | — | — | §12.5 touch target spacing; §12.6 Googlebot content parity |
 | 13 | **Pagination & JS Content** — rel=next/prev, dynamic content | — | ✓ (partial) | — | — | §13.2 §13.3 §13.4 Googlebot/dynamic indexing |
 
-**Total checklist items: 80 — deep mode covers 68, skips 12** (see `check-seo-deep.js` header for the full skip list with reasons).
+**Total checklist items: 80 — deep mode covers 68, skips 12** (see `check-seo-deep.cjs` header for the full skip list with reasons).
 
 ### Items requiring human review (cannot be automated)
 - **§1.4 §1.8 §3.5** — keyword targeting (requires a per-page keyword map)
