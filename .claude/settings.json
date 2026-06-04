@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s *)",
+      "Bash(node -e *)",
+      "Bash(node .claude/skills/eds-sitemap-checker/scripts/*)",
+      "Bash(node .claude/skills/eds-seo-validator/scripts/*)",
+      "Bash(cd .claude/skills/eds-seo-validator && node scripts/*)",
+      "Bash(cd .claude/skills/eds-seo-validator && npm install*)",
+      "Bash(cd .claude/skills/eds-seo-validator && npx playwright install*)"
+    ]
+  }
+}
