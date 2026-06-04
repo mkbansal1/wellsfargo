@@ -14,7 +14,12 @@
       "Bash(cd .claude/skills/eds-visual-compare && npm install*)",
       "Bash(cd .claude/skills/eds-visual-compare && npx playwright install*)",
       "Bash(node /Users/nishantgupta/Developer/Code/wellsfargo/.claude/skills/eds-visual-compare/scripts/*)",
-      "Bash(mkdir -p /tmp/eds-visual-report*)"
+      "Bash(mkdir -p /tmp/eds-visual-report*)",
+      "Bash(cd .claude/skills/eds-content-compare && node scripts/*)",
+      "Bash(cd .claude/skills/eds-content-compare && npm install*)",
+      "Bash(cd .claude/skills/eds-content-compare && npx playwright install*)",
+      "Bash(node /Users/nishantgupta/Developer/Code/wellsfargo/.claude/skills/eds-content-compare/scripts/*)",
+      "Bash(mkdir -p /tmp/eds-content-report*)"
     ]
   }
 }
