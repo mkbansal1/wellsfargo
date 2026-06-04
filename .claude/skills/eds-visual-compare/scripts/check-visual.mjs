@@ -2,7 +2,7 @@
 /**
  * Visual Regression Compare — Prod vs EDS
  * Usage: node check-visual.mjs <sitemap-json> <prod-base-url> <eds-base-url> <output-dir>
- *        [--threshold=5] [--concurrency=2] [--max=N]
+ *        [--threshold=5] [--concurrency=2] [--max=N] [--offset=N]
  *        [--viewports=desktop,tablet,mobile]
  *        [--auth-prod=user:pass] [--auth-eds=user:pass]
  *
@@ -40,6 +40,7 @@ const getFlag = (name, def) =>
 const THRESHOLD   = parseFloat(getFlag('threshold',   '5'));
 const CONCURRENCY = parseInt(getFlag('concurrency',   '2'), 10);
 const MAX_PAGES   = parseInt(getFlag('max',           '9999'), 10);
+const OFFSET      = parseInt(getFlag('offset',        '0'),   10);
 const VP_STR      = getFlag('viewports', 'desktop,tablet,mobile');
 const AUTH_PROD   = getFlag('auth-prod', '');
 const AUTH_EDS    = getFlag('auth-eds',  '');
@@ -66,7 +67,7 @@ const edsBase  = edsBaseUrl.replace(/\/$/, '');
 mkdirSync(path.join(outputDir, 'screenshots'), { recursive: true });
 
 const allUrls = JSON.parse(readFileSync(sitemapJsonFile, 'utf8'));
-const urls    = allUrls.slice(0, MAX_PAGES);
+const urls    = allUrls.slice(OFFSET, OFFSET + MAX_PAGES);
 
 function toPath(originalUrl) {
   try {
@@ -193,7 +194,7 @@ async function processUrl(browser, originalUrl, urlIdx) {
   const urlPath = toPath(originalUrl);
   const prodUrl = `${prodBase}${urlPath}`;
   const edsUrl  = `${edsBase}${urlPath}`;
-  const slug    = `page-${String(urlIdx + 1).padStart(4, '0')}`;
+  const slug    = `page-${String(OFFSET + urlIdx + 1).padStart(4, '0')}`;
   const ssDir   = path.join(outputDir, 'screenshots', slug);
 
   mkdirSync(ssDir, { recursive: true });
@@ -201,7 +202,7 @@ async function processUrl(browser, originalUrl, urlIdx) {
   const result = { originalUrl, prodUrl, edsUrl, slug, urlPath, viewports: {} };
 
   for (const vpName of SELECTED_VIEWPORTS) {
-    process.stderr.write(`  ${urlIdx + 1}/${urls.length} [${vpName}] ${urlPath}\n`);
+    process.stderr.write(`  ${OFFSET + urlIdx + 1}/${OFFSET + urls.length} [${vpName}] ${urlPath}\n`);
 
     const [prod, eds] = await Promise.all([
       capture(browser, prodUrl, vpName, AUTH_PROD),
@@ -445,6 +446,19 @@ await browser.close();
 // Write report
 const reportPath = path.join(outputDir, 'index.html');
 writeFileSync(reportPath, generateReport(results));
+
+// Write machine-readable results for merge-reports.mjs
+writeFileSync(path.join(outputDir, 'results.json'), JSON.stringify({
+  meta: {
+    prodBase,
+    edsBase,
+    threshold:  THRESHOLD,
+    viewports:  SELECTED_VIEWPORTS,
+    offset:     OFFSET,
+    generatedAt: new Date().toISOString(),
+  },
+  pages: results,
+}, null, 2));
 
 // Summary
 const allVp   = results.flatMap(r => Object.values(r.viewports));

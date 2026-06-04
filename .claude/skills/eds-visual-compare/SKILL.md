@@ -116,11 +116,91 @@ If the user says yes:
 | Flag | Default | Description |
 |------|---------|-------------|
 | `--threshold=N` | `5` | % pixel difference to flag as FAIL |
-| `--concurrency=N` | `2` | Pages processed in parallel |
-| `--max=N` | all | Limit to first N pages (useful for sampling) |
+| `--concurrency=N` | `2` | Pages processed in parallel within a batch |
+| `--max=N` | all | Limit to first N pages from offset |
+| `--offset=N` | `0` | Skip first N pages (used for batching) |
 | `--viewports=...` | `desktop,tablet,mobile` | Comma-separated list of viewports to check |
 | `--auth-prod=user:pass` | — | HTTP Basic Auth for prod site |
 | `--auth-eds=user:pass` | — | HTTP Basic Auth for EDS site |
+
+---
+
+## Large Sitemaps — Batched Parallel Execution (500+ pages)
+
+For large sitemaps, run in batches of 50 pages dispatched as parallel sub-agents, then merge results. This keeps each sub-agent under ~15 min and avoids timeouts.
+
+### Recommended settings
+
+| Sitemap size | Batch size | Concurrency/batch | Parallel batches | Estimated time |
+|---|---|---|---|---|
+| 100 pages | 50 | 3 | 2 | ~15–20 min |
+| 500 pages | 50 | 3 | 5 | ~30–45 min |
+| 1200 pages | 50 | 5 | 5 → 5 waves | ~90–120 min |
+
+> **Rule of thumb:** 50 pages × concurrency=5 ≈ 10–15 min per sub-agent. Never exceed 5 parallel batches at once to avoid hammering the target site.
+
+### Step 1: Split sitemap into batch files
+
+```bash
+node -e "
+const fs = require('fs');
+const urls = JSON.parse(fs.readFileSync('/tmp/sitemap-urls.json', 'utf8'));
+const BATCH = 50;
+let count = 0;
+for (let i = 0; i < urls.length; i += BATCH) {
+  const batch = urls.slice(i, i + BATCH);
+  fs.writeFileSync(\`/tmp/sitemap-batch-\${++count}.json\`, JSON.stringify(batch));
+}
+console.log(\`Created \${count} batch files (\${urls.length} URLs total, \${BATCH}/batch)\`);
+"
+```
+
+### Step 2: Dispatch parallel sub-agents (one per batch)
+
+Send **a single Agent tool message** with multiple parallel Agent calls — one per batch. Each sub-agent gets its own batch file and output directory:
+
+```
+# Sub-agent for batch 1 (pages 1–50):
+Run this command and return stdout:
+node /Users/nishantgupta/Developer/Code/wellsfargo/.claude/skills/eds-visual-compare/scripts/check-visual.mjs \
+  /tmp/sitemap-batch-1.json \
+  "https://www.wellsfargo.com" \
+  "https://main--wellsfargo--mkbansal1.aem.live" \
+  /tmp/visual-batch-1 \
+  --max=50 --concurrency=5
+
+# Sub-agent for batch 2 (pages 51–100):
+Run this command and return stdout:
+node /Users/nishantgupta/Developer/Code/wellsfargo/.claude/skills/eds-visual-compare/scripts/check-visual.mjs \
+  /tmp/sitemap-batch-2.json \
+  "https://www.wellsfargo.com" \
+  "https://main--wellsfargo--mkbansal1.aem.live" \
+  /tmp/visual-batch-2 \
+  --max=50 --concurrency=5
+```
+
+Run up to 5 batches in parallel. For 1200 pages (24 batches), run 5 waves of 5 batches each, waiting for each wave to complete before launching the next.
+
+### Step 3: Merge batch outputs
+
+Once all batches complete:
+
+```bash
+node /Users/nishantgupta/Developer/Code/wellsfargo/.claude/skills/eds-visual-compare/scripts/merge-reports.mjs \
+  /tmp/eds-visual-merged \
+  /tmp/visual-batch-1 \
+  /tmp/visual-batch-2 \
+  /tmp/visual-batch-3 \
+  ...
+```
+
+The merge script:
+- Reads `results.json` from each batch dir
+- Copies all screenshots into `/tmp/eds-visual-merged/screenshots/`
+- Generates a unified `index.html` and `results.json`
+- Prints the merged summary
+
+Then present the merged summary and follow Steps 4–5 (present summary → offer zip).
 
 ---
 
