@@ -29,9 +29,10 @@ export default function decorate(block) {
     const currentPath = window.location.pathname.replace(/\/$/, '');
     let activeLabel = '';
 
-    ul.querySelectorAll('li').forEach((li, index) => {
+    // First pass: unwrap <strong> and collect link paths
+    const linkItems = [];
+    ul.querySelectorAll('li').forEach((li) => {
       li.setAttribute('role', 'presentation');
-      // Remove bold <strong> wrapper that DA adds to the active item
       const strong = li.querySelector('strong');
       const a = li.querySelector('a');
       if (strong && a) {
@@ -40,18 +41,33 @@ export default function decorate(block) {
       if (a) {
         a.setAttribute('role', 'tab');
         const linkPath = new URL(a.href, window.location).pathname.replace(/\/$/, '');
-        if (currentPath === linkPath || currentPath.startsWith(`${linkPath}/`)) {
-          a.classList.add('active');
-          a.setAttribute('aria-selected', 'true');
-          li.classList.add('active');
-          activeLabel = a.textContent.trim();
-        } else {
-          a.setAttribute('aria-selected', 'false');
+        linkItems.push({ li, a, linkPath });
+      }
+    });
+
+    // Find the most specific (longest) matching path to avoid parent paths
+    // matching child routes (e.g. /mortgage/learn matching /mortgage/learn/process)
+    let bestMatch = null;
+    linkItems.forEach(({ linkPath }) => {
+      if (currentPath === linkPath || currentPath.startsWith(`${linkPath}/`)) {
+        if (!bestMatch || linkPath.length > bestMatch.length) {
+          bestMatch = linkPath;
         }
-        // Default: first link is active label if none matched
-        if (index === 0 && !activeLabel) {
-          activeLabel = a.textContent.trim();
-        }
+      }
+    });
+
+    // Second pass: assign active class only to best match
+    linkItems.forEach(({ li, a, linkPath }, index) => {
+      if (bestMatch && linkPath === bestMatch) {
+        a.classList.add('active');
+        a.setAttribute('aria-selected', 'true');
+        li.classList.add('active');
+        activeLabel = a.textContent.trim();
+      } else {
+        a.setAttribute('aria-selected', 'false');
+      }
+      if (index === 0 && !activeLabel) {
+        activeLabel = a.textContent.trim();
       }
     });
 
