@@ -185,7 +185,7 @@ Return: (same structured summary as fast compare)
 | Category | Checks |
 |----------|--------|
 | **COMPLETENESS** | Lorem ipsum · placeholder / TODO / TBD / FIXME · unclosed `[[...]]` / `{{...}}` templates · `[INSERT ...]` patterns · ALL CAPS blocks (≥3 words, not known acronyms) · very low word count (<20 words = stub page) |
-| **IMAGES** | Missing or empty `alt` attribute · non-next-gen format (`.jpg`/`.png`/`.gif`) without `<picture>` wrapper · image URL returns 404 (async HEAD check) |
+| **IMAGES** | Missing or empty `alt` attribute · image URL returns 404 (async HEAD check) |
 | **VIDEOS** | `<video>` element missing `poster` attribute |
 | **LINKS** | Absolute link to prod domain (`wellsfargo.com`) — should be relative · absolute link to EDS domain — should be relative · link to old CMS domain (`www17.wellsfargomedia.com`) · generic/weak anchor text (`click here`, `here`, `read more`) · broken internal links (optional, with `--check-links`) |
 | **QUALITY** | No H1 heading · multiple H1 headings |

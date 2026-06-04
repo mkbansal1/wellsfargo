@@ -155,18 +155,6 @@ function checkImages(mainHtml) {
     if (alt === null || alt.trim() === '') {
       issues.push({ src, issue: 'Missing alt text', category: 'IMAGES' });
     }
-
-    // Check if image is wrapped in a <picture> (EDS auto-wraps; missing = unusual)
-    // We check by looking at the 200 chars before this <img> tag for an opening <picture>
-    const beforeImg = mainHtml.slice(Math.max(0, m.index - 300), m.index);
-    const hasPicture = /<picture[^>]*>[\s\S]*$/i.test(beforeImg);
-    if (!hasPicture) {
-      // Non-next-gen format without picture wrapper
-      const ext = (src.split('?')[0].split('.').pop() || '').toLowerCase();
-      if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff'].includes(ext)) {
-        issues.push({ src, issue: `Non-next-gen format (.${ext}) without <picture> wrapper`, category: 'IMAGES' });
-      }
-    }
   }
 
   // Collect all image srcs for 404 checking (returned separately)
