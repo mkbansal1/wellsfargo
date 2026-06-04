@@ -133,34 +133,69 @@ function decorateButtons(main) {
 }
 
 /**
- * Groups consecutive align-left + align-right section pairs into a
- * .split-layout wrapper (70 % left / 30 % right).
- * Called after all sections have loaded so that section-metadata blocks
- * have already applied their data-align attributes.
+ * Wraps page content into a 70/30 split layout when a section with
+ * data-align="right" exists.
+ *
+ * Strategy:
+ *  - Find the first .section[data-align="right"] — this becomes the right column.
+ *  - Collect every .section that comes after the breadcrumb-container (or from
+ *    the very first .section if there is no breadcrumb) up to (but not including)
+ *    the right-aligned section — these become the left column.
+ *  - Wrap both columns in a .split-layout grid.
+ *
+ * Called after all sections have loaded so section-metadata blocks have already
+ * applied their data-align attributes.
  * @param {Element} main The main element
  */
 function wrapAlignedSections(main) {
-  const sections = [...main.querySelectorAll('.section[data-align]')];
-  // Group into pairs: each left is matched with the next right
-  let i = 0;
-  while (i < sections.length) {
-    const sec = sections[i];
-    const align = sec.dataset.align;
+  const rightSection = main.querySelector('.section[data-align="right"]');
+  if (!rightSection) return;
 
-    if (align === 'left') {
-      // Look for the immediately following right-aligned section
-      const next = sections[i + 1];
-      if (next && next.dataset.align === 'right' && next.previousElementSibling === sec) {
-        const wrapper = document.createElement('div');
-        wrapper.classList.add('split-layout');
-        sec.parentNode.insertBefore(wrapper, sec);
-        wrapper.appendChild(sec);
-        wrapper.appendChild(next);
-        i += 2;
-        continue;
-      }
-    }
-    i += 1;
+  // Collect all direct .section children of main
+  const allSections = [...main.querySelectorAll(':scope > .section')];
+
+  // Start the left column after the breadcrumb (if present), otherwise from index 0
+  const breadcrumbIdx = allSections.findIndex((s) => s.classList.contains('breadcrumb-container'));
+  const startIdx = breadcrumbIdx >= 0 ? breadcrumbIdx + 1 : 0;
+
+  const rightIdx = allSections.indexOf(rightSection);
+  if (rightIdx < 0 || rightIdx <= startIdx) return; // nothing to wrap
+
+  const leftSections = allSections.slice(startIdx, rightIdx);
+  if (leftSections.length === 0) return;
+
+  // Record the insertion point BEFORE any DOM moves.
+  // allSections[startIdx] is still a direct child of main at this moment.
+  const insertionPoint = allSections[startIdx];
+
+  // Build wrapper
+  const wrapper = document.createElement('div');
+  wrapper.classList.add('split-layout');
+
+  // Left column
+  const leftCol = document.createElement('div');
+  leftCol.classList.add('split-layout-left');
+  leftSections.forEach((s) => leftCol.appendChild(s));
+
+  // Right column
+  const rightCol = document.createElement('div');
+  rightCol.classList.add('split-layout-right');
+  rightCol.appendChild(rightSection);
+
+  wrapper.appendChild(leftCol);
+  wrapper.appendChild(rightCol);
+
+  // insertionPoint is now inside leftCol (no longer a child of main).
+  // Insert wrapper before the node that is NOW at that slot in main —
+  // which is whatever came after all left/right sections originally.
+  // We use main.insertBefore with the node that follows the wrapper content.
+  // Since leftSections + rightSection have been moved out, the next remaining
+  // sibling of where they were is already detached, so we just append after breadcrumb.
+  const breadcrumbSection = breadcrumbIdx >= 0 ? allSections[breadcrumbIdx] : null;
+  if (breadcrumbSection && breadcrumbSection.parentNode === main) {
+    breadcrumbSection.insertAdjacentElement('afterend', wrapper);
+  } else {
+    main.insertBefore(wrapper, main.firstChild);
   }
 }
 
