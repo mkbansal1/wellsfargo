@@ -145,7 +145,7 @@ function decodeHtml(str) {
 function normalise(value, isUrl = false) {
   const v = decodeHtml((value || '').replace(/\s+/g, ' ').trim());
   if (isUrl) {
-    try { return new URL(v).pathname + new URL(v).search; } catch { return v.toLowerCase(); }
+    try { const u = new URL(v); return u.pathname.replace(/\/$/, '') + (u.search || ''); } catch { return v.toLowerCase(); }
   }
   return v;
 }
