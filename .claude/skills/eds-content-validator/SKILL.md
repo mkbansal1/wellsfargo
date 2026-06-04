@@ -1,22 +1,21 @@
 ---
 name: eds-content-validator
-description: Use this skill when the user wants to validate, audit, or compare the text content of AEM Edge Delivery Services (EDS) pages. Triggers on phrases like "content validation", "content audit", "content compare", "compare content", "content parity", "content migration check", "missing content", "content gaps", "word count diff", "heading structure check", "CTA text gaps", "verify migrated content", "check content", "content coverage".
-version: 1.0.0
+description: Use this skill when the user wants to validate, audit, or compare the text content of AEM Edge Delivery Services (EDS) pages. Triggers on phrases like "content validation", "content audit", "content compare", "compare content", "content parity", "content migration check", "missing content", "content gaps", "word count diff", "heading structure check", "CTA text gaps", "verify migrated content", "check content", "content coverage", "placeholder text", "lorem ipsum", "broken links", "missing alt text", "image 404", "old CMS domain", "absolute links", "content quality", "grammar check".
+version: 1.1.0
 ---
 
 # EDS Content Validator
 
-Two modes depending on depth required:
+Three modes depending on the task:
 
 | Mode | Script | How | Speed | Use For |
 |------|--------|-----|-------|---------|
 | **Fast compare** | `check-content.mjs` | HTTP fetch + Jaccard | ~2–3 min / 100 pages | Quick prod-vs-EDS content parity check, no browser required |
 | **Deep compare** | `check-content-deep.mjs` | Playwright + scroll | ~8–12 min / 50 pages | Lazy-loaded sections, accordion content, fragments |
+| **Site audit** | `check-content-audit.mjs` | HTTP fetch + static analysis | ~3–5 min / 100 pages | EDS-only quality gate: placeholders, assets, links, nav/footer |
 
-Both modes compare production content against EDS using Jaccard word-set similarity — markup-agnostic, scoped to `<main>` content only, so structural HTML differences don't cause false negatives.
-
-Use **fast compare** for a broad sweep or CI-style check.
-Use **deep compare** when fast shows unexpectedly low similarity (content may be lazy-loaded) or when pages use accordions, tabs, or fragments.
+Modes 1 & 2 compare production content against EDS (migration parity).
+Mode 3 audits the EDS site itself — no prod comparison required.
 
 ---
 
@@ -167,6 +166,73 @@ Return: (same structured summary as fast compare)
 
 ---
 
+---
+
+## Mode 3: Site Audit (`check-content-audit.mjs`)
+
+### When to use
+- Pre-launch quality gate — no prod comparison needed, just audit EDS pages themselves
+- Finding placeholder text, lorem ipsum, or TODO markers left in authored content
+- Checking images have alt text and are wrapped in `<picture>` for next-gen format delivery
+- Finding absolute links to the prod domain that should be relative
+- Checking for links to old CMS domains (`www17.wellsfargomedia.com`, etc.)
+- Auditing nav/footer pages and verifying their links resolve
+- Checking videos have fallback poster images
+- Detecting stub pages (very low word count)
+
+### What it checks
+
+| Category | Checks |
+|----------|--------|
+| **COMPLETENESS** | Lorem ipsum · placeholder / TODO / TBD / FIXME · unclosed `[[...]]` / `{{...}}` templates · `[INSERT ...]` patterns · ALL CAPS blocks (≥3 words, not known acronyms) · very low word count (<20 words = stub page) |
+| **IMAGES** | Missing or empty `alt` attribute · non-next-gen format (`.jpg`/`.png`/`.gif`) without `<picture>` wrapper · image URL returns 404 (async HEAD check) |
+| **VIDEOS** | `<video>` element missing `poster` attribute |
+| **LINKS** | Absolute link to prod domain (`wellsfargo.com`) — should be relative · absolute link to EDS domain — should be relative · link to old CMS domain (`www17.wellsfargomedia.com`) · generic/weak anchor text (`click here`, `here`, `read more`) · broken internal links (optional, with `--check-links`) |
+| **QUALITY** | No H1 heading · multiple H1 headings |
+| **NAV/FOOTER** | Nav and footer doc pages fetch correctly · absolute links inside nav/footer · old CMS domain links · broken links in nav/footer (HEAD-checked) |
+
+### Dispatch sub-agent
+
+```
+Run this command and return the results as described below.
+
+node /Users/nishantgupta/Developer/Code/wellsfargo/.claude/skills/eds-content-validator/scripts/check-content-audit.mjs \
+  /tmp/sitemap-urls.json \
+  "https://main--wellsfargo--mkbansal1.aem.live" \
+  /tmp/eds-content-audit \
+  [--concurrency=5] \
+  [--max=N] \
+  [--offset=N] \
+  [--auth=user:pass] \
+  [--check-links] \
+  [--old-domain=example.com] \
+  [--nav-path=/nav] \
+  [--footer-path=/footer]
+
+Return:
+1. Full stdout output from the script
+2. A structured summary with these exact sections:
+   - Run metadata: date/time, EDS URL, pages audited
+   - Stats table: Total pages / Passed (0 issues) / With issues / Issues by category (COMPLETENESS / IMAGES / VIDEOS / LINKS / QUALITY)
+   - Top 15 most common issues with counts
+   - Top 10 worst pages (most issues), with issue list
+   - Nav/Footer audit results: status, any issues or broken links found
+3. Report paths (HTML + CSV)
+```
+
+### How it works
+1. **Fetch** EDS pages concurrently (5 default, 20s timeout)
+2. **Scope to `<main>`** — same as other modes
+3. **Static analysis** per page: placeholder patterns, image alt text, `<picture>` wrappers, video posters, link types, H1 count, word count
+4. **Async image HEAD checks** — batches all unique image URLs, flags 404s
+5. **Optional link HEAD checks** — with `--check-links`, HEAD-checks all relative internal links
+6. **Nav/footer audit** — separately fetches nav/footer doc pages, checks their links
+
+### No-op for auth
+If the EDS site requires HTTP Basic Auth, pass `--auth=user:pass`. This is the same credential used for all page fetches and nav/footer checks. Image 404 checks do not send auth (images are typically public assets).
+
+---
+
 ## Step 3: Present Summary
 
 After the sub-agent returns, always present the full structured summary directly in the conversation as markdown tables. Do not just show the report path.
@@ -189,6 +255,8 @@ zip -r testing/content-comparison/<YYYY-MM-DD>.zip <OUTPUT_DIR>
 
 ## Options
 
+### Modes 1 & 2 (prod comparison)
+
 | Flag | Default | Description |
 |------|---------|-------------|
 | `--threshold=N` | `90` | % Jaccard similarity to count as MATCH |
@@ -197,6 +265,19 @@ zip -r testing/content-comparison/<YYYY-MM-DD>.zip <OUTPUT_DIR>
 | `--offset=N` | `0` | Skip first N pages (for batching) |
 | `--auth-prod=user:pass` | — | HTTP Basic Auth for prod site |
 | `--auth-eds=user:pass` | — | HTTP Basic Auth for EDS site |
+
+### Mode 3 (site audit)
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--concurrency=N` | `5` | Pages processed in parallel |
+| `--max=N` | all | Limit to first N pages from offset |
+| `--offset=N` | `0` | Skip first N pages (for batching) |
+| `--auth=user:pass` | — | HTTP Basic Auth for EDS site |
+| `--check-links` | off | HEAD-check all relative internal links for 404s |
+| `--old-domain=X` | — | Extra domain to flag as old CMS (repeatable) |
+| `--nav-path=X` | `/nav` | Nav doc path on EDS |
+| `--footer-path=X` | `/footer` | Footer doc path on EDS |
 
 ---
 

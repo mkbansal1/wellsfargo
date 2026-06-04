@@ -19,7 +19,8 @@
       "Bash(cd .claude/skills/eds-content-validator && npm install*)",
       "Bash(cd .claude/skills/eds-content-validator && npx playwright install*)",
       "Bash(node /Users/nishantgupta/Developer/Code/wellsfargo/.claude/skills/eds-content-validator/scripts/*)",
-      "Bash(mkdir -p /tmp/eds-content-report*)"
+      "Bash(mkdir -p /tmp/eds-content-report*)",
+      "Bash(mkdir -p /tmp/eds-content-audit*)"
     ]
   }
 }
