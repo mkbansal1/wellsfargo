@@ -105,8 +105,10 @@ header {
   height: var(--nav-height);
 }
 
-header.no-subnav {
-  height: 140px;
+@media (width >= 1024px) {
+  header.no-subnav {
+    height: 140px;
+  }
 }
 
 header .header,
