@@ -37,7 +37,6 @@
   font-family: inherit;
   font-size: inherit;
   font-weight: inherit;
-  line-height: inherit;
   margin: 0;
 }
 
@@ -136,6 +135,26 @@
   padding: 4px 0 4px 8px;
   color: #5f5f5f;
   text-decoration: none;
+}
+
+/* plus-minus: remove top/bottom border lines between items */
+.accordion.plus-minus details {
+  border-top: none;
+}
+
+.accordion.plus-minus details:last-child {
+  border-bottom: none;
+}
+
+/* plus-minus: no underline by default; underline on hover */
+.accordion.plus-minus details summary a,
+.accordion.plus-minus details .accordion-item-body a {
+  text-decoration: none;
+}
+
+.accordion.plus-minus details summary a:hover,
+.accordion.plus-minus details .accordion-item-body a:hover {
+  text-decoration: underline;
 }
 
 /* Variation: plus-minus */
