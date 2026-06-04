@@ -209,13 +209,14 @@ function checkLinks(mainHtml) {
     // Links to EDS absolute URL (should be relative)
     if (href.startsWith(EDS_BASE_CLEAN + '/') || href === EDS_BASE_CLEAN) {
       issues.push({ href, issue: 'Absolute link to EDS domain (should be relative)', category: 'LINKS' });
-      internalHrefs.push(EDS_BASE_CLEAN + new URLClass(href).pathname);
+      const p = new URLClass(href).pathname.replace(/\/$/, '') || '/';
+      internalHrefs.push(EDS_BASE_CLEAN + p);
       continue;
     }
 
     // Relative internal links — collect for optional HEAD check
     if (href.startsWith('/') && CHECK_LINKS) {
-      internalHrefs.push(EDS_BASE_CLEAN + href);
+      internalHrefs.push(EDS_BASE_CLEAN + (href.length > 1 ? href.replace(/\/$/, '') : href));
     }
   }
 
@@ -357,7 +358,7 @@ async function auditNavFooter() {
       for (const domain of OLD_DOMAINS) {
         if (href.includes(domain)) linkIssues.push(`Old CMS domain in ${name}: ${href}`);
       }
-      if (href.startsWith('/')) hrefs.push(EDS_BASE_CLEAN + href);
+      if (href.startsWith('/')) hrefs.push(EDS_BASE_CLEAN + (href.length > 1 ? href.replace(/\/$/, '') : href));
     }
     // HEAD check all nav/footer links
     if (hrefs.length > 0) {
@@ -389,7 +390,9 @@ for (let i = 0; i < urls.length; i += CONCURRENCY) {
   const batchResults = await Promise.all(batch.map(async (originalUrl) => {
     let pathname;
     try { pathname = new URLClass(originalUrl).pathname; } catch (_) { pathname = originalUrl; }
-    const edsUrl = EDS_BASE_CLEAN + pathname;
+    // EDS serves pages without trailing slash (e.g. /checking not /checking/)
+    const normalizedPath = pathname.length > 1 ? pathname.replace(/\/$/, '') : pathname;
+    const edsUrl = EDS_BASE_CLEAN + normalizedPath;
 
     const { status, html, error } = await fetchHtml(edsUrl);
     if (!html) {
