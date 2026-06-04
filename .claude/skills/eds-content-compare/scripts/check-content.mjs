@@ -115,7 +115,7 @@ function jaccard(setA, setB) {
 }
 
 function extractContent(html) {
-  let h = stripBlocks(html, 'script', 'style', 'nav', 'header', 'footer', 'noscript', 'iframe', 'svg');
+  let h = stripBlocks(html, 'script', 'style', 'nav', 'header', 'footer', 'noscript', 'iframe', 'svg', 'sup');
 
   // Headings
   const headings = [];
@@ -140,7 +140,7 @@ function extractContent(html) {
 
 // Extract sections: heading (H1–H3) + text content that follows it
 function extractSections(html) {
-  let h = stripBlocks(html, 'script', 'style', 'nav', 'header', 'footer', 'noscript', 'iframe');
+  let h = stripBlocks(html, 'script', 'style', 'nav', 'header', 'footer', 'noscript', 'iframe', 'sup');
 
   const positions = [];
   for (const m of h.matchAll(/<h([1-3])[^>]*>([\s\S]*?)<\/h\1>/gi)) {
@@ -190,6 +190,8 @@ function compareContent(prodHtml, edsHtml, threshold) {
   const sectionResults = prodSections.map(ps => {
     const es  = edsSectionMap.get(ps.heading.toLowerCase());
     if (!es) return { heading: ps.heading, status: 'MISSING', sim: 0 };
+    // Skip sections with too few words — Jaccard is unreliable on very short text
+    if (wordSet(ps.content).size < 8) return { heading: ps.heading, status: 'SKIPPED', sim: null };
     const sim = jaccard(wordSet(ps.content), wordSet(es.content)) * 100;
     const status = sim >= threshold ? 'MATCH' : sim >= 50 ? 'PARTIAL' : 'MISMATCH';
     return { heading: ps.heading, status, sim };
@@ -223,8 +225,9 @@ function compareContent(prodHtml, edsHtml, threshold) {
 
 async function processUrl(url, idx) {
   const urlPath = new URLClass(url).pathname;
+  const edsPath = urlPath.length > 1 ? urlPath.replace(/\/$/, '') : urlPath;
   const prodUrl = PROD_BASE.replace(/\/$/, '') + urlPath;
-  const edsUrl  = EDS_BASE.replace(/\/$/, '') + urlPath;
+  const edsUrl  = EDS_BASE.replace(/\/$/, '') + edsPath;
   const slug    = `page-${String(OFFSET + idx + 1).padStart(4, '0')}`;
 
   process.stderr.write(`[${OFFSET + idx + 1}/${OFFSET + urls.length}] ${urlPath}\n`);

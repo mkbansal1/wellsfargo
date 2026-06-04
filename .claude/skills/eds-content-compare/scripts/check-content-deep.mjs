@@ -79,7 +79,7 @@ async function expandHidden(page) {
 async function extractDomContent(page) {
   return page.evaluate(() => {
     // Remove noise elements
-    const noise = ['script', 'style', 'noscript', 'iframe', 'svg', 'header', 'nav', 'footer'];
+    const noise = ['script', 'style', 'noscript', 'iframe', 'svg', 'header', 'nav', 'footer', 'sup'];
     const clone = document.body.cloneNode(true);
     noise.forEach(tag => clone.querySelectorAll(tag).forEach(el => el.remove()));
 
@@ -189,6 +189,8 @@ function compareExtracted(prod, eds, threshold) {
   const sectionResults = prod.sections.map(ps => {
     const es = edsSectionMap.get(ps.heading.toLowerCase());
     if (!es) return { heading: ps.heading, status: 'MISSING', sim: 0 };
+    // Skip sections with too few words — Jaccard is unreliable on very short text
+    if (wordSet(ps.content).size < 8) return { heading: ps.heading, status: 'SKIPPED', sim: null };
     const sim = jaccard(wordSet(ps.content), wordSet(es.content)) * 100;
     const status = sim >= threshold ? 'MATCH' : sim >= 50 ? 'PARTIAL' : 'MISMATCH';
     return { heading: ps.heading, status, sim };
@@ -219,8 +221,9 @@ function compareExtracted(prod, eds, threshold) {
 
 async function processUrl(browser, url, idx) {
   const urlPath = new URLClass(url).pathname;
+  const edsPath = urlPath.length > 1 ? urlPath.replace(/\/$/, '') : urlPath;
   const prodUrl = PROD_BASE.replace(/\/$/, '') + urlPath;
-  const edsUrl  = EDS_BASE.replace(/\/$/, '') + urlPath;
+  const edsUrl  = EDS_BASE.replace(/\/$/, '') + edsPath;
   const slug    = `page-${String(OFFSET + idx + 1).padStart(4, '0')}`;
 
   process.stderr.write(`[${OFFSET + idx + 1}/${OFFSET + urls.length}] ${urlPath}\n`);
