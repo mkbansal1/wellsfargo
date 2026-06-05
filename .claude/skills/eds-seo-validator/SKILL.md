@@ -253,6 +253,12 @@ cd ~/.claude/skills/eds-seo-validator && node scripts/check-seo-deep.js \
 | §12.5 — touch target spacing | Requires complex layout geometry |
 | §13.2–13.4 — Googlebot / dynamic indexing | Requires Googlebot UA simulation |
 
+### Output files
+
+The deep mode writes two files side-by-side:
+- **`eds-seo-deep-report.csv`** — per-page CSV with all metric columns
+- **`eds-seo-deep-report.html`** — interactive HTML report with stat cards, category badges, and a per-page issue breakdown table (PASS / FAILED / ERROR rows, sorted worst-first)
+
 ### CSV output: `eds-seo-deep-report.csv`
 
 All fast mode columns, plus:
