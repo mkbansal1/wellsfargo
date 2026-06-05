@@ -133,6 +133,64 @@ function decorateButtons(main) {
 }
 
 /**
+ * Wraps page content into a 70/30 split layout when a section with
+ * data-align="right" exists.
+ *
+ * Strategy:
+ *  - Find the first .section[data-align="right"] — this becomes the right column.
+ *  - Collect every .section that comes after the breadcrumb-container (or from
+ *    the very first .section if there is no breadcrumb) up to (but not including)
+ *    the right-aligned section — these become the left column.
+ *  - Wrap both columns in a .split-layout grid.
+ *
+ * Called after all sections have loaded so section-metadata blocks have already
+ * applied their data-align attributes.
+ * @param {Element} main The main element
+ */
+function wrapAlignedSections(main) {
+  const rightSection = main.querySelector('.section[data-align="right"]');
+  if (!rightSection) return;
+
+  // Collect all direct .section children of main
+  const allSections = [...main.querySelectorAll(':scope > .section')];
+
+  // Start the left column after the breadcrumb (if present), otherwise from index 0
+  const breadcrumbIdx = allSections.findIndex((s) => s.classList.contains('breadcrumb-container'));
+  const startIdx = breadcrumbIdx >= 0 ? breadcrumbIdx + 1 : 0;
+
+  const rightIdx = allSections.indexOf(rightSection);
+  if (rightIdx < 0 || rightIdx <= startIdx) return; // nothing to wrap
+
+  const leftSections = allSections.slice(startIdx, rightIdx);
+  if (leftSections.length === 0) return;
+
+  // Build wrapper
+  const wrapper = document.createElement('div');
+  wrapper.classList.add('split-layout');
+
+  // Left column
+  const leftCol = document.createElement('div');
+  leftCol.classList.add('split-layout-left');
+  leftSections.forEach((s) => leftCol.appendChild(s));
+
+  // Right column
+  const rightCol = document.createElement('div');
+  rightCol.classList.add('split-layout-right');
+  rightCol.appendChild(rightSection);
+
+  wrapper.appendChild(leftCol);
+  wrapper.appendChild(rightCol);
+
+  // Insert wrapper after the breadcrumb section (if present), otherwise prepend to main.
+  const breadcrumbSection = breadcrumbIdx >= 0 ? allSections[breadcrumbIdx] : null;
+  if (breadcrumbSection && breadcrumbSection.parentNode === main) {
+    breadcrumbSection.insertAdjacentElement('afterend', wrapper);
+  } else {
+    main.insertBefore(wrapper, main.firstChild);
+  }
+}
+
+/**
  * Decorates the main element.
  * @param {Element} main The main element
  */
@@ -182,6 +240,9 @@ async function loadLazy(doc) {
 
   const main = doc.querySelector('main');
   await loadSections(main);
+
+  // Group align-left / align-right section pairs into split-layout wrappers
+  wrapAlignedSections(main);
 
   const { hash } = window.location;
   const element = hash ? doc.getElementById(hash.substring(1)) : false;

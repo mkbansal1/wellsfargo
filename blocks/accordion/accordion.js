@@ -1,5 +1,7 @@
 export default function decorate(block) {
   const isNumbered = block.classList.contains('numbered');
+  const isPlusMinus = block.classList.contains('plus-minus');
+  const isAlignRight = block.classList.contains('align-right');
 
   [...block.children].forEach((row, index) => {
     const label = row.children[0];
@@ -11,6 +13,13 @@ export default function decorate(block) {
       number.className = 'accordion-item-number';
       number.textContent = `${index + 1}`;
       summary.append(number);
+    }
+
+    if (isPlusMinus || isAlignRight) {
+      const btn = document.createElement('span');
+      btn.className = 'accordion-plus-btn';
+      btn.setAttribute('aria-hidden', 'true');
+      summary.append(btn);
     }
 
     summary.append(...label.childNodes);

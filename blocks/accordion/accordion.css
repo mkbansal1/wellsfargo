@@ -12,13 +12,10 @@
 .accordion details summary {
   position: relative;
   display: block;
-  padding: 18px 16px 18px 26px;
   cursor: pointer;
   list-style: none;
   font-family: 'Wells Fargo Sans Regular', Arial, Helvetica, sans-serif;
-  font-size: 18px;
   font-weight: 400;
-  line-height: 1.375;
   color: #141414;
 }
 
@@ -40,7 +37,6 @@
   font-family: inherit;
   font-size: inherit;
   font-weight: inherit;
-  line-height: inherit;
   margin: 0;
 }
 
@@ -120,4 +116,231 @@
 
 .accordion.numbered details .accordion-item-body {
   padding-left: 48px;
+}
+
+/* Variation: question link style (c58question) */
+.accordion h3.c58question,
+.accordion h2.c58question {
+  margin: 0;
+  padding: 0 2px 0 28px;
+  text-indent: -28px;
+  font-size: 100%;
+  font-weight: normal;
+  color: #5f5f5f;
+}
+
+.accordion h3.c58question a,
+.accordion h2.c58question a {
+  display: block;
+  padding: 4px 0 4px 8px;
+  color: #5f5f5f;
+  text-decoration: none;
+}
+
+/* plus-minus: remove top/bottom border lines between items */
+.accordion.plus-minus details {
+  border-top: none;
+}
+
+.accordion.plus-minus details:last-child {
+  border-bottom: none;
+}
+
+/* plus-minus: no underline by default; underline on hover */
+.accordion.plus-minus details summary a,
+.accordion.plus-minus details .accordion-item-body a {
+  text-decoration: none;
+}
+
+.accordion.plus-minus details summary a:hover,
+.accordion.plus-minus details .accordion-item-body a:hover {
+  text-decoration: underline;
+}
+
+/* Variation: plus-minus */
+
+/* Authored as | Accordion (plus-minus) |
+   Uses a red + / - square button on the LEFT of each label,
+   matching the Wells Fargo source page style at wellsfargo.com/es/biz/help/faqs/accounts/
+*/
+
+/* summary: flex row, icon then text */
+.accordion.plus-minus details summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+}
+
+/* hide the default sprite ::before icon */
+.accordion.plus-minus details summary::before {
+  display: none;
+}
+
+/* red square + / - button injected by JS */
+.accordion.plus-minus .accordion-plus-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0;
+  width: 20px !important;
+  height: 20px !important;
+  min-width: 20px !important;
+  min-height: 20px !important;
+  background-color: #5f5f5f !important;
+  background-image: none !important;
+  border-radius: 2px;
+  color: #fff !important;
+  font-size: 18px;
+  font-weight: 300;
+  line-height: 1;
+  user-select: none;
+}
+
+/* + when closed */
+.accordion.plus-minus details:not([open]) .accordion-plus-btn::before {
+  content: "+";
+}
+
+/* − when open */
+.accordion.plus-minus details[open] .accordion-plus-btn::before {
+  content: "−";
+}
+
+.accordion.plus-minus details[open] summary {
+  font-weight: 600;
+}
+
+/* body padding aligned with text (icon width 20px + gap 10px) */
+.accordion.plus-minus details .accordion-item-body {
+  padding: 0 16px 12px 46px;
+}
+
+/* ============================================================
+   Variation: align-right
+   Matches Wells Fargo source .c16 / .c16header / .c58question
+   Used inside the right-column sidebar (.split-layout-right).
+   ============================================================ */
+
+/* Item borders (mirrors .c16) */
+.accordion.align-right details {
+  border-top: none;
+  border-bottom: 1px solid #c6b8a8;
+  margin: 0;
+  padding: 0;
+}
+
+.accordion.align-right details:first-child {
+  border-top: 1px solid #c6b8a8;
+}
+
+.accordion.align-right details:last-child {
+  border-bottom: 1px solid #c6b8a8;
+}
+
+/* Summary / header (mirrors .c16header) */
+.accordion.align-right details summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  font-family: 'Wells Fargo Sans Regular', Arial, Helvetica, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #3b3331;
+}
+
+/* Hide the default sprite ::before icon */
+.accordion.align-right details summary::before {
+  display: none;
+}
+
+/* ± button — 16×16, #5f5f5f background */
+.accordion.align-right .accordion-plus-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0;
+  width: 16px !important;
+  height: 16px !important;
+  min-width: 16px !important;
+  min-height: 16px !important;
+  background-color: #5f5f5f !important;
+  background-image: none !important;
+  border-radius: 2px;
+  color: #fff !important;
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 1;
+  user-select: none;
+}
+
+/* + when closed */
+.accordion.align-right details:not([open]) .accordion-plus-btn::before {
+  content: "+";
+}
+
+/* − when open */
+.accordion.align-right details[open] .accordion-plus-btn::before {
+  content: "−";
+}
+
+/* Open state — bold label */
+.accordion.align-right details[open] summary {
+  font-weight: 600;
+}
+
+/* Question headings inside label (mirrors h3.c58question) */
+.accordion.align-right details summary h2,
+.accordion.align-right details summary h3 {
+  margin: 0;
+  padding: 0;
+  font-size: 100%;
+  font-weight: inherit;
+  color: #5f5f5f;
+  line-height: inherit;
+}
+
+/* Question links (mirrors h3.c58question a) */
+.accordion.align-right details summary h2 a,
+.accordion.align-right details summary h3 a,
+.accordion.align-right details summary a {
+  display: block;
+  padding: 4px 0 4px 8px;
+  color: #5f5f5f;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.accordion.align-right details summary h2 a:hover,
+.accordion.align-right details summary h3 a:hover,
+.accordion.align-right details summary a:hover {
+  text-decoration: underline;
+}
+
+/* Body content */
+.accordion.align-right details .accordion-item-body {
+  padding: 4px 0 10px 24px;
+  font-family: 'Wells Fargo Sans Regular', Arial, Helvetica, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #3b3331;
+}
+
+.accordion.align-right details .accordion-item-body p {
+  margin: 0 0 6px;
+}
+
+.accordion.align-right details .accordion-item-body p:last-child {
+  margin-bottom: 0;
+}
+
+.accordion.align-right details .accordion-item-body a {
+  color: #5a469b;
+  text-decoration: none;
+}
+
+.accordion.align-right details .accordion-item-body a:hover {
+  text-decoration: underline;
 }

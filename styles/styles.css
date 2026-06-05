@@ -410,4 +410,135 @@ main .section.heading-bar.center-align h2::before {
   margin: 0 auto 25px;
 }
 
+/* ============================================================
+   Split layout — 70% left column + 30% right column
+   Triggered when a section has Section Metadata → align → right.
+   All content sections after the breadcrumb form the left column;
+   the right-aligned section forms the right column.
+   max-width: 1376px, 52px top/bottom padding.
+   ============================================================ */
+main > .split-layout {
+  display: grid;
+  grid-template-columns: 70% 30%;
+  align-items: start;
+  max-width: 1376px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 52px 0;
+  box-sizing: border-box;
+}
+
+/* Left column — contains all content sections */
+main > .split-layout > .split-layout-left {
+  min-width: 0;
+}
+
+/* Sections inside the left column lose the default outer auto-margin */
+main > .split-layout > .split-layout-left > .section {
+  max-width: none;
+  margin: 0;
+}
+
+/* Right column — sticky so it stays at the top under the nav */
+main > .split-layout > .split-layout-right {
+  min-width: 0;
+  position: sticky;
+  top: var(--nav-height, 68px);
+  align-self: start;
+}
+
+/* Section inside the right column */
+main > .split-layout > .split-layout-right > .section {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* On mobile, stack vertically */
+@media (width < 768px) {
+  main > .split-layout {
+    grid-template-columns: 1fr;
+  }
+
+  main > .split-layout > .split-layout-right {
+    position: static;
+  }
+}
+
+/* ============================================================
+   Right column (.split-layout-right) — matches source .secondaryCol
+   / .c8 / .c8subsection / .c68 styling from wellsfargo.com
+   ============================================================ */
+
+/* Outer panel — light warm background, top border accent */
+.split-layout-right .section {
+  background-color: var(--wf-bg-light, #f9f7f6);
+  border-top: 3px solid var(--wf-red, #d71e28);
+  padding: 16px 20px !important;
+}
+
+/* Section headings (h2) inside right column */
+.split-layout-right .section h2 {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--wf-text-primary, #3b3331);
+  margin: 0 0 10px;
+  padding: 0;
+  border-bottom: 1px solid var(--wf-bg-gray, #e2dede);
+  padding-bottom: 8px;
+}
+
+/* Sub-headings (h3) inside right column */
+.split-layout-right .section h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--wf-text-primary, #3b3331);
+  margin: 14px 0 6px;
+}
+
+/* Body text */
+.split-layout-right .section p {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--wf-text-primary, #3b3331);
+  margin: 0 0 8px;
+}
+
+/* Links */
+.split-layout-right .section a:any-link {
+  color: var(--link-color, #5a469b);
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.split-layout-right .section a:hover {
+  text-decoration: underline;
+}
+
+/* "Make an appointment" / call-to-action links styled as plain text links */
+.split-layout-right .section .button-wrapper a.button {
+  display: inline;
+  min-width: 0;
+  border: none;
+  border-radius: 0;
+  background: none;
+  color: var(--link-color, #5a469b);
+  font-size: 14px;
+  font-weight: 400;
+  padding: 0;
+  text-decoration: none;
+}
+
+.split-layout-right .section .button-wrapper a.button:hover {
+  text-decoration: underline;
+}
+
+/* Subsection dividers */
+.split-layout-right .section > div + div {
+  border-top: 1px solid var(--wf-bg-gray, #e2dede);
+  margin-top: 14px;
+  padding-top: 14px;
+}
+
 /* wealth theme — loaded from /styles/themes/wealth.css via scripts.js */
