@@ -219,7 +219,7 @@ header .nav-primary-tab {
 header .nav-primary-link {
   display: block;
   padding: 16px 20px;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 400;
   color: var(--wf-text-primary);
   white-space: nowrap;
@@ -232,7 +232,7 @@ header .nav-primary-link:hover {
 }
 
 header .nav-primary-tab.active .nav-primary-link {
-  font-weight: 600;
+  font-weight: 700;
   color: var(--wf-dark);
 }
 
@@ -242,7 +242,7 @@ header .nav-primary-tab.active::after {
   bottom: 0;
   left: 20px;
   right: 20px;
-  height: 3px;
+  height: 4px;
   background-color: var(--wf-red);
   border-radius: 2px 2px 0 0;
 }
@@ -606,7 +606,7 @@ header .nav-mobile-util-link:last-child {
   }
 
   header .nav-primary-inner .nav-primary-tabs {
-    padding: 0 12px;
+    padding: 0 12px 0 0;
   }
 
   header .nav-sub-inner {
@@ -618,7 +618,7 @@ header .nav-mobile-util-link:last-child {
   }
 
   header .nav-primary-link {
-    padding: 14px 16px;
+    padding: 23px 20px 13px 21px;
   }
 
   header .nav-sub-link {
@@ -632,7 +632,7 @@ header .nav-mobile-util-link:last-child {
 
 @media (width >= 1400px) {
   header .nav-primary-link {
-    padding: 14px 20px;
+    padding: 23px 21px 13px;
     font-size: 16px;
   }
 
