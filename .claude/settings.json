@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s *)",
+      "Bash(node -e *)",
+      "Bash(node .claude/skills/eds-sitemap-checker/scripts/*)",
+      "Bash(node .claude/skills/eds-seo-validator/scripts/*)",
+      "Bash(node /Users/nishantgupta/Developer/Code/wellsfargo/.claude/skills/eds-sitemap-checker/scripts/*)",
+      "Bash(node /Users/nishantgupta/Developer/Code/wellsfargo/.claude/skills/eds-seo-validator/scripts/*)",
+      "Bash(cd .claude/skills/eds-seo-validator && node scripts/*)",
+      "Bash(cd .claude/skills/eds-seo-validator && npm install*)",
+      "Bash(cd .claude/skills/eds-seo-validator && npx playwright install*)",
+      "Bash(cd .claude/skills/eds-visual-compare && node scripts/*)",
+      "Bash(cd .claude/skills/eds-visual-compare && npm install*)",
+      "Bash(cd .claude/skills/eds-visual-compare && npx playwright install*)",
+      "Bash(node /Users/nishantgupta/Developer/Code/wellsfargo/.claude/skills/eds-visual-compare/scripts/*)",
+      "Bash(mkdir -p /tmp/eds-visual-report*)",
+      "Bash(cd .claude/skills/eds-content-validator && node scripts/*)",
+      "Bash(cd .claude/skills/eds-content-validator && npm install*)",
+      "Bash(cd .claude/skills/eds-content-validator && npx playwright install*)",
+      "Bash(node /Users/nishantgupta/Developer/Code/wellsfargo/.claude/skills/eds-content-validator/scripts/*)",
+      "Bash(mkdir -p /tmp/eds-content-report*)",
+      "Bash(mkdir -p /tmp/eds-content-audit*)"
+    ]
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "eds-visual-compare",
+  "version": "1.0.0",
+  "description": "Visual regression comparison between prod and EDS live — full-page screenshots on desktop, tablet, mobile",
+  "scripts": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "pixelmatch": "7.2.0",
+    "playwright": "1.60.0",
+    "pngjs": "7.0.0"
+  }
+}
