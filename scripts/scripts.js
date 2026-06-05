@@ -164,10 +164,6 @@ function wrapAlignedSections(main) {
   const leftSections = allSections.slice(startIdx, rightIdx);
   if (leftSections.length === 0) return;
 
-  // Record the insertion point BEFORE any DOM moves.
-  // allSections[startIdx] is still a direct child of main at this moment.
-  const insertionPoint = allSections[startIdx];
-
   // Build wrapper
   const wrapper = document.createElement('div');
   wrapper.classList.add('split-layout');
@@ -185,12 +181,7 @@ function wrapAlignedSections(main) {
   wrapper.appendChild(leftCol);
   wrapper.appendChild(rightCol);
 
-  // insertionPoint is now inside leftCol (no longer a child of main).
-  // Insert wrapper before the node that is NOW at that slot in main —
-  // which is whatever came after all left/right sections originally.
-  // We use main.insertBefore with the node that follows the wrapper content.
-  // Since leftSections + rightSection have been moved out, the next remaining
-  // sibling of where they were is already detached, so we just append after breadcrumb.
+  // Insert wrapper after the breadcrumb section (if present), otherwise prepend to main.
   const breadcrumbSection = breadcrumbIdx >= 0 ? allSections[breadcrumbIdx] : null;
   if (breadcrumbSection && breadcrumbSection.parentNode === main) {
     breadcrumbSection.insertAdjacentElement('afterend', wrapper);

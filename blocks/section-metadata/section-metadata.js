@@ -20,7 +20,7 @@ export default function decorate(block) {
     const rawValue = cols[1].textContent.trim();
     const value = rawValue.toLowerCase();
 
- if (key === 'align') {
+    if (key === 'align') {
       // "left" or "right" — used for two-column split layout
       const normalized = value === 'right' ? 'right' : 'left';
       section.dataset.align = normalized;
