@@ -9,7 +9,6 @@ footer {
   font-size: 13px;
   line-height: 1.5;
   border-top: 1px solid #b5adad;
-  padding-bottom: 20px;
 }
 
 footer a {
@@ -22,16 +21,21 @@ footer a:hover {
   color: #f4f0ed;
 }
 
+footer p {
+  padding: 0;
+  margin: 0;
+}
+
 /* ── Wrapper ───────────────────────────────────────────────── */
 footer .footer > div {
-  max-width: 1400px;
+  max-width: 1360px;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 16px;
 }
 
 /* ── Footer Nav Links ─────────────────────────────────────── */
 footer .footer-nav {
-  padding: 24px 0 20px;
+  padding: 24px 0;
 }
 
 footer .footer-nav ul {
@@ -65,11 +69,8 @@ footer .footer-nav ul li:last-child::after {
 
 footer .footer-nav ul li a {
   color: #141414;
-  font-family: 'Wells Fargo Sans Regular', arial, helvetica, sans-serif;
-  font-size: 0.7647rem;
   letter-spacing: 0;
   text-decoration: none;
-  white-space: nowrap;
 }
 
 footer .footer-nav a:hover {
@@ -211,15 +212,14 @@ footer .footer-legal .footer-gray-line {
 /* Copyright */
 footer .footer-legal .footer-copyright,
 footer .footer-nav .footer-copyright {
-  font-size: 12px;
   color: #141414;
-  margin: 0 0 24px;
+  margin: 0;
 }
 
 /* Gray separator line above copyright in nav-only footers */
 footer .footer-nav .footer-gray-line {
-  border: none;
-  margin: 16px 0 12px;
+  border: 0.5px solid #7e7472;
+  margin: 24px 0;
 }
 
 /* Equal Housing Lender in nav-only footers */
@@ -228,7 +228,6 @@ footer .footer-nav .footer-equal-housing {
   align-items: center;
   gap: 8px;
   margin: 8px 0;
-  font-size: 12px;
   color: #141414;
 }
 
@@ -238,7 +237,6 @@ footer .footer-nav .footer-equal-housing {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0;
   }
 
   footer .footer-nav ul li::after {
@@ -248,25 +246,20 @@ footer .footer-nav .footer-equal-housing {
   footer .footer-nav ul li a {
     white-space: nowrap;
   }
-}
 
+  footer .footer-nav .footer-gray-line {
+    border: none;
+  }
+}
 
 /* ── Responsive ───────────────────────────────────────────── */
 @media (width >= 1024px) {
   footer .footer > div {
-    padding: 0 32px;
+    padding: 0 20px;
   }
 
   footer .footer-nav {
     padding: 28px 0 22px;
-  }
-
-  footer .footer-nav ul {
-    gap: 0;
-  }
-
-  footer .footer-nav a {
-    font-size: 13px;
   }
 
   footer .footer-social {

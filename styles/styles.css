@@ -50,7 +50,7 @@
   --heading-font-size-xs: 16px;
 
   /* layout */
-  --nav-height: 68px;
+  --nav-height: 75px;
   --content-max-width: 1400px;
 }
 
@@ -78,11 +78,6 @@
     --heading-font-size-m: 22px;
     --heading-font-size-s: 20px;
     --heading-font-size-xs: 18px;
-  }
-}
-
-@media (width >= 1024px) {
-  :root {
     --nav-height: 165px;
   }
 }
@@ -105,8 +100,10 @@ header {
   height: var(--nav-height);
 }
 
-header.no-subnav {
-  height: 140px;
+@media (width >= 1024px) {
+  header.no-subnav {
+    height: 140px;
+  }
 }
 
 header .header,
@@ -320,7 +317,7 @@ main > .section {
 }
 
 main > .section > div {
-  padding: 0 24px 16px;
+  padding: 0 16px 16px;
 }
 
 main > .section > div.divider-wrapper {
@@ -334,19 +331,27 @@ main > .section.breadcrumb-container + div.section {
   padding-top: 0;
 }
 
+main > .section > div.breadcrumb-wrapper,
+main > .section > div.default-content-wrapper:has(h1:first-of-type),
+main > .section:has(h1:first-of-type) {
+  padding-bottom: 0;
+}
+
 @media (width >= 768px) {
-  main > .section > div {
-    padding: 0 32px 20px;
-  }
-
-  main > .section > div.breadcrumb-wrapper,
-  main > .section > div.default-content-wrapper:has(h1:first-of-type),
-  main > .section:has(h1:first-of-type) {
-    padding-bottom: 0;
-  }
-
   main > .section.narrow-width > div {
     padding: 0 134px 20px;
+  }
+}
+
+@media (width >= 1024px) {
+  main > .section > div {
+    padding: 0 22px 16px;
+  }
+}
+
+@media (width >= 1400px) {
+  main > .section > div {
+    padding: 0 24px 16px;
   }
 }
 
