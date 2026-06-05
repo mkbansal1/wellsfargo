@@ -320,23 +320,23 @@ writeFileSync(path.join(OUTPUT_DIR, 'results.json'), JSON.stringify({
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 const BADGE = {
-  MATCH:         ['#4caf50', 'MATCH'],
-  PARTIAL:       ['#ff9800', 'PARTIAL'],
-  MISMATCH:      ['#f44336', 'MISMATCH'],
-  PROD_BLOCKED:  ['#ff9800', 'PROD BLOCKED'],
+  MATCH:         ['#2D9D78', 'MATCH'],
+  PARTIAL:       ['#E68619', 'PARTIAL'],
+  MISMATCH:      ['#FF0000', 'MISMATCH'],
+  PROD_BLOCKED:  ['#E68619', 'PROD BLOCKED'],
   EDS_NOT_FOUND: ['#9c27b0', 'EDS 404'],
-  ERROR:         ['#9e9e9e', 'ERROR'],
-  COMPARE_ERROR: ['#9e9e9e', 'COMPARE ERROR'],
+  ERROR:         ['#8E8E8E', 'ERROR'],
+  COMPARE_ERROR: ['#8E8E8E', 'COMPARE ERROR'],
 };
 
 const badge = (status, sim) => {
-  const [color, label] = BADGE[status] ?? ['#9e9e9e', status];
+  const [color, label] = BADGE[status] ?? ['#8E8E8E', status];
   const text = sim != null ? `${label}&nbsp;${sim.toFixed(1)}%` : label;
   return `<span class="badge" style="background:${color}">${text}</span>`;
 };
 
 const sectionRows = (sections = []) => sections.map(s => {
-  const color = { MATCH: '#4caf50', PARTIAL: '#ff9800', MISMATCH: '#f44336', MISSING: '#f44336' }[s.status] ?? '#9e9e9e';
+  const color = { MATCH: '#2D9D78', PARTIAL: '#E68619', MISMATCH: '#FF0000', MISSING: '#FF0000' }[s.status] ?? '#8E8E8E';
   return `<tr>
     <td class="sec-heading">${esc(s.heading)}</td>
     <td><span style="background:${color};color:#fff;padding:1px 6px;border-radius:8px;font-size:11px">${s.status}${s.sim != null ? ` ${s.sim.toFixed(0)}%` : ''}</span></td>
@@ -385,37 +385,39 @@ const html = `<!DOCTYPE html>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f4f4f4;color:#222}
-.header{background:#1a1a2e;color:#fff;padding:24px 32px}
-.header h1{font-size:20px;font-weight:600}
-.header p{font-size:12px;color:#aaa;margin-top:5px}
+.header{background:#1B1B1B;color:#fff;padding:24px 32px}
+.header .eyebrow{font-size:11px;color:#FF0000;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:6px}
+.header h1{font-size:22px;font-weight:600;margin-bottom:4px}
+.header p{font-size:12px;color:#aaa;margin-top:3px}
 .stats{display:flex;gap:12px;padding:20px 32px;flex-wrap:wrap}
 .stat{background:#fff;border-radius:8px;padding:14px 20px;box-shadow:0 1px 3px rgba(0,0,0,.1);min-width:110px;text-align:center}
 .stat .val{font-size:26px;font-weight:700}
 .stat .lbl{font-size:11px;color:#888;margin-top:3px;text-transform:uppercase;letter-spacing:.5px}
-.stat.s-match .val{color:#4caf50}.stat.s-partial .val{color:#ff9800}.stat.s-fail .val{color:#f44336}
+.stat.s-match .val{color:#2D9D78}.stat.s-partial .val{color:#E68619}.stat.s-fail .val{color:#FF0000}
 .content{padding:0 32px 40px}
 table{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.1);overflow:hidden;margin-bottom:2px}
-th{background:#f0f0f0;padding:9px 12px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;color:#555;border-bottom:2px solid #e0e0e0}
+th{background:#1B1B1B;padding:9px 12px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;color:#fff;letter-spacing:.5px;border-bottom:none}
 td{padding:8px 12px;border-bottom:1px solid #f0f0f0;vertical-align:top;font-size:13px}
 .page-header td{padding:10px 12px;font-weight:600;font-size:13px;border-top:3px solid #e0e0e0}
 .page-pass{background:#f8fff8}.page-fail{background:#fff6f6}
 .page-path{font-family:monospace;font-size:13px}
 .sim-pct{font-size:11px;color:#888;font-weight:400;margin-left:10px;font-family:monospace}
-.err-note{font-size:11px;color:#f44336;font-weight:400;margin-left:6px}
+.err-note{font-size:11px;color:#FF0000;font-weight:400;margin-left:6px}
 .badge{display:inline-block;color:#fff;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;white-space:nowrap}
 .num{font-family:monospace;font-size:12px;white-space:nowrap}
-.tog{cursor:pointer;font-size:12px;color:#1a73e8;user-select:none}
+.tog{cursor:pointer;font-size:12px;color:#1473E6;user-select:none}
 .tog::-webkit-details-marker{display:none}
-.missing-list{font-size:12px;padding:4px 0 4px 16px;color:#f44336}
+.missing-list{font-size:12px;padding:4px 0 4px 16px;color:#FF0000}
 .sec-table{margin-top:4px;box-shadow:none}
 .sec-heading{font-size:12px;color:#555}
 </style>
 </head>
 <body>
 <div class="header">
+  <div class="eyebrow">AEM Edge Delivery Services</div>
   <h1>Content Comparison — EDS vs Prod</h1>
   <p>Mode: fast (HTTP fetch + Jaccard) &nbsp;·&nbsp; Generated ${new Date().toLocaleString()} &nbsp;·&nbsp; Threshold: ${THRESHOLD}%</p>
-  <p style="margin-top:3px">Prod: ${esc(PROD_BASE)} &rarr; EDS: ${esc(EDS_BASE)}</p>
+  <p>Prod: ${esc(PROD_BASE)} &rarr; EDS: ${esc(EDS_BASE)}</p>
 </div>
 <div class="stats">
   <div class="stat"><div class="val">${results.length}</div><div class="lbl">Pages</div></div>

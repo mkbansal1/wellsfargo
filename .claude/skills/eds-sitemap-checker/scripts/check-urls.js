@@ -33,8 +33,7 @@ async function checkUrl(originalUrl) {
   let path;
   try {
     const parsed = new URL(originalUrl);
-    const raw = parsed.pathname.replace(/\/$/, '') || '/';
-    path = raw + (parsed.search || '');
+    path = parsed.pathname + (parsed.search || '');
   } catch {
     return { original_url: originalUrl, eds_url: '', status: 'INVALID_URL', redirect_location: '' };
   }
@@ -175,45 +174,56 @@ const htmlContent = `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>EDS Sitemap Checker</title>
 <style>
-  body { font-family:Arial,sans-serif; font-size:13px; color:#222; margin:0; padding:20px; background:#f5f5f5; }
-  h1 { font-size:20px; margin-bottom:4px; }
-  .meta { color:#666; font-size:12px; margin-bottom:20px; }
-  .stats { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:20px; }
-  .stat { background:#fff; border-radius:8px; padding:12px 20px; box-shadow:0 1px 3px rgba(0,0,0,.1); }
-  .stat .n { font-size:28px; font-weight:700; }
-  .stat .l { font-size:11px; color:#666; text-transform:uppercase; }
-  table { width:100%; border-collapse:collapse; background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.1); }
-  th { background:#2c3e50; color:#fff; padding:8px 10px; text-align:left; font-size:12px; }
-  td { padding:7px 10px; border-bottom:1px solid #eee; vertical-align:top; font-size:12px; }
-  tr.row-live td { background:#f0faf4; }
-  tr.row-404 td { background:#fff5f5; }
-  tr.row-redirect td { background:#fffbf0; }
-  tr.row-error td { background:#f8f8f8; color:#999; }
-  .label { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:700; letter-spacing:.4px; }
-  .label-live     { background:#27ae60; color:#fff; }
-  .label-404      { background:#e74c3c; color:#fff; }
-  .label-redirect { background:#e67e22; color:#fff; }
-  .label-error    { background:#95a5a6; color:#fff; }
-  a { color:#2980b9; }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;color:#222;background:#f4f4f4}
+  .page-header{background:#1B1B1B;color:#fff;padding:24px 32px}
+  .page-header .eyebrow{font-size:11px;color:#FF0000;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:6px}
+  .page-header h1{font-size:22px;margin:0 0 4px;color:#fff;font-weight:600}
+  .page-header .meta{color:#aaa;font-size:12px}
+  .content{padding:24px 32px 40px}
+  .stats{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px}
+  .stat{background:#fff;border-radius:8px;padding:14px 20px;box-shadow:0 1px 3px rgba(0,0,0,.1);min-width:120px}
+  .stat .n{font-size:28px;font-weight:700}
+  .stat .l{font-size:11px;color:#6E6E6E;text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+  h2{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#444;margin-bottom:12px}
+  table{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+  th{background:#1B1B1B;color:#fff;padding:9px 12px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+  td{padding:8px 12px;border-bottom:1px solid #f0f0f0;vertical-align:top;font-size:12px}
+  tr.row-live td{background:#f0faf4}
+  tr.row-404 td{background:#fff5f5}
+  tr.row-redirect td{background:#fffbf0}
+  tr.row-error td{background:#f8f8f8;color:#999}
+  .label{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:.4px}
+  .label-live{background:#2D9D78;color:#fff}
+  .label-404{background:#FF0000;color:#fff}
+  .label-redirect{background:#E68619;color:#fff}
+  .label-error{background:#8E8E8E;color:#fff}
+  a{color:#1473E6}
 </style>
 </head>
 <body>
-<h1>EDS Sitemap Checker</h1>
-<div class="meta">Generated ${new Date().toISOString()} · ${total} URLs · ${edsBase}</div>
+<div class="page-header">
+  <div class="eyebrow">AEM Edge Delivery Services</div>
+  <h1>EDS Sitemap Checker</h1>
+  <div class="meta">Generated ${new Date().toISOString()} &nbsp;·&nbsp; ${total} URLs &nbsp;·&nbsp; ${edsBase}</div>
+</div>
+<div class="content">
 <div class="stats">
   <div class="stat"><div class="n">${total}</div><div class="l">Total URLs</div></div>
-  <div class="stat"><div class="n" style="color:#27ae60">${ok}</div><div class="l">Live (200)</div></div>
-  <div class="stat"><div class="n" style="color:#e74c3c">${notFound}</div><div class="l">Not Found (404)</div></div>
-  <div class="stat"><div class="n" style="color:#e67e22">${redirects}</div><div class="l">Redirects</div></div>
-  <div class="stat"><div class="n" style="color:#95a5a6">${errors}</div><div class="l">Errors / Timeouts</div></div>
+  <div class="stat"><div class="n" style="color:#2D9D78">${ok}</div><div class="l">Live (200)</div></div>
+  <div class="stat"><div class="n" style="color:#FF0000">${notFound}</div><div class="l">Not Found (404)</div></div>
+  <div class="stat"><div class="n" style="color:#E68619">${redirects}</div><div class="l">Redirects</div></div>
+  <div class="stat"><div class="n" style="color:#8E8E8E">${errors}</div><div class="l">Errors / Timeouts</div></div>
 </div>
-<h2 style="font-size:15px">All URLs (${total})</h2>
+<h2>All URLs (${total})</h2>
 <table>
   <thead><tr><th>Result</th><th>EDS URL</th><th>Status</th><th>Redirect Target</th></tr></thead>
   <tbody>${allRows}</tbody>
 </table>
+</div>
 </body>
 </html>`;
 

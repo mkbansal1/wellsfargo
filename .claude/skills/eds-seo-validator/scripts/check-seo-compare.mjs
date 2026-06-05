@@ -93,18 +93,6 @@ const CRITICAL_FIELDS = new Set([
   'title', 'description', 'canonical', 'ogTitle', 'ogDescription', 'ogImage', 'h1',
 ]);
 
-// ─── WAF / bot-block detector ─────────────────────────────────────────────────
-const WAF_TITLES = new Set([
-  'request rejected', 'access denied', 'forbidden', '403 forbidden',
-  '401 unauthorized', 'blocked', 'security check',
-]);
-
-function isWafBlocked(html) {
-  if (!html) return false;
-  const title = (html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] || '').replace(/\s+/g, ' ').trim().toLowerCase();
-  return WAF_TITLES.has(title);
-}
-
 // ─── HTML extractor (regex — no dependencies) ─────────────────────────────────
 function extractMeta(html) {
   const metaContent = (nameOrProp, attr = 'name') => {
@@ -145,19 +133,11 @@ function extractMeta(html) {
   };
 }
 
-// ─── HTML entity decoder ──────────────────────────────────────────────────────
-function decodeHtml(str) {
-  return (str || '').replace(/&#x([0-9a-f]+);/gi, (_, hex) => String.fromCodePoint(parseInt(hex, 16)))
-    .replace(/&#(\d+);/g, (_, dec) => String.fromCodePoint(Number(dec)))
-    .replace(/&amp;/gi, '&').replace(/&lt;/gi, '<').replace(/&gt;/gi, '>')
-    .replace(/&quot;/gi, '"').replace(/&apos;/gi, "'").replace(/&nbsp;/gi, ' ');
-}
-
 // ─── Normalise before comparison (trim + collapse whitespace + lowercase URLs) ─
 function normalise(value, isUrl = false) {
-  const v = decodeHtml((value || '').replace(/\s+/g, ' ').trim());
+  const v = (value || '').replace(/\s+/g, ' ').trim();
   if (isUrl) {
-    try { const u = new URL(v); return u.pathname.replace(/\/$/, '') + (u.search || ''); } catch { return v.toLowerCase(); }
+    try { return new URL(v).pathname + new URL(v).search; } catch { return v.toLowerCase(); }
   }
   return v;
 }
@@ -199,8 +179,7 @@ async function processUrl(originalUrl) {
   let path;
   try {
     const parsed = new URL(originalUrl);
-    const raw = parsed.pathname.replace(/\/$/, '') || '/';
-    path = raw + (parsed.search || '');
+    path = parsed.pathname + (parsed.search || '');
   } catch {
     return makeErrorRow(originalUrl, '', '', 'INVALID_URL', 'INVALID_URL', 'Invalid URL in sitemap');
   }
@@ -214,8 +193,7 @@ async function processUrl(originalUrl) {
     fetchHtml(edsUrl,  authEdsHeaders),
   ]);
 
-  const prodBlocked = prod.status === 200 && isWafBlocked(prod.html);
-  const prodMeta = prod.html && !prodBlocked ? extractMeta(prod.html) : null;
+  const prodMeta = prod.html ? extractMeta(prod.html) : null;
   const edsMeta  = eds.html  ? extractMeta(eds.html)  : null;
 
   // Determine migration status
@@ -224,7 +202,7 @@ async function processUrl(originalUrl) {
     migrationStatus = 'BOTH_NOT_FOUND';
   } else if (eds.status !== 200) {
     migrationStatus = 'NOT_MIGRATED';
-  } else if (prod.status !== 200 || prodBlocked) {
+  } else if (prod.status !== 200) {
     migrationStatus = 'PROD_NOT_FOUND';
   } else {
     migrationStatus = 'CHECK_PENDING'; // resolved after diffs
@@ -470,3 +448,149 @@ if (notMigrated > 0) {
 }
 
 console.log(`\n  CSV report: ${outputCsvFile}`);
+
+// ─── HTML report ──────────────────────────────────────────────────────────────
+const htmlPath = outputCsvFile.replace(/\.csv$/i, '.html');
+const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+const statusBadge = status => {
+  const map = {
+    FULLY_MATCHED: ['#2D9D78', 'MATCHED'],
+    HAS_GAPS:      ['#E68619', 'HAS GAPS'],
+    NOT_MIGRATED:  ['#8E8E8E', 'NOT MIGRATED'],
+    PROD_NOT_FOUND:['#8E8E8E', 'PROD 404'],
+    BOTH_NOT_FOUND:['#8E8E8E', 'BOTH 404'],
+    ERROR:         ['#FF0000', 'ERROR'],
+  };
+  const [bg, label] = map[status] || ['#8E8E8E', status];
+  return `<span class="badge" style="background:${bg}">${label}</span>`;
+};
+
+const diffBadge = val => {
+  const map = {
+    MATCH:           ['#2D9D78', 'MATCH'],
+    DIFFERENT:       ['#E68619', 'DIFF'],
+    MISSING_ON_EDS:  ['#FF0000', 'MISS EDS'],
+    MISSING_ON_PROD: ['#1473E6', 'MISS PROD'],
+    BOTH_MISSING:    ['#8E8E8E', 'BOTH MISS'],
+    NOT_MIGRATED:    ['#8E8E8E', '—'],
+    PROD_404:        ['#8E8E8E', '—'],
+  };
+  if (!val) return '';
+  const [bg, label] = map[val] || ['#8E8E8E', val];
+  return `<span class="badge" style="background:${bg};font-size:9px">${label}</span>`;
+};
+
+const DIFF_FIELDS_DISPLAY = [
+  ['title', 'Title'],
+  ['description', 'Description'],
+  ['h1', 'H1'],
+  ['canonical', 'Canonical'],
+  ['og_title', 'OG Title'],
+  ['og_description', 'OG Desc'],
+  ['og_image', 'OG Image'],
+  ['og_type', 'OG Type'],
+  ['og_site_name', 'OG Site'],
+  ['twitter_card', 'TW Card'],
+  ['twitter_title', 'TW Title'],
+  ['twitter_description', 'TW Desc'],
+  ['twitter_image', 'TW Image'],
+  ['twitter_site', 'TW Site'],
+  ['keywords', 'Keywords'],
+  ['robots_meta', 'Robots'],
+];
+
+const sortedResults = [...results].sort((a, b) => {
+  const order = { HAS_GAPS: 0, NOT_MIGRATED: 1, FULLY_MATCHED: 2, PROD_NOT_FOUND: 3, BOTH_NOT_FOUND: 4, ERROR: 5 };
+  return (order[a.migration_status] ?? 9) - (order[b.migration_status] ?? 9)
+    || (b.critical_gaps_count - a.critical_gaps_count)
+    || (b.gaps_count - a.gaps_count);
+});
+
+const tableRows = sortedResults.map(r => {
+  const path = (() => { try { return new URL(r.eds_url || r.original_url).pathname; } catch (_) { return r.eds_url || r.original_url; } })();
+  const diffCells = DIFF_FIELDS_DISPLAY.map(([key]) => `<td style="text-align:center">${diffBadge(r[`diff_${key}`])}</td>`).join('');
+  const rowClass = r.migration_status === 'FULLY_MATCHED' ? 'row-pass'
+    : r.migration_status === 'HAS_GAPS' ? (r.critical_gaps_count > 0 ? 'row-fail' : 'row-warn')
+    : 'row-na';
+  const gapsHtml = r.gaps ? `<div style="font-size:10px;color:#666;margin-top:2px">${esc(r.gaps)}</div>` : '';
+  return `
+    <tr class="${rowClass}">
+      <td>${statusBadge(r.migration_status)}</td>
+      <td><a href="${esc(r.eds_url)}" target="_blank">${esc(path)}</a>${gapsHtml}</td>
+      <td style="text-align:center;color:${r.critical_gaps_count > 0 ? '#FF0000' : '#666'}">${r.critical_gaps_count || ''}</td>
+      <td style="text-align:center">${r.gaps_count || ''}</td>
+      ${diffCells}
+    </tr>`;
+}).join('');
+
+const diffHeaders = DIFF_FIELDS_DISPLAY.map(([, label]) => `<th>${label}</th>`).join('');
+
+const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EDS SEO Migration Compare</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;color:#222;background:#f4f4f4}
+  .page-header{background:#1B1B1B;color:#fff;padding:24px 32px}
+  .page-header .eyebrow{font-size:11px;color:#FF0000;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:6px}
+  .page-header h1{font-size:22px;margin:0 0 4px;color:#fff;font-weight:600}
+  .page-header .meta{color:#aaa;font-size:12px}
+  .content{padding:24px 32px 40px;overflow-x:auto}
+  .stats{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px}
+  .stat{background:#fff;border-radius:8px;padding:14px 20px;box-shadow:0 1px 3px rgba(0,0,0,.1);min-width:120px}
+  .stat .n{font-size:28px;font-weight:700}
+  .stat .l{font-size:11px;color:#6E6E6E;text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+  h2{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#444;margin-bottom:12px}
+  table{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+  th{background:#1B1B1B;color:#fff;padding:8px 10px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+  td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:top;font-size:11px}
+  tr.row-pass td{background:#f0faf4}
+  tr.row-fail td{background:#fff5f5}
+  tr.row-warn td{background:#fffbf0}
+  tr.row-na td{background:#f8f8f8;color:#999}
+  .badge{display:inline-block;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:700;color:#fff;white-space:nowrap}
+  a{color:#1473E6}
+  .legend{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;font-size:11px;align-items:center}
+  .legend span{display:inline-flex;align-items:center;gap:4px}
+</style>
+</head>
+<body>
+<div class="page-header">
+  <div class="eyebrow">AEM Edge Delivery Services</div>
+  <h1>EDS SEO Migration Compare</h1>
+  <div class="meta">Generated ${new Date().toISOString()} &nbsp;·&nbsp; ${total} URLs &nbsp;·&nbsp; Prod: ${prodBase} &nbsp;→&nbsp; EDS: ${edsBase}</div>
+</div>
+<div class="content">
+<div class="stats">
+  <div class="stat"><div class="n">${total}</div><div class="l">Total</div></div>
+  <div class="stat"><div class="n" style="color:#2D9D78">${fullyMatched}</div><div class="l">Fully Matched</div></div>
+  <div class="stat"><div class="n" style="color:#E68619">${hasGaps}</div><div class="l">Has Gaps</div></div>
+  <div class="stat"><div class="n" style="color:#FF0000">${withCritical}</div><div class="l">Critical Gaps</div></div>
+  <div class="stat"><div class="n" style="color:#8E8E8E">${notMigrated}</div><div class="l">Not Migrated</div></div>
+</div>
+<div class="legend">
+  <strong>Diff legend:</strong>
+  <span><span class="badge" style="background:#2D9D78">MATCH</span> Identical</span>
+  <span><span class="badge" style="background:#E68619;font-size:9px">DIFF</span> Different</span>
+  <span><span class="badge" style="background:#FF0000;font-size:9px">MISS EDS</span> Missing on EDS</span>
+  <span><span class="badge" style="background:#1473E6;font-size:9px">MISS PROD</span> Missing on Prod</span>
+  <span><span class="badge" style="background:#8E8E8E;font-size:9px">BOTH MISS</span> Both missing</span>
+</div>
+<h2>All Pages (${total})</h2>
+<table>
+  <thead><tr>
+    <th>Status</th><th>Page</th><th>Critical</th><th>Gaps</th>
+    ${diffHeaders}
+  </tr></thead>
+  <tbody>${tableRows}</tbody>
+</table>
+</div>
+</body>
+</html>`;
+
+writeFileSync(htmlPath, htmlContent);
+console.log(`  HTML report: ${htmlPath}`);

@@ -287,16 +287,16 @@ function generateReport(results) {
   const errors   = allVp.filter(v => ['ERROR', 'DIFF_ERROR', 'EDS_NOT_FOUND'].includes(v.status)).length;
 
   const BADGE = {
-    PASS:          ['#4caf50', 'PASS'],
-    FAIL:          ['#f44336', 'FAIL'],
-    PROD_BLOCKED:  ['#ff9800', 'PROD BLOCKED'],
+    PASS:          ['#2D9D78', 'PASS'],
+    FAIL:          ['#FF0000', 'FAIL'],
+    PROD_BLOCKED:  ['#E68619', 'PROD BLOCKED'],
     EDS_NOT_FOUND: ['#9c27b0', 'EDS 404'],
-    ERROR:         ['#9e9e9e', 'ERROR'],
-    DIFF_ERROR:    ['#9e9e9e', 'DIFF ERROR'],
+    ERROR:         ['#8E8E8E', 'ERROR'],
+    DIFF_ERROR:    ['#8E8E8E', 'DIFF ERROR'],
   };
 
   const badge = (status, pct) => {
-    const [color, label] = BADGE[status] || ['#9e9e9e', status];
+    const [color, label] = BADGE[status] || ['#8E8E8E', status];
     const text = status === 'FAIL' && pct != null
       ? `FAIL &nbsp;${pct.toFixed(1)}%`
       : label;
@@ -305,7 +305,7 @@ function generateReport(results) {
 
   const imgPanel = (label, src, isHighlight) => {
     if (!src) return '';
-    const border = isHighlight ? 'border:2px solid #f44336' : 'border:1px solid #ddd';
+    const border = isHighlight ? 'border:2px solid #FF0000' : 'border:1px solid #ddd';
     return `
       <div class="img-panel">
         <div class="img-label">${label}</div>
@@ -368,19 +368,20 @@ function generateReport(results) {
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;background:#f4f4f4;color:#222}
-.header{background:#1a1a2e;color:#fff;padding:24px 32px}
-.header h1{font-size:20px;font-weight:600}
-.header p{font-size:12px;color:#aaa;margin-top:5px}
+.header{background:#1B1B1B;color:#fff;padding:24px 32px}
+.header .eyebrow{font-size:11px;color:#FF0000;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:6px}
+.header h1{font-size:22px;font-weight:600;margin-bottom:4px}
+.header p{font-size:12px;color:#aaa;margin-top:3px}
 .stats{display:flex;gap:12px;padding:20px 32px;flex-wrap:wrap}
 .stat{background:#fff;border-radius:8px;padding:14px 20px;box-shadow:0 1px 3px rgba(0,0,0,.1);min-width:110px;text-align:center}
 .stat .val{font-size:26px;font-weight:700}
 .stat .lbl{font-size:11px;color:#888;margin-top:3px;text-transform:uppercase;letter-spacing:.5px}
-.stat.s-fail .val{color:#f44336}
-.stat.s-pass .val{color:#4caf50}
-.stat.s-warn .val{color:#ff9800}
+.stat.s-fail .val{color:#FF0000}
+.stat.s-pass .val{color:#2D9D78}
+.stat.s-warn .val{color:#E68619}
 .content{padding:0 32px 40px}
 table{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.1);overflow:hidden;margin-bottom:2px}
-th{background:#f0f0f0;padding:9px 12px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;color:#555;border-bottom:2px solid #e0e0e0}
+th{background:#1B1B1B;padding:9px 12px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;color:#fff;letter-spacing:.5px;border-bottom:none}
 td{padding:8px 12px;border-bottom:1px solid #f0f0f0;vertical-align:top;font-size:13px}
 .page-header td{padding:10px 12px;font-weight:600;font-size:13px;border-top:3px solid #e0e0e0}
 .page-pass{background:#f8fff8}.page-fail{background:#fff6f6}
@@ -391,7 +392,7 @@ td{padding:8px 12px;border-bottom:1px solid #f0f0f0;vertical-align:top;font-size
 .diff-pct{font-family:monospace;font-size:12px;width:90px}
 .badge{display:inline-block;color:#fff;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;white-space:nowrap}
 .height-note{display:block;font-size:11px;color:#aaa;font-family:monospace;margin-bottom:4px}
-.ss-toggle{cursor:pointer;font-size:12px;color:#1a73e8;list-style:none;user-select:none}
+.ss-toggle{cursor:pointer;font-size:12px;color:#1473E6;list-style:none;user-select:none}
 .ss-toggle::-webkit-details-marker{display:none}
 .ss-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
 .img-panel .img-label{font-size:10px;font-weight:700;text-transform:uppercase;color:#888;margin-bottom:3px}
@@ -400,9 +401,10 @@ td{padding:8px 12px;border-bottom:1px solid #f0f0f0;vertical-align:top;font-size
 </head>
 <body>
 <div class="header">
+  <div class="eyebrow">AEM Edge Delivery Services</div>
   <h1>Visual Regression — EDS vs Prod</h1>
   <p>Generated ${new Date().toLocaleString()} &nbsp;·&nbsp; Threshold: ${THRESHOLD}% &nbsp;·&nbsp; Viewports: ${SELECTED_VIEWPORTS.join(', ')}</p>
-  <p style="margin-top:3px">Prod: ${prodBase} &rarr; EDS: ${edsBase}</p>
+  <p>Prod: ${prodBase} &rarr; EDS: ${edsBase}</p>
 </div>
 <div class="stats">
   <div class="stat"><div class="val">${results.length}</div><div class="lbl">Pages</div></div>

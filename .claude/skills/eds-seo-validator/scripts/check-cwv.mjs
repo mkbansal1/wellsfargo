@@ -303,7 +303,7 @@ const scoreLabel = r => {
 };
 
 const metricCell = (value, rating, display) => {
-  const colours = { GOOD: '#27ae60', NEEDS_IMPROVEMENT: '#e67e22', POOR: '#e74c3c' };
+  const colours = { GOOD: '#2D9D78', NEEDS_IMPROVEMENT: '#E68619', POOR: '#FF0000' };
   const col = colours[rating] ?? '#666';
   return `<span style="color:${col};font-weight:600">${esc(display ?? (value != null ? String(value) : '—'))}</span>`;
 };
@@ -332,51 +332,89 @@ for (const strat of strategies) {
 }
 
 const stratBadge = strat =>
-  `<span style="background:${strat==='mobile'?'#2980b9':'#8e44ad'};color:#fff;padding:2px 7px;border-radius:4px;font-size:11px;font-weight:700">${strat}</span>`;
+  `<span style="background:${strat==='mobile'?'#1473E6':'#7326D3'};color:#fff;padding:2px 7px;border-radius:4px;font-size:11px;font-weight:700">${strat}</span>`;
 
 const statsHtml = strategies.map(strat => {
   const s = statsByStrat[strat];
   const heading = isBoth ? `<h3 style="margin:0 0 10px;font-size:13px;color:#444">${stratBadge(strat)}</h3>` : '';
   return `${heading}<div class="stats">
   <div class="stat"><div class="n">${s.total}</div><div class="l">Total Pages</div></div>
-  <div class="stat"><div class="n" style="color:#2c3e50">${s.avgScore ?? '—'}</div><div class="l">Avg Perf Score</div></div>
-  <div class="stat"><div class="n" style="color:#27ae60">${s.sb.excellent}</div><div class="l">Excellent (90+)</div></div>
-  <div class="stat"><div class="n" style="color:#27ae60">${s.sb.good}</div><div class="l">Good (75–89)</div></div>
-  <div class="stat"><div class="n" style="color:#e67e22">${s.sb.needs_improvement}</div><div class="l">Needs Work (50–74)</div></div>
-  <div class="stat"><div class="n" style="color:#e74c3c">${s.sb.poor}</div><div class="l">Poor (&lt;50)</div></div>
-  <div class="stat"><div class="n" style="color:#95a5a6">${s.errored}</div><div class="l">Errors</div></div>
+  <div class="stat"><div class="n" style="color:#1B1B1B">${s.avgScore ?? '—'}</div><div class="l">Avg Perf Score</div></div>
+  <div class="stat"><div class="n" style="color:#2D9D78">${s.sb.excellent}</div><div class="l">Excellent (90+)</div></div>
+  <div class="stat"><div class="n" style="color:#2D9D78">${s.sb.good}</div><div class="l">Good (75–89)</div></div>
+  <div class="stat"><div class="n" style="color:#E68619">${s.sb.needs_improvement}</div><div class="l">Needs Work (50–74)</div></div>
+  <div class="stat"><div class="n" style="color:#FF0000">${s.sb.poor}</div><div class="l">Poor (&lt;50)</div></div>
+  <div class="stat"><div class="n" style="color:#8E8E8E">${s.errored}</div><div class="l">Errors</div></div>
 </div>`;
 }).join('<hr style="margin:16px 0;border:none;border-top:1px solid #ddd">');
 
-// Sort: by strategy order, then worst-first within each strategy
-const sortedResults = [...allResults].sort((a, b) => {
-  const so = strategies.indexOf(a.strat) - strategies.indexOf(b.strat);
-  return so !== 0 ? so : sortPriority(a) - sortPriority(b);
+// ─── Group by URL for side-by-side mobile+desktop layout ─────────────────────
+const byUrl = {};
+for (const r of allResults) {
+  if (!byUrl[r.url]) byUrl[r.url] = {};
+  byUrl[r.url][r.strat] = r;
+}
+const urlList = [...new Set(allResults.map(r => r.url))];
+
+// Sort: worst mobile (or desktop) score first
+const sortedUrls = urlList.sort((a, b) => {
+  const worstOf = url => {
+    const scores = strategies.map(s => byUrl[url][s]?.lab?.score).filter(s => s != null);
+    return scores.length ? Math.min(...scores) : (byUrl[url][strategies[0]]?.error ? -1 : 100);
+  };
+  return worstOf(a) - worstOf(b);
 });
 
-const stratHeader = isBoth ? '<th>Strategy</th>' : '';
+const scoreCell = r => {
+  if (!r) return `<td style="text-align:center;color:#ccc">—</td>`;
+  if (r.error) return `<td style="text-align:center;color:#999;font-size:10px">${esc(r.error.slice(0, 40))}</td>`;
+  const s = r.lab?.score;
+  if (s == null) return `<td style="text-align:center">—</td>`;
+  const col = s >= 90 ? '#2D9D78' : s >= 75 ? '#E68619' : '#FF0000';
+  return `<td style="text-align:center;font-weight:700;font-size:15px;color:${col}">${s}</td>`;
+};
 
-const allRows = sortedResults.map(r => {
-  const path = (() => { try { return new URL(r.url).pathname; } catch (_) { return r.url; } })();
+const mCell = (r, metric, threshold, displayKey) => {
+  if (!r || r.error) return '<td style="color:#ccc">—</td>';
   const l = r.lab ?? {};
-  const f = r.field ?? {};
-  const rc = r.error ? 'row-error' : (l.score ?? 0) >= 90 ? 'row-good' : (l.score ?? 0) >= 75 ? 'row-fair' : 'row-poor';
-  const issueHtml = (r.issues || []).length
-    ? `<ul style="margin:0;padding-left:16px">${(r.issues || []).map(i => `<li>${esc(i)}</li>`).join('')}</ul>`
+  return `<td>${metricCell(l[metric], rate(l[metric], threshold), l[displayKey])}</td>`;
+};
+
+const allRows = sortedUrls.map(url => {
+  const mob  = isBoth ? byUrl[url]['mobile']  : byUrl[url][strategies[0]];
+  const desk = isBoth ? byUrl[url]['desktop'] : null;
+  const path = (() => { try { return new URL(url).pathname; } catch (_) { return url; } })();
+
+  const worstScore = Math.min(mob?.lab?.score ?? 100, desk?.lab?.score ?? 100);
+  const hasError   = mob?.error || desk?.error;
+  const rc = hasError ? 'row-error' : worstScore >= 90 ? 'row-good' : worstScore >= 75 ? 'row-fair' : 'row-poor';
+
+  const allIssues = [...new Set([...(mob?.issues || []), ...(desk?.issues || [])])];
+  const issueHtml = allIssues.length
+    ? `<ul style="margin:0;padding-left:16px">${allIssues.map(i => `<li>${esc(i)}</li>`).join('')}</ul>`
     : '';
-  const scoreDisplay = l.score != null ? `<strong>${l.score}</strong>` : r.error ? `<span style="color:#999">${esc(r.error.slice(0, 60))}</span>` : '—';
-  const stratCell = isBoth ? `<td>${stratBadge(r.strat)}</td>` : '';
+
+  const mobCells = isBoth ? `
+      ${scoreCell(mob)}
+      ${mCell(mob, 'lcp_ms', T.lcp, 'lcp_display')}
+      ${mCell(mob, 'fcp_ms', T.fcp, 'fcp_display')}
+      ${mCell(mob, 'cls', T.cls, 'cls_display')}
+      ${mCell(mob, 'ttfb_ms', T.ttfb, 'ttfb_display')}
+      ${scoreCell(desk)}
+      ${mCell(desk, 'lcp_ms', T.lcp, 'lcp_display')}
+      ${mCell(desk, 'fcp_ms', T.fcp, 'fcp_display')}
+      ${mCell(desk, 'cls', T.cls, 'cls_display')}
+      ${mCell(desk, 'ttfb_ms', T.ttfb, 'ttfb_display')}` : `
+      ${scoreCell(mob)}
+      ${mCell(mob, 'lcp_ms', T.lcp, 'lcp_display')}
+      ${mCell(mob, 'fcp_ms', T.fcp, 'fcp_display')}
+      ${mCell(mob, 'cls', T.cls, 'cls_display')}
+      ${mCell(mob, 'ttfb_ms', T.ttfb, 'ttfb_display')}`;
+
   return `
     <tr class="${rc}">
-      <td>${scoreLabel(r)}</td>
-      ${stratCell}
-      <td><a href="${esc(r.url)}" target="_blank">${esc(path)}</a></td>
-      <td style="text-align:center">${scoreDisplay}</td>
-      <td>${metricCell(l.lcp_ms, rate(l.lcp_ms, T.lcp), l.lcp_display)}</td>
-      <td>${metricCell(l.fcp_ms, rate(l.fcp_ms, T.fcp), l.fcp_display)}</td>
-      <td>${metricCell(l.cls, rate(l.cls, T.cls), l.cls_display)}</td>
-      <td>${metricCell(l.ttfb_ms, rate(l.ttfb_ms, T.ttfb), l.ttfb_display)}</td>
-      <td>${f.overall ? `<span style="color:${f.overall==='FAST'?'#27ae60':f.overall==='SLOW'?'#e74c3c':'#e67e22'}">${esc(f.overall)}</span>` : '—'}</td>
+      <td><a href="${esc(url)}" target="_blank">${esc(path)}</a></td>
+      ${mobCells}
       <td>${issueHtml}</td>
     </tr>`;
 }).join('');
@@ -385,41 +423,67 @@ const htmlContent = `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>EDS CWV Report</title>
 <style>
-  body { font-family:Arial,sans-serif; font-size:13px; color:#222; margin:0; padding:20px; background:#f5f5f5; }
-  h1 { font-size:20px; margin-bottom:4px; }
-  .meta { color:#666; font-size:12px; margin-bottom:20px; }
-  .stats { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:12px; }
-  .stat { background:#fff; border-radius:8px; padding:12px 20px; box-shadow:0 1px 3px rgba(0,0,0,.1); }
-  .stat .n { font-size:28px; font-weight:700; }
-  .stat .l { font-size:11px; color:#666; text-transform:uppercase; }
-  table { width:100%; border-collapse:collapse; background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.1); }
-  th { background:#2c3e50; color:#fff; padding:8px 10px; text-align:left; font-size:12px; }
-  td { padding:7px 10px; border-bottom:1px solid #eee; vertical-align:top; font-size:12px; }
-  tr.row-good td { background:#f0faf4; }
-  tr.row-fair td { background:#fffbf0; }
-  tr.row-poor td { background:#fff5f5; }
-  tr.row-error td { background:#f8f8f8; color:#999; }
-  .label { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:700; letter-spacing:.4px; }
-  .label-good  { background:#27ae60; color:#fff; }
-  .label-fair  { background:#e67e22; color:#fff; }
-  .label-poor  { background:#e74c3c; color:#fff; }
-  .label-error { background:#95a5a6; color:#fff; }
-  ul { list-style:disc; margin:0; padding-left:16px; }
-  li { margin-bottom:3px; }
-  a { color:#2980b9; }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;color:#222;background:#f4f4f4}
+  .page-header{background:#1B1B1B;color:#fff;padding:24px 32px}
+  .page-header .eyebrow{font-size:11px;color:#FF0000;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:6px}
+  .page-header h1{font-size:22px;margin:0 0 4px;color:#fff;font-weight:600}
+  .page-header .meta{color:#aaa;font-size:12px}
+  .content{padding:24px 32px 40px}
+  .stats{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px}
+  .stat{background:#fff;border-radius:8px;padding:14px 20px;box-shadow:0 1px 3px rgba(0,0,0,.1);min-width:120px}
+  .stat .n{font-size:28px;font-weight:700}
+  .stat .l{font-size:11px;color:#6E6E6E;text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+  h2{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#444;margin-bottom:12px;margin-top:24px}
+  table{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+  th{background:#1B1B1B;color:#fff;padding:9px 12px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+  td{padding:8px 12px;border-bottom:1px solid #f0f0f0;vertical-align:top;font-size:12px}
+  tr.row-good td{background:#f0faf4}
+  tr.row-fair td{background:#fffbf0}
+  tr.row-poor td{background:#fff5f5}
+  tr.row-error td{background:#f8f8f8;color:#999}
+  .label{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:.4px}
+  .label-good{background:#2D9D78;color:#fff}
+  .label-fair{background:#E68619;color:#fff}
+  .label-poor{background:#FF0000;color:#fff}
+  .label-error{background:#8E8E8E;color:#fff}
+  ul{list-style:disc;margin:0;padding-left:16px}
+  li{margin-bottom:3px}
+  a{color:#1473E6}
 </style>
 </head>
 <body>
-<h1>EDS Core Web Vitals Report</h1>
-<div class="meta">Generated ${new Date().toISOString()} · ${uniqueUrls.length} pages · ${strategies.join(' + ')}</div>
+<div class="page-header">
+  <div class="eyebrow">AEM Edge Delivery Services</div>
+  <h1>EDS Core Web Vitals Report</h1>
+  <div class="meta">Generated ${new Date().toISOString()} &nbsp;·&nbsp; ${uniqueUrls.length} pages &nbsp;·&nbsp; ${strategies.join(' + ')}</div>
+</div>
+<div class="content">
 ${statsHtml}
-<h2 style="font-size:15px;margin-top:24px">All results (${allResults.length})</h2>
+<h2>All results (${urlList.length} pages)</h2>
 <table>
-  <thead><tr><th>Result</th>${stratHeader}<th>Page</th><th>Score</th><th>LCP</th><th>FCP</th><th>CLS</th><th>TTFB</th><th>Field</th><th>Issues</th></tr></thead>
+  <thead>
+    ${isBoth ? `
+    <tr>
+      <th rowspan="2" style="vertical-align:bottom">Page</th>
+      <th colspan="5" style="text-align:center;background:#1473E6;border-right:2px solid #0d5dbf">Mobile</th>
+      <th colspan="5" style="text-align:center;background:#7326D3;border-right:2px solid #5a1dab">Desktop</th>
+      <th rowspan="2" style="vertical-align:bottom">Issues</th>
+    </tr>
+    <tr>
+      <th style="background:#1473E6">Score</th><th style="background:#1473E6">LCP</th><th style="background:#1473E6">FCP</th><th style="background:#1473E6">CLS</th><th style="background:#1473E6;border-right:2px solid #0d5dbf">TTFB</th>
+      <th style="background:#7326D3">Score</th><th style="background:#7326D3">LCP</th><th style="background:#7326D3">FCP</th><th style="background:#7326D3">CLS</th><th style="background:#7326D3;border-right:2px solid #5a1dab">TTFB</th>
+    </tr>` : `
+    <tr>
+      <th>Page</th><th>Score</th><th>LCP</th><th>FCP</th><th>CLS</th><th>TTFB</th><th>Issues</th>
+    </tr>`}
+  </thead>
   <tbody>${allRows}</tbody>
 </table>
+</div>
 </body>
 </html>`;
 

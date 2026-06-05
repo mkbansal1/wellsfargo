@@ -571,8 +571,8 @@ const HTML_PATH = path.join(OUTPUT_DIR, 'index.html');
 const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
 const categoryBadge = cat => {
-  const colours = { COMPLETENESS: '#e67e22', IMAGES: '#8e44ad', LINKS: '#2980b9', QUALITY: '#27ae60', VIDEOS: '#c0392b', FETCH: '#7f8c8d' };
-  const bg = colours[cat] ?? '#95a5a6';
+  const colours = { COMPLETENESS: '#E68619', IMAGES: '#7326D3', LINKS: '#1473E6', QUALITY: '#2D9D78', VIDEOS: '#CC0000', FETCH: '#6E6E6E' };
+  const bg = colours[cat] ?? '#8E8E8E';
   return `<span style="background:${bg};color:#fff;padding:1px 6px;border-radius:3px;font-size:11px;font-weight:600">${esc(cat)}</span>`;
 };
 
@@ -619,45 +619,56 @@ const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>EDS Site Audit</title>
 <style>
-  body { font-family: Arial,sans-serif; font-size:13px; color:#222; margin:0; padding:20px; background:#f5f5f5; }
-  h1 { font-size:20px; margin-bottom:4px; }
-  .meta { color:#666; font-size:12px; margin-bottom:20px; }
-  .stats { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:20px; }
-  .stat { background:#fff; border-radius:8px; padding:12px 20px; box-shadow:0 1px 3px rgba(0,0,0,.1); }
-  .stat .n { font-size:28px; font-weight:700; }
-  .stat .l { font-size:11px; color:#666; text-transform:uppercase; }
-  table { width:100%; border-collapse:collapse; background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.1); }
-  th { background:#2c3e50; color:#fff; padding:8px 10px; text-align:left; font-size:12px; }
-  td { padding:7px 10px; border-bottom:1px solid #eee; vertical-align:top; font-size:12px; }
-  tr.row-pass td { background:#f0faf4; }
-  tr.row-fail td { background:#fff5f5; }
-  tr.row-error td { background:#f8f8f8; color:#999; }
-  .label { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:700; letter-spacing:.4px; }
-  .label-pass  { background:#27ae60; color:#fff; }
-  .label-fail  { background:#e74c3c; color:#fff; }
-  .label-error { background:#95a5a6; color:#fff; }
-  ul { list-style:disc; }
-  li { margin-bottom:3px; }
-  a { color:#2980b9; }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;color:#222;background:#f4f4f4}
+  .page-header{background:#1B1B1B;color:#fff;padding:24px 32px}
+  .page-header .eyebrow{font-size:11px;color:#FF0000;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:6px}
+  .page-header h1{font-size:22px;margin:0 0 4px;color:#fff;font-weight:600}
+  .page-header .meta{color:#aaa;font-size:12px}
+  .content{padding:24px 32px 40px}
+  .stats{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px}
+  .stat{background:#fff;border-radius:8px;padding:14px 20px;box-shadow:0 1px 3px rgba(0,0,0,.1);min-width:120px}
+  .stat .n{font-size:28px;font-weight:700}
+  .stat .l{font-size:11px;color:#6E6E6E;text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+  h2{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#444;margin-bottom:12px}
+  table{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+  th{background:#1B1B1B;color:#fff;padding:9px 12px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+  td{padding:8px 12px;border-bottom:1px solid #f0f0f0;vertical-align:top;font-size:12px}
+  tr.row-pass td{background:#f0faf4}
+  tr.row-fail td{background:#fff5f5}
+  tr.row-error td{background:#f8f8f8;color:#999}
+  .label{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:.4px}
+  .label-pass{background:#2D9D78;color:#fff}
+  .label-fail{background:#FF0000;color:#fff}
+  .label-error{background:#8E8E8E;color:#fff}
+  ul{list-style:disc}
+  li{margin-bottom:3px}
+  a{color:#1473E6}
 </style>
 </head>
 <body>
-<h1>EDS Site Audit</h1>
-<div class="meta">Generated ${new Date().toISOString()} · ${total} pages · ${EDS_BASE_CLEAN}</div>
+<div class="page-header">
+  <div class="eyebrow">AEM Edge Delivery Services</div>
+  <h1>EDS Site Audit</h1>
+  <div class="meta">Generated ${new Date().toISOString()} &nbsp;·&nbsp; ${total} pages &nbsp;·&nbsp; ${EDS_BASE_CLEAN}</div>
+</div>
+<div class="content">
 <div class="stats">
   <div class="stat"><div class="n">${total}</div><div class="l">Pages audited</div></div>
-  <div class="stat"><div class="n" style="color:#27ae60">${passed}</div><div class="l">Passed</div></div>
-  <div class="stat"><div class="n" style="color:#e74c3c">${pageResults.filter(r => r.issueCount > 0 && !r.issues.some(i => i.category === 'FETCH')).length}</div><div class="l">Failed</div></div>
-  <div class="stat"><div class="n" style="color:#95a5a6">${pageResults.filter(r => r.issues.some(i => i.category === 'FETCH')).length}</div><div class="l">Error (404)</div></div>
-  ${Object.entries(categoryCounts).filter(([cat]) => cat !== 'FETCH').map(([cat, n]) => `<div class="stat"><div class="n" style="color:#8e44ad">${n}</div><div class="l">${cat} issues</div></div>`).join('')}
+  <div class="stat"><div class="n" style="color:#2D9D78">${passed}</div><div class="l">Passed</div></div>
+  <div class="stat"><div class="n" style="color:#FF0000">${pageResults.filter(r => r.issueCount > 0 && !r.issues.some(i => i.category === 'FETCH')).length}</div><div class="l">Failed</div></div>
+  <div class="stat"><div class="n" style="color:#8E8E8E">${pageResults.filter(r => r.issues.some(i => i.category === 'FETCH')).length}</div><div class="l">Error (404)</div></div>
+  ${Object.entries(categoryCounts).filter(([cat]) => cat !== 'FETCH').map(([cat, n]) => `<div class="stat"><div class="n" style="color:#7326D3">${n}</div><div class="l">${cat} issues</div></div>`).join('')}
 </div>
-<h2 style="font-size:15px">All pages (${total})</h2>
+<h2>All pages (${total})</h2>
 <table>
   <thead><tr><th>Result</th><th>Page</th><th>Issues</th><th>HTTP</th><th>Details</th></tr></thead>
   <tbody>${allRows}</tbody>
 </table>
+</div>
 </body>
 </html>`;
 

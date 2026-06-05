@@ -741,25 +741,25 @@ function issueCategory(issue) {
 }
 
 const CAT_COLOURS = {
-  METADATA:    '#e67e22',
-  'JSON-LD':   '#8e44ad',
-  HEADINGS:    '#2980b9',
+  METADATA:    '#E68619',
+  'JSON-LD':   '#7326D3',
+  HEADINGS:    '#1473E6',
   CANONICAL:   '#16a085',
-  CRAWLABILITY:'#27ae60',
-  URL:         '#7f8c8d',
+  CRAWLABILITY:'#2D9D78',
+  URL:         '#6E6E6E',
   LINKS:       '#2471a3',
   'OG/TWITTER':'#d35400',
-  CWV:         '#c0392b',
-  'IMAGES/A11Y':'#6c3483',
+  CWV:         '#CC0000',
+  'IMAGES/A11Y':'#5C1EA8',
   MOBILE:      '#1a5276',
   PAGINATION:  '#117a65',
-  FETCH:       '#7f8c8d',
+  FETCH:       '#6E6E6E',
   DUPLICATE:   '#922b21',
-  OTHER:       '#95a5a6',
+  OTHER:       '#8E8E8E',
 };
 
 const catBadge = cat => {
-  const bg = CAT_COLOURS[cat] ?? '#95a5a6';
+  const bg = CAT_COLOURS[cat] ?? '#8E8E8E';
   return `<span style="background:${bg};color:#fff;padding:1px 6px;border-radius:3px;font-size:11px;font-weight:600">${esc(cat)}</span>`;
 };
 
@@ -808,46 +808,55 @@ const htmlRows = [...results]
 const catStatCards = Object.entries(catCounts)
   .filter(([cat]) => cat !== 'FETCH')
   .sort((a, b) => b[1] - a[1])
-  .map(([cat, n]) => `<div class="stat"><div class="n" style="color:${CAT_COLOURS[cat] ?? '#95a5a6'}">${n}</div><div class="l">${cat}</div></div>`)
+  .map(([cat, n]) => `<div class="stat"><div class="n" style="color:${CAT_COLOURS[cat] ?? '#8E8E8E'}">${n}</div><div class="l">${cat}</div></div>`)
   .join('');
 
 const htmlContent = `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Deep SEO Audit</title>
 <style>
-  body { font-family:Arial,sans-serif; font-size:13px; color:#222; margin:0; padding:20px; background:#f5f5f5; }
-  h1 { font-size:20px; margin-bottom:4px; }
-  h2 { font-size:15px; }
-  .meta { color:#666; font-size:12px; margin-bottom:20px; }
-  .stats { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:20px; }
-  .stat { background:#fff; border-radius:8px; padding:12px 20px; box-shadow:0 1px 3px rgba(0,0,0,.1); }
-  .stat .n { font-size:28px; font-weight:700; }
-  .stat .l { font-size:11px; color:#666; text-transform:uppercase; }
-  table { width:100%; border-collapse:collapse; background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.1); }
-  th { background:#2c3e50; color:#fff; padding:8px 10px; text-align:left; font-size:12px; }
-  td { padding:7px 10px; border-bottom:1px solid #eee; vertical-align:top; font-size:12px; }
-  tr.row-pass td { background:#f0faf4; }
-  tr.row-fail td { background:#fff5f5; }
-  tr.row-error td { background:#f8f8f8; color:#999; }
-  .label { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:700; letter-spacing:.4px; }
-  .label-pass  { background:#27ae60; color:#fff; }
-  .label-fail  { background:#e74c3c; color:#fff; }
-  .label-error { background:#95a5a6; color:#fff; }
-  ul { list-style:disc; }
-  li { margin-bottom:3px; }
-  a { color:#2980b9; }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;color:#222;background:#f4f4f4}
+  .page-header{background:#1B1B1B;color:#fff;padding:24px 32px}
+  .page-header .eyebrow{font-size:11px;color:#FF0000;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:6px}
+  .page-header h1{font-size:22px;margin:0 0 4px;color:#fff;font-weight:600}
+  .page-header .meta{color:#aaa;font-size:12px}
+  .content{padding:24px 32px 40px}
+  .stats{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px}
+  .stat{background:#fff;border-radius:8px;padding:14px 20px;box-shadow:0 1px 3px rgba(0,0,0,.1);min-width:120px}
+  .stat .n{font-size:28px;font-weight:700}
+  .stat .l{font-size:11px;color:#6E6E6E;text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+  h2{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#444;margin-bottom:12px}
+  table{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+  th{background:#1B1B1B;color:#fff;padding:9px 12px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+  td{padding:8px 12px;border-bottom:1px solid #f0f0f0;vertical-align:top;font-size:12px}
+  tr.row-pass td{background:#f0faf4}
+  tr.row-fail td{background:#fff5f5}
+  tr.row-error td{background:#f8f8f8;color:#999}
+  .label{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:.4px}
+  .label-pass{background:#2D9D78;color:#fff}
+  .label-fail{background:#FF0000;color:#fff}
+  .label-error{background:#8E8E8E;color:#fff}
+  ul{list-style:disc}
+  li{margin-bottom:3px}
+  a{color:#1473E6}
 </style>
 </head>
 <body>
-<h1>Deep SEO Audit</h1>
-<div class="meta">Generated ${new Date().toISOString()} · ${total} pages · ${targetBase}</div>
+<div class="page-header">
+  <div class="eyebrow">AEM Edge Delivery Services</div>
+  <h1>Deep SEO Audit</h1>
+  <div class="meta">Generated ${new Date().toISOString()} &nbsp;·&nbsp; ${total} pages &nbsp;·&nbsp; ${targetBase}</div>
+</div>
+<div class="content">
 <div class="stats">
   <div class="stat"><div class="n">${total}</div><div class="l">Pages audited</div></div>
-  <div class="stat"><div class="n" style="color:#27ae60">${passed}</div><div class="l">Passed</div></div>
-  <div class="stat"><div class="n" style="color:#e74c3c">${total - passed - nonHttps}</div><div class="l">Failed</div></div>
-  <div class="stat"><div class="n" style="color:#95a5a6">${nonHttps}</div><div class="l">Error (404)</div></div>
+  <div class="stat"><div class="n" style="color:#2D9D78">${passed}</div><div class="l">Passed</div></div>
+  <div class="stat"><div class="n" style="color:#FF0000">${total - passed - nonHttps}</div><div class="l">Failed</div></div>
+  <div class="stat"><div class="n" style="color:#8E8E8E">${nonHttps}</div><div class="l">Error (404)</div></div>
   ${catStatCards}
 </div>
 <h2>All pages (${total})</h2>
@@ -855,6 +864,7 @@ const htmlContent = `<!DOCTYPE html>
   <thead><tr><th>Result</th><th>Page</th><th>Issues</th><th>HTTP</th><th>Details</th></tr></thead>
   <tbody>${htmlRows}</tbody>
 </table>
+</div>
 </body>
 </html>`;
 
