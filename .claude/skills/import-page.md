@@ -68,12 +68,16 @@ Derive from URL — the last path segment becomes the filename, parent segments 
 
 Use Playwright to navigate and extract:
 1. **Page title** (from `<title>` tag)
-2. **H1** heading
-3. **Hero image** (if present — marquee/banner image)
-4. **Body content** (paragraphs, headings, lists, bold text, links, images)
-5. **Pageid** (DT1-..., QSR-..., or LRC-... pattern)
-6. **Footnote CIDs** (any `#tcm:` references in links)
-7. **Metadata footnotes** (CID list from footnote area if present)
+2. **Meta description** (from `<meta name="description" content="...">`)
+3. **Meta keywords** (from `<meta name="keywords" content="...">`)
+4. **H1** heading
+5. **Hero image** (if present — marquee/banner image)
+6. **Body content** (paragraphs, headings, lists, bold text, links, images)
+7. **Pageid** (DT1-..., QSR-..., or LRC-... pattern)
+8. **Footnote CIDs** (any `#tcm:` references in links)
+9. **Metadata footnotes** (CID list from footnote area if present)
+
+**Always include in Metadata block:** Title, Description (if present), Keywords (if present), footnotes (if any), pageid.
 
 **Critical extraction rules:**
 - **Redirect handling:** After navigation, check `window.location.href`. If the page redirected to `/es/` but the requested URL was English (no `/es/` prefix), navigate again with `locale: 'en-US'` headers or use the English URL directly. Always verify you're extracting from the correct language version.
