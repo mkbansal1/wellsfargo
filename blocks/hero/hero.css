@@ -260,3 +260,209 @@ main .section.hero-container.heading-bar.center-align .hero.overlay-bottom h2::b
     width: 88.5%;
   }
 }
+
+/* ============================================================
+   ADD-ONS — New rules and overrides layered on top.
+   All original rules above remain untouched. The following
+   sections extend or override them via CSS source-order
+   cascade (later rules win when specificity is equal).
+   ============================================================ */
+
+/* --- Default variant: mobile additions & overrides --- */
+
+/* Drop the fixed aspect-ratio so the image flows naturally */
+.hero .hero-bg img {
+  aspect-ratio: auto;
+}
+
+/* Full-width CTA on mobile */
+.hero .hero-content .button-wrapper a.button {
+  width: 100%;
+}
+
+/* --- Sign-on overlay (multi-row hero) — hidden on mobile/tablet --- */
+.hero .hero-signon {
+  display: none;
+}
+
+/* --- Default variant: desktop additions & overrides --- */
+@media (width >= 1024px) {
+  /* Fixed hero dimensions for the new absolute-overlay layout */
+  .hero {
+    min-height: 420px;
+    height: 553px;
+  }
+
+  /* Background image fills the hero box (overrides aspect-ratio 135/53) */
+  .hero .hero-bg img {
+    aspect-ratio: auto;
+    height: 100%;
+  }
+
+  /* Hero content becomes an absolute-positioned overlay */
+  .hero .hero-content {
+    position: absolute;
+    left: 53%;
+    top: 44%;
+    transform: translate(-50%, -50%);
+    max-width: 650px;
+    width: 560px;
+    padding: 40px;
+  }
+
+  .hero .hero-content h1,
+  .hero .hero-content h2 {
+    font-size: 48px;
+    line-height: 1.15;
+  }
+
+  .hero .hero-content p {
+    max-width: none;
+  }
+
+  .hero .hero-content .button-wrapper {
+    margin-top: 32px;
+    text-align: left;
+  }
+
+  .hero .hero-content .button-wrapper a.button {
+    width: auto;
+    min-width: 220px;
+  }
+
+  /* --- Sign-on overlay: visible at desktop, positioned top-left --- */
+  .hero .hero-signon {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 2;
+    width: 333px;
+    color: var(--wf-text-primary);
+    padding: 0;
+    text-align: left;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+  }
+
+  /* Sign-on top section: white background with heading + button */
+  .hero .hero-signon h2 {
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--wf-dark);
+    margin: 0;
+    padding: 24px 24px 0;
+    background: var(--wf-bg-white);
+  }
+
+  .hero .hero-signon .button-wrapper {
+    margin: 0;
+    padding: 20px 24px;
+    background: var(--wf-bg-white);
+  }
+
+  .hero .hero-signon .button-wrapper a.button {
+    min-width: 170px;
+    padding: 12px 48px;
+    background: var(--wf-red);
+    border-color: var(--wf-red);
+    color: #fff;
+    font-size: var(--body-font-size-m);
+    font-weight: 600;
+    border-radius: 24px;
+  }
+
+  .hero .hero-signon .button-wrapper a.button:hover {
+    background: #b01c24;
+    border-color: #b01c24;
+  }
+
+  /* Sign-on bottom section: light gray background with links */
+  .hero .hero-signon p {
+    font-size: var(--body-font-size-s);
+    color: var(--wf-text-primary);
+    margin: 0;
+    padding: 6px 24px;
+    line-height: 1.8;
+    background: var(--wf-bg-light);
+  }
+
+  .hero .hero-signon p:last-child {
+    padding-bottom: 20px;
+  }
+
+  .hero .hero-signon p:first-of-type:not(.button-wrapper) {
+    padding-top: 16px;
+  }
+
+  .hero .hero-signon a:any-link {
+    color: var(--wf-link);
+    text-decoration: none;
+  }
+
+  .hero .hero-signon a:hover {
+    text-decoration: underline;
+  }
+}
+
+/* --- Overlay-bottom variant: mobile additions & overrides --- */
+
+/* New image min/max height constraints */
+.hero.overlay-bottom .hero-bg img {
+  min-height: 200px;
+  max-height: 350px;
+}
+
+/* Updated content box: deeper overlap, side margins, larger padding/radius.
+   align-self & width reset so the new margin-based layout takes effect
+   (overrides original align-self:center and width:82% / 88.5% @768). */
+.hero.overlay-bottom .hero-content {
+  margin-top: -32px;
+  margin-left: 20px;
+  margin-right: 20px;
+  padding: 24px 32px;
+  border-radius: 12px;
+  align-self: auto;
+  width: auto;
+}
+
+/* Larger, lighter heading */
+.hero.overlay-bottom .hero-content h1,
+.hero.overlay-bottom .hero-content h2 {
+  font-size: 40px;
+  font-weight: 400;
+  line-height: 1.25;
+}
+
+/* h2::before margin updated (uses the original's dual selector to match
+   specificity so the override wins reliably) */
+main .section.hero-container.heading-bar.center-align .hero.overlay-bottom h2::before,
+.hero.overlay-bottom .hero-content h2::before {
+  margin: 0 auto 10px;
+}
+
+/* --- Overlay-bottom variant: desktop additions & overrides --- */
+@media (width >= 1024px) {
+  /* New image min/max height constraints for desktop */
+  .hero.overlay-bottom .hero-bg img {
+    min-height: 282px;
+    max-height: 554px;
+  }
+
+  /* Counteract the new default-desktop absolute-overlay so overlay-bottom
+     keeps its in-flow centered layout. Then apply the updated margin/
+     width/padding values. */
+  .hero.overlay-bottom .hero-content {
+    position: relative;
+    left: auto;
+    top: auto;
+    transform: none;
+    margin-top: -48px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 75%;
+    padding: 24px 80px;
+  }
+}
