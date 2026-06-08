@@ -231,7 +231,7 @@
 
 .tabs.centered .tabs-panel {
     padding: 24px 0;
-    border-top: 1px solid var(--tabs-border);
+    border-top: none;
 }
 
 /* ===== Reference Variant ===== */
