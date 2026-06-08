@@ -375,13 +375,19 @@
 
 /* === Variant: vertical-imageright === */
 
-/* Authored as | Cards (vertical-imageright) | — text left, image/icon right, stacked vertically */
+/* Authored as | Cards (vertical-imageright) |
+   — text left, image right, cards stacked horizontally (one per row) */
+
+.cards.vertical-imageright > ul {
+  flex-direction: column;
+}
 
 .cards.vertical-imageright > ul > li {
   flex-direction: row;
   align-items: center;
   padding: 24px;
   gap: 24px;
+  width: 100%;
 }
 
 .cards.vertical-imageright .cards-card-body {
@@ -393,17 +399,18 @@
 .cards.vertical-imageright .cards-card-image {
   order: 2;
   flex: 0 0 auto;
-  width: 120px;
-  height: 120px;
+  width: 140px;
   display: flex;
   align-items: center;
   justify-content: center;
+  line-height: 0;
 }
 
 .cards.vertical-imageright .cards-card-image img {
   width: 100%;
-  height: 100%;
-  object-fit: contain;
+  height: auto;
+  object-fit: cover;
+  border-radius: 6px;
 }
 
 .cards.vertical-imageright .cards-card-body h3 {
@@ -433,13 +440,23 @@
 }
 
 @media (width >= 768px) {
-  .cards.vertical-imageright .cards-card-image {
-    width: 160px;
-    height: 160px;
-  }
-
   .cards.vertical-imageright > ul > li {
     padding: 32px;
+    flex: 0 1 100%;
+  }
+
+  .cards.vertical-imageright .cards-card-image {
+    width: 200px;
+  }
+}
+
+@media (width >= 1024px) {
+  .cards.vertical-imageright > ul > li {
+    flex: 0 1 100%;
+  }
+
+  .cards.vertical-imageright .cards-card-image {
+    width: 240px;
   }
 }
 
