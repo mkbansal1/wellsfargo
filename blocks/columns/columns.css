@@ -274,7 +274,7 @@
 }
 
 .columns.contact-bar > div > div:first-child {
-  background: url('https://www17.wellsfargomedia.com/assets/images/css/template/bg_cta_sheen.png') 0 0 / cover no-repeat;
+  background: url("/icons/bg_cta_sheen.png") 0 0 / cover no-repeat;
 }
 
 .columns.contact-bar > div > div:last-child {
