@@ -63,8 +63,7 @@
 
 @media (width >= 768px) {
   :root {
-    --heading-font-size-xxl: 38px;
-    --heading-font-size-xl: 30px;
+    --heading-font-size-xxl: 34px;
     --heading-font-size-l: 24px;
   }
 }
@@ -132,9 +131,7 @@ h6 {
 }
 
 h1 { font-size: var(--heading-font-size-xl); }
-
 h1:first-of-type { margin: 0; }
-
 h2 { 
   font-size: var(--heading-font-size-xxl);
   font-weight: 300;
@@ -165,6 +162,12 @@ pre {
   background-color: var(--wf-bg-offwhite);
   overflow-x: auto;
   white-space: pre;
+}
+
+@media (width >= 1024px) {
+  body main h1:first-of-type {
+    margin: 18px 0 11px;
+  }
 }
 
 /* layout — 1400px max-width per source site */
@@ -208,11 +211,11 @@ button.button {
   margin: 0;
   border: 1px solid transparent;
   border-radius: 24px;
-  padding: 0.6em 1.4em;
+  padding: 9px 16px;
   font: inherit;
   font-weight: 600;
   font-size: var(--body-font-size-m);
-  line-height: 1;
+  line-height: 1.29;
   text-decoration: none;
   cursor: pointer;
   overflow: hidden;
@@ -313,7 +316,7 @@ main img {
 main > .section {
   max-width: var(--content-max-width);
   margin: 0 auto;
-  padding: 18px 0;
+  padding: 12px 0;
 }
 
 main > .section > div {
