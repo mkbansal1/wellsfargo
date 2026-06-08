@@ -271,6 +271,9 @@
   padding: 24px 32px;
   background: transparent;
   flex: 1;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
 }
 
 .columns.contact-bar > div > div:first-child {
@@ -278,6 +281,7 @@
 }
 
 .columns.contact-bar > div > div:last-child {
-  border-left: 1px solid var(--wf-bg-gray);
-  flex: 0 0 auto;
+  border-left: 3px solid var(--wf-bg-gray);
+  flex: 0 0 30%;
+  justify-content: center;
 }
