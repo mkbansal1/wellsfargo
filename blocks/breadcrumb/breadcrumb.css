@@ -7,15 +7,15 @@ main > .section.breadcrumb-container {
 .breadcrumb nav ol {
   list-style: none;
   margin: 0;
-  padding: 14px 0;
+  padding: 17px 0 5px;
   display: flex;
   align-items: center;
 }
 
 .breadcrumb nav ol li {
   display: none;
-  font-size: 15px;
-  line-height: 1.4;
+  font-size: 12px;
+  line-height: 1.25;
   color: var(--wf-text-secondary);
   white-space: nowrap;
 }
@@ -44,22 +44,30 @@ main > .section.breadcrumb-container {
 .breadcrumb nav ol li:nth-last-child(2) a {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   color: var(--wf-text-primary);
 }
 
 .breadcrumb nav ol li:nth-last-child(2) a::before {
   content: '\2039';
-  font-size: 22px;
-  font-weight: 700;
+  font-size: 24px;
+  font-weight: 600;
   line-height: 1;
+  top: -2px;
+  left: -1px;
+  position: relative;
 }
 
 /* Desktop: full breadcrumb trail */
-@media (width >= 768px) {
+@media (width >= 1024px) {
+  .breadcrumb nav ol {
+    padding-top: 26px;
+  }
+
   .breadcrumb nav ol li {
     display: inline-flex;
     align-items: center;
+    font-size: 15px;
   }
 
   .breadcrumb nav ol li:nth-last-child(2) a::before {
@@ -67,10 +75,13 @@ main > .section.breadcrumb-container {
   }
 
   .breadcrumb nav ol li + li::before {
-    content: '>';
-    margin: 0 16px;
+    content: '\203A';
+    margin: 0 12px 0 11px;
     color: var(--wf-text-secondary);
-    font-size: 13px;
+    font-size: 22px;
     font-weight: 400;
+    position: relative;
+    line-height: 0;
+    top: -2px;
   }
 }

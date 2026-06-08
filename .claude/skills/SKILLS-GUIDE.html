@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EDS Migration Skills — Reference Guide</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; font-size: 14px; color: #222; background: #f5f5f5; line-height: 1.5; }
+
+  /* Layout */
+  .sidebar { position: fixed; top: 0; left: 0; width: 220px; height: 100vh; background: #1B1B1B; color: #ccc; overflow-y: auto; padding: 20px 0; z-index: 100; }
+  .sidebar h2 { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #6E6E6E; padding: 0 16px 8px; margin-top: 16px; }
+  .sidebar a { display: block; padding: 6px 16px; color: #BBBBBB; text-decoration: none; font-size: 12px; border-left: 3px solid transparent; }
+  .sidebar a:hover, .sidebar a.active { color: #fff; border-left-color: #FF0000; background: rgba(255,255,255,.05); }
+  .sidebar .logo { padding: 16px; font-size: 13px; font-weight: 700; color: #fff; border-bottom: 1px solid #333333; margin-bottom: 8px; }
+  main { margin-left: 220px; padding: 40px; max-width: 1100px; }
+
+  /* Typography */
+  h1 { font-size: 26px; font-weight: 700; margin-bottom: 6px; color: #1B1B1B; }
+  h2 { font-size: 20px; font-weight: 700; margin: 40px 0 12px; color: #1B1B1B; padding-bottom: 6px; border-bottom: 2px solid #FF0000; }
+  h3 { font-size: 15px; font-weight: 700; margin: 24px 0 8px; color: #1B1B1B; }
+  h4 { font-size: 13px; font-weight: 700; margin: 16px 0 6px; color: #555; text-transform: uppercase; letter-spacing: .4px; }
+  p { margin-bottom: 10px; }
+  code { background: #eef; padding: 1px 5px; border-radius: 3px; font-family: monospace; font-size: 12px; color: #CC0000; }
+  pre { background: #1B1B1B; color: #EEEEEE; padding: 14px 16px; border-radius: 6px; font-size: 12px; overflow-x: auto; margin: 10px 0 16px; }
+  pre code { background: none; color: inherit; padding: 0; }
+  ul, ol { padding-left: 20px; margin-bottom: 10px; }
+  li { margin-bottom: 4px; }
+  a { color: #1473E6; }
+
+  /* Intro */
+  .intro { color: #555; font-size: 15px; margin-bottom: 30px; max-width: 720px; }
+
+  /* Workflow steps */
+  .workflow { display: flex; gap: 8px; flex-wrap: wrap; margin: 16px 0 24px; }
+  .workflow-step { background: #fff; border-radius: 8px; padding: 14px 18px; box-shadow: 0 1px 3px rgba(0,0,0,.12); flex: 1; min-width: 180px; position: relative; }
+  .workflow-step .num { font-size: 11px; font-weight: 700; color: #FF0000; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
+  .workflow-step .name { font-size: 13px; font-weight: 700; color: #1B1B1B; }
+  .workflow-step .desc { font-size: 11px; color: #888; margin-top: 3px; }
+  .workflow-arrow { display: flex; align-items: center; color: #bbb; font-size: 18px; padding-top: 10px; }
+
+  /* Skill cards */
+  .skill-card { background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.1); margin-bottom: 40px; overflow: hidden; }
+  .skill-card-header { padding: 18px 24px; display: flex; align-items: center; gap: 14px; }
+  .skill-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .skill-card-header h2 { font-size: 18px; margin: 0; padding: 0; border: none; }
+  .skill-card-header .invoke { font-size: 11px; color: #888; margin-top: 2px; }
+  .skill-card-body { padding: 0 24px 24px; }
+
+  /* Mode pills */
+  .modes { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 20px; }
+  .mode { background: #f0f4f8; border-radius: 20px; padding: 6px 14px; font-size: 12px; font-weight: 600; color: #1B1B1B; border: 1px solid #dde3ea; }
+  .mode.recommended { background: #FFF0F0; border-color: #9DDECE; color: #267E6B; }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; margin: 10px 0 18px; font-size: 13px; }
+  th { background: #1B1B1B; color: #fff; padding: 8px 10px; text-align: left; font-size: 12px; }
+  td { padding: 7px 10px; border-bottom: 1px solid #eee; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: #fafafa; }
+
+  /* Badges */
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; letter-spacing: .3px; }
+  .badge-green  { background: #2D9D78; color: #fff; }
+  .badge-red    { background: #FF0000; color: #fff; }
+  .badge-orange { background: #E68619; color: #fff; }
+  .badge-gray   { background: #8E8E8E; color: #fff; }
+  .badge-blue   { background: #1473E6; color: #fff; }
+  .badge-purple { background: #7326D3; color: #fff; }
+
+  /* Stats row */
+  .stat-row { display: flex; gap: 12px; flex-wrap: wrap; margin: 14px 0; }
+  .stat { background: #f8f9fa; border-radius: 8px; padding: 10px 16px; border: 1px solid #e9ecef; }
+  .stat .n { font-size: 22px; font-weight: 700; }
+  .stat .l { font-size: 10px; color: #888; text-transform: uppercase; }
+
+  /* Quick ref */
+  .quick-ref { background: #1B1B1B; color: #EEEEEE; border-radius: 10px; padding: 24px; margin-top: 30px; }
+  .quick-ref h2 { color: #fff; border-color: #FF0000; margin-top: 0; }
+  .quick-ref table { color: #EEEEEE; }
+  .quick-ref th { background: #141414; }
+  .quick-ref td { border-bottom-color: #333333; }
+  .quick-ref code { background: #141414; color: #F8D600; }
+
+  /* Section divider */
+  hr { border: none; border-top: 1px solid #eee; margin: 30px 0; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    main { margin-left: 0; padding: 20px; }
+    .workflow { flex-direction: column; }
+    .workflow-arrow { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="logo">EDS Skills Guide</div>
+  <h2>Overview</h2>
+  <a href="#workflow">Recommended Workflow</a>
+  <a href="#glance">Skills at a Glance</a>
+  <h2>Skills</h2>
+  <a href="#sitemap-checker">1. Sitemap Checker</a>
+  <a href="#content-validator">2. Content Validator</a>
+  <a href="#seo-validator">3. SEO Validator</a>
+  <a href="#visual-compare">4. Visual Compare</a>
+  <h2>Reference</h2>
+  <a href="#common">Common Patterns</a>
+  <a href="#quick-ref">Quick Reference</a>
+</nav>
+
+<main>
+
+  <h1>EDS Migration Skills</h1>
+  <p class="intro">A suite of Claude Code skills for auditing, validating, and quality-checking AEM Edge Delivery Services (EDS) sites. Use them in sequence for a complete pre-launch sign-off, or individually for targeted checks.</p>
+
+  <!-- Workflow -->
+  <h2 id="workflow">Recommended Workflow</h2>
+  <p>Run skills in this order for a full site audit. Each skill builds on the last — <code>eds-sitemap-checker</code> creates <code>/tmp/sitemap-urls.json</code> which all subsequent skills reuse automatically.</p>
+
+  <div class="workflow">
+    <div class="workflow-step">
+      <div class="num">Step 1</div>
+      <div class="name">Sitemap Checker</div>
+      <div class="desc">Which pages exist on EDS?</div>
+    </div>
+    <div class="workflow-arrow">→</div>
+    <div class="workflow-step">
+      <div class="num">Step 2</div>
+      <div class="name">Content Validator</div>
+      <div class="desc">Is the content correct?</div>
+    </div>
+    <div class="workflow-arrow">→</div>
+    <div class="workflow-step">
+      <div class="num">Step 3</div>
+      <div class="name">SEO Validator</div>
+      <div class="desc">Are metadata & performance right?</div>
+    </div>
+    <div class="workflow-arrow">→</div>
+    <div class="workflow-step">
+      <div class="num">Step 4</div>
+      <div class="name">Visual Compare</div>
+      <div class="desc">Does it look right?</div>
+    </div>
+  </div>
+
+  <!-- Glance table -->
+  <h2 id="glance">Skills at a Glance</h2>
+  <table>
+    <thead><tr><th>Skill</th><th>What it does</th><th>Modes</th><th>Output</th></tr></thead>
+    <tbody>
+      <tr><td><code>eds-sitemap-checker</code></td><td>Checks every sitemap URL against EDS for HTTP status</td><td>1</td><td>CSV + HTML</td></tr>
+      <tr><td><code>eds-content-validator</code></td><td>Validates content parity and site quality</td><td>3</td><td>CSV + HTML</td></tr>
+      <tr><td><code>eds-seo-validator</code></td><td>Audits SEO metadata, Lighthouse scores, real-user CWV</td><td>4</td><td>CSV + HTML</td></tr>
+      <tr><td><code>eds-visual-compare</code></td><td>Screenshot diffs across desktop, tablet, and mobile</td><td>1</td><td>HTML + PNG images</td></tr>
+    </tbody>
+  </table>
+
+  <hr>
+
+  <!-- ── SKILL 1 ─────────────────────────────────────────────────────── -->
+  <div class="skill-card" id="sitemap-checker">
+    <div class="skill-card-header" style="background:#FFF0F0">
+      <div class="skill-icon" style="background:#2D9D78">🗺️</div>
+      <div>
+        <h2 style="color:#267E6B">1. EDS Sitemap Checker</h2>
+        <div class="invoke">Say: <strong>"check sitemap for &lt;url&gt;"</strong></div>
+      </div>
+    </div>
+    <div class="skill-card-body">
+      <p>Fetches the live site's sitemap, maps every URL to the EDS domain, and HEAD-checks HTTP status for each one. The foundation of any migration audit — run this first.</p>
+
+      <h3>What it checks</h3>
+      <table>
+        <thead><tr><th>Status</th><th>Meaning</th><th>Action</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge badge-green">200 OK</span></td><td>Page is live on EDS</td><td>None needed</td></tr>
+          <tr><td><span class="badge badge-red">404</span></td><td>Page not published / migrated</td><td>Publish or create the page</td></tr>
+          <tr><td><span class="badge badge-orange">REDIRECT</span></td><td>301/302/307/308 redirect</td><td>Update sitemap or review redirect rules</td></tr>
+          <tr><td><span class="badge badge-gray">ERROR</span></td><td>Timeout or network error</td><td>Check EDS connectivity</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Output files</h3>
+      <table>
+        <thead><tr><th>File</th><th>Contents</th></tr></thead>
+        <tbody>
+          <tr><td><code>/tmp/eds-url-check.csv</code></td><td>original_url, eds_url, status, redirect_location</td></tr>
+          <tr><td><code>/tmp/eds-url-check.html</code></td><td>Interactive report with LIVE / 404 / REDIRECT / ERROR badges, sorted worst-first</td></tr>
+          <tr><td><code>/tmp/sitemap-urls.json</code></td><td>Shared input file — reused automatically by all other skills</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Options</h3>
+      <table>
+        <thead><tr><th>Flag</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>--auth=user:pass</code></td><td>HTTP Basic Auth for htaccess-protected environments</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Performance</h3>
+      <p>10 concurrent HEAD requests, 15s timeout per URL. ~73 URLs ≈ under 1 minute.</p>
+    </div>
+  </div>
+
+  <!-- ── SKILL 2 ─────────────────────────────────────────────────────── -->
+  <div class="skill-card" id="content-validator">
+    <div class="skill-card-header" style="background:#eaf2ff">
+      <div class="skill-icon" style="background:#1473E6">📝</div>
+      <div>
+        <h2 style="color:#0265DC">2. EDS Content Validator</h2>
+        <div class="invoke">Say: <strong>"run content audit"</strong> / <strong>"run content compare"</strong></div>
+      </div>
+    </div>
+    <div class="skill-card-body">
+      <p>Three modes for different depths of content checking. Modes A &amp; B compare production content against EDS. Mode C audits the EDS site itself — no production comparison required.</p>
+
+      <div class="modes">
+        <span class="mode">A — Fast Compare</span>
+        <span class="mode">B — Deep Compare</span>
+        <span class="mode recommended">C — Site Audit ★ most common</span>
+      </div>
+
+      <h3>Mode A — Fast Compare</h3>
+      <p>HTTP fetch + Jaccard similarity scoring. No browser required.</p>
+      <table>
+        <tbody>
+          <tr><td><strong>Speed</strong></td><td>~2–3 min / 100 pages</td></tr>
+          <tr><td><strong>Best for</strong></td><td>CI-style migration audits, quick parity check</td></tr>
+          <tr><td><strong>Scores</strong></td><td>MATCH (≥90%) / PARTIAL (50–90%) / MISMATCH (&lt;50%)</td></tr>
+          <tr><td><strong>Checks</strong></td><td>Full-page text similarity, heading match, CTA match, word count delta</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Mode B — Deep Compare</h3>
+      <p>Playwright Chromium — real browser with full JavaScript execution.</p>
+      <table>
+        <tbody>
+          <tr><td><strong>Speed</strong></td><td>~8–12 min / 50 pages</td></tr>
+          <tr><td><strong>Best for</strong></td><td>Pages with accordions, tabs, carousels, lazy-loaded fragments</td></tr>
+          <tr><td><strong>Extra</strong></td><td>Expands accordions, scrolls to trigger lazy sections, strips cookie banners</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Mode C — Site Audit</h3>
+      <p>Audits the EDS site itself — no production comparison needed. Catches quality issues in authored content.</p>
+      <table>
+        <thead><tr><th>Category</th><th>What it flags</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge badge-orange">COMPLETENESS</span></td><td>Lorem ipsum, placeholder/TODO text, <code>[[templates]]</code>, ALL CAPS blocks, stub pages (&lt;20 words)</td></tr>
+          <tr><td><span class="badge badge-purple">IMAGES</span></td><td>Missing <code>alt</code> text, broken image URLs (404)</td></tr>
+          <tr><td><span class="badge badge-red">VIDEOS</span></td><td><code>&lt;video&gt;</code> missing <code>poster</code> attribute</td></tr>
+          <tr><td><span class="badge badge-blue">LINKS</span></td><td>Absolute links to prod domain, old CMS domain links, generic anchor text ("click here", "read more")</td></tr>
+          <tr><td><span class="badge badge-green">QUALITY</span></td><td>No H1 heading, multiple H1 headings</td></tr>
+          <tr><td><span class="badge badge-gray">NAV/FOOTER</span></td><td>Nav and footer pages accessible, no broken links inside them</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Output (all modes)</h3>
+      <table>
+        <thead><tr><th>File</th><th>Contents</th></tr></thead>
+        <tbody>
+          <tr><td><code>&lt;output-dir&gt;/index.html</code></td><td>Interactive HTML: PASS / FAILED / ERROR badges, colour-coded category badges per issue</td></tr>
+          <tr><td><code>&lt;output-dir&gt;/content-report.csv</code></td><td>Per-page: similarity %, word counts, heading matches, missing headings, CTA match rate</td></tr>
+          <tr><td><code>&lt;output-dir&gt;/results.json</code></td><td>Machine-readable (used by batch merge script)</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Choosing a mode</h3>
+      <table>
+        <thead><tr><th>Scenario</th><th>Mode</th></tr></thead>
+        <tbody>
+          <tr><td>Quick check — is all the text there?</td><td>Fast compare</td></tr>
+          <tr><td>Pages have accordions / lazy sections</td><td>Deep compare</td></tr>
+          <tr><td>Pre-launch quality gate (no prod needed)</td><td>Site audit</td></tr>
+          <tr><td>Finding placeholder text or broken images</td><td>Site audit</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── SKILL 3 ─────────────────────────────────────────────────────── -->
+  <div class="skill-card" id="seo-validator">
+    <div class="skill-card-header" style="background:#fef9e7">
+      <div class="skill-icon" style="background:#E68619">🔍</div>
+      <div>
+        <h2 style="color:#BE5B00">3. EDS SEO Validator</h2>
+        <div class="invoke">Say: <strong>"run seo audit"</strong> / <strong>"run deep seo audit"</strong> / <strong>"run CWV check"</strong></div>
+      </div>
+    </div>
+    <div class="skill-card-body">
+      <p>Four modes covering everything from basic metadata to full Lighthouse scores and real-user CrUX field data.</p>
+
+      <div class="modes">
+        <span class="mode">A — Fast SEO</span>
+        <span class="mode recommended">B — Deep SEO ★ pre-launch</span>
+        <span class="mode">C — CWV / PageSpeed</span>
+        <span class="mode">D — SEO Compare</span>
+      </div>
+
+      <h3>Mode A — Fast SEO</h3>
+      <p>HTTP fetch + regex extraction. No browser required. ~2–3 min / 100 pages.</p>
+      <table>
+        <thead><tr><th>Check</th><th>Rule</th></tr></thead>
+        <tbody>
+          <tr><td><code>&lt;title&gt;</code></td><td>Required · 30–60 chars</td></tr>
+          <tr><td><code>meta description</code></td><td>Required · 120–160 chars</td></tr>
+          <tr><td><code>og:title / og:description / og:image</code></td><td>Required · length-checked · og:image HEAD-checked for 200</td></tr>
+          <tr><td><code>og:url / og:type</code></td><td>Required</td></tr>
+          <tr><td><code>twitter:card</code></td><td>Required · valid values only</td></tr>
+          <tr><td>Duplicate titles/descriptions</td><td>Flagged across all pages</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Mode B — Deep SEO</h3>
+      <p>Full Playwright Chromium audit — 68 of 80 SEO checklist items. ~8–10 min / 73 pages.</p>
+      <table>
+        <thead><tr><th>Section</th><th>Checks</th></tr></thead>
+        <tbody>
+          <tr><td>§1 Metadata</td><td>Title (50–60 chars), description (140–160 chars), no keywords tag, robots meta</td></tr>
+          <tr><td>§2 JSON-LD</td><td>WebSite schema, BreadcrumbList on non-homepage, required fields per type, placement in <code>&lt;head&gt;</code></td></tr>
+          <tr><td>§3 Headings</td><td>Single H1, no skipped heading levels (H1→H2→H3)</td></tr>
+          <tr><td>§4 Canonical</td><td>Present, HTTPS, self-referencing</td></tr>
+          <tr><td>§5 Crawlability</td><td>robots.txt + sitemap referenced, custom 404</td></tr>
+          <tr><td>§6 URL</td><td>Lowercase, hyphens not underscores</td></tr>
+          <tr><td>§7 Links</td><td>Generic anchor text, image links without alt, breadcrumb nav</td></tr>
+          <tr><td>§8 Redirects</td><td>HTTP→HTTPS (301 only), www consistency</td></tr>
+          <tr><td>§9 OG + Twitter</td><td>All required tags, og:image pixel dimensions (1200×630), twitter:site handle</td></tr>
+          <tr><td>§10 CWV (synthetic)</td><td>TTFB ≤800ms, FCP ≤1800ms, LCP ≤2500ms, CLS ≤0.1 — via Playwright PerformanceObserver</td></tr>
+          <tr><td>§11 Images / A11y</td><td>Missing alt attributes, buttons without accessible labels, favicon</td></tr>
+          <tr><td>§12 Mobile</td><td>width=device-width viewport, no horizontal scroll at 390px</td></tr>
+          <tr><td>§13 Pagination</td><td>rel=next/prev on paginated URLs</td></tr>
+          <tr><td>Aggregate</td><td>Duplicate titles, descriptions, H1 text across all pages</td></tr>
+        </tbody>
+      </table>
+      <p>Generates both <code>.csv</code> and <code>.html</code> — the HTML report includes stat cards, colour-coded category badges, and PASS/FAILED/ERROR rows sorted worst-first.</p>
+
+      <h3>Mode C — CWV / PageSpeed Insights</h3>
+      <p>Uses Google PageSpeed Insights API for authoritative Lighthouse lab scores + real-user CrUX field data. URLs must be publicly accessible.</p>
+      <table>
+        <thead><tr><th>Data source</th><th>Metrics</th></tr></thead>
+        <tbody>
+          <tr><td>Lab (Lighthouse)</td><td>Performance score (0–100), LCP, FCP, CLS, TTFB, TBT, Speed Index, TTI</td></tr>
+          <tr><td>Field (CrUX p75)</td><td>LCP, FCP, CLS, <strong>INP</strong> (only measurable here), TTFB — rated GOOD / NEEDS_IMPROVEMENT / POOR</td></tr>
+        </tbody>
+      </table>
+      <p>Default strategy is <strong>both</strong> — runs mobile then desktop sequentially and produces a single combined CSV + HTML with per-strategy stat cards.</p>
+
+      <h3>Mode D — SEO Compare</h3>
+      <p>Compares SEO metadata side-by-side between production and EDS — verifies that title, description, OG tags, and Twitter tags were migrated correctly (not just that they exist, but that values match).</p>
+
+      <h3>Choosing a mode</h3>
+      <table>
+        <thead><tr><th>Scenario</th><th>Mode</th></tr></thead>
+        <tbody>
+          <tr><td>Quick metadata scan</td><td>Fast</td></tr>
+          <tr><td>Full pre-launch SEO audit</td><td>Deep</td></tr>
+          <tr><td>Checking heading structure, JSON-LD, mobile</td><td>Deep</td></tr>
+          <tr><td>Authoritative Lighthouse scores</td><td>CWV</td></tr>
+          <tr><td>Real-user field data (INP, CrUX p75)</td><td>CWV</td></tr>
+          <tr><td>Verifying metadata values match production</td><td>SEO Compare</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── SKILL 4 ─────────────────────────────────────────────────────── -->
+  <div class="skill-card" id="visual-compare">
+    <div class="skill-card-header" style="background:#f5eef8">
+      <div class="skill-icon" style="background:#7326D3">🖼️</div>
+      <div>
+        <h2 style="color:#5C1EA8">4. EDS Visual Compare</h2>
+        <div class="invoke">Say: <strong>"run visual compare"</strong></div>
+      </div>
+    </div>
+    <div class="skill-card-body">
+      <p>Full-page screenshot comparison between production and EDS across desktop, tablet, and mobile viewports. Uses Playwright + pixelmatch to diff pages pixel-by-pixel. Changed pixels highlighted in red.</p>
+
+      <h3>Viewports</h3>
+      <table>
+        <thead><tr><th>Viewport</th><th>Resolution</th><th>Represents</th></tr></thead>
+        <tbody>
+          <tr><td>Desktop</td><td>1440×900</td><td>Standard laptop/monitor</td></tr>
+          <tr><td>Tablet</td><td>768×1024</td><td>iPad portrait</td></tr>
+          <tr><td>Mobile</td><td>390×844 (2×)</td><td>iPhone 14</td></tr>
+        </tbody>
+      </table>
+
+      <h3>How it works</h3>
+      <ol>
+        <li>Opens both prod and EDS in a real Chromium browser</li>
+        <li>Scrolls the full page in 600px increments to trigger lazy-loaded images</li>
+        <li>Takes full-page screenshots at each viewport</li>
+        <li>Diffs with pixelmatch — changed pixels highlighted in red</li>
+        <li>Flags pages where diff % exceeds the threshold (default 5%)</li>
+      </ol>
+
+      <h3>Status values</h3>
+      <table>
+        <thead><tr><th>Status</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge badge-green">PASS</span></td><td>Diff % ≤ threshold</td></tr>
+          <tr><td><span class="badge badge-red">FAIL</span></td><td>Diff % > threshold</td></tr>
+          <tr><td><span class="badge badge-orange">PROD_BLOCKED</span></td><td>WAF blocked prod — EDS screenshot still saved</td></tr>
+          <tr><td><span class="badge badge-gray">EDS_NOT_FOUND</span></td><td>EDS returned non-200 status</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Output</h3>
+      <table>
+        <thead><tr><th>File</th><th>Contents</th></tr></thead>
+        <tbody>
+          <tr><td><code>&lt;output-dir&gt;/index.html</code></td><td>Interactive HTML: Prod | EDS | Diff side-by-side per page + viewport, sorted by largest diff first</td></tr>
+          <tr><td><code>&lt;output-dir&gt;/screenshots/page-NNNN/</code></td><td>desktop/tablet/mobile prod, EDS, and diff PNGs</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Options</h3>
+      <table>
+        <thead><tr><th>Flag</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>--threshold=N</code></td><td>5</td><td>% pixel diff to flag as FAIL</td></tr>
+          <tr><td><code>--max=N</code></td><td>all</td><td>Limit pages — use 5–20 for a quick first check</td></tr>
+          <tr><td><code>--viewports=...</code></td><td>all</td><td>Comma-separated: <code>desktop,tablet,mobile</code></td></tr>
+          <tr><td><code>--auth-prod=user:pass</code></td><td>—</td><td>Basic Auth for prod</td></tr>
+          <tr><td><code>--auth-eds=user:pass</code></td><td>—</td><td>Basic Auth for EDS</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Performance</h3>
+      <table>
+        <thead><tr><th>Pages</th><th>Viewports</th><th>Concurrency</th><th>Estimated time</th></tr></thead>
+        <tbody>
+          <tr><td>10</td><td>3</td><td>2</td><td>~5–8 min</td></tr>
+          <tr><td>50</td><td>3</td><td>2</td><td>~25–40 min</td></tr>
+          <tr><td>100</td><td>3</td><td>5</td><td>~30–45 min</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- Common patterns -->
+  <h2 id="common">Common Patterns</h2>
+
+  <h3>HTTP Basic Auth</h3>
+  <p>All skills support htaccess-protected environments. The main agent probes the first URL before running — if it returns <strong>401</strong>, credentials are requested in <code>user:password</code> format and passed as <code>--auth=user:pass</code>.</p>
+  <p><strong>Note:</strong> CWV mode cannot use auth credentials — PageSpeed Insights crawls from Google's servers.</p>
+
+  <h3>Shared sitemap file</h3>
+  <p>Once <code>eds-sitemap-checker</code> runs and creates <code>/tmp/sitemap-urls.json</code>, all other skills reuse it automatically. No need to re-fetch the sitemap between audits in the same session.</p>
+
+  <h3>Large sitemaps (500+ pages)</h3>
+  <p>All skills support <code>--max=N</code> and <code>--offset=N</code> for batching. The main agent can split the sitemap into batch files and dispatch multiple parallel sub-agents simultaneously, then merge results.</p>
+
+  <h3>Sub-agent pattern</h3>
+  <p>All scripts are dispatched as background sub-agents (via the Agent tool) to keep the main conversation clean. Script output — which can be thousands of lines — is summarised and returned as structured tables.</p>
+
+  <h3>Zip export</h3>
+  <p>After any audit, you can ask to have the report saved as a zip in the project's <code>testing/</code> folder for sharing or archiving.</p>
+
+  <hr>
+
+  <!-- Quick ref -->
+  <div class="quick-ref" id="quick-ref">
+    <h2>Quick Invocation Reference</h2>
+    <table>
+      <thead><tr><th>What you want</th><th>Say</th></tr></thead>
+      <tbody>
+        <tr><td>Check which pages are live on EDS</td><td><code>check sitemap for &lt;url&gt;</code></td></tr>
+        <tr><td>Quick content parity check</td><td><code>run fast content compare</code></td></tr>
+        <tr><td>Full content audit (no prod needed)</td><td><code>run content audit</code></td></tr>
+        <tr><td>Find placeholder text / broken images</td><td><code>run content audit</code></td></tr>
+        <tr><td>Quick SEO metadata scan</td><td><code>run seo audit</code></td></tr>
+        <tr><td>Full SEO pre-launch audit</td><td><code>run deep seo audit</code></td></tr>
+        <tr><td>Lighthouse + Core Web Vitals scores</td><td><code>run CWV check</code></td></tr>
+        <tr><td>Visual screenshot comparison</td><td><code>run visual compare</code></td></tr>
+        <tr><td>Verify SEO tags match production</td><td><code>run seo compare</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p style="margin-top:30px; color:#aaa; font-size:11px">Generated by Claude Code · EDS Migration Skills · <span id="date"></span></p>
+</main>
+
+<script>
+  document.getElementById('date').textContent = new Date().toLocaleDateString('en-GB', { year:'numeric', month:'long', day:'numeric' });
+
+  // Active nav highlighting
+  const sections = document.querySelectorAll('[id]');
+  const navLinks = document.querySelectorAll('.sidebar a');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`.sidebar a[href="#${e.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

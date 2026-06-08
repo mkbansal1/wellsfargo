@@ -70,4 +70,9 @@ export default function decorate(block) {
   if (!picture) {
     block.classList.add('no-image');
   }
+
+  const allHeroes = document.querySelectorAll('.hero');
+  if (allHeroes[0] === block) {
+    block.classList.add('overlay-bottom-mobile');
+  }
 }

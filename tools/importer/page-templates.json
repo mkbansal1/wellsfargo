@@ -41,7 +41,8 @@
       "name": "product-landing",
       "urls": [
         "https://www.wellsfargo.com/mortgage/",
-        "https://www.wellsfargo.com/mortgage/buying-a-house/"
+        "https://www.wellsfargo.com/mortgage/buying-a-house/",
+        "https://www.wellsfargo.com/es/online-banking/biometric/"
       ],
       "description": "Wells Fargo product landing pages — uses smart auto-detection for block mapping. Supports multiple heroes, cards with/without images, accordion FAQs, and disclaimers.",
       "blocks": [

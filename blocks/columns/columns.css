@@ -208,6 +208,31 @@
   }
 }
 
+/* --- Variant: badges --- */
+
+/* Authored as | Columns (badges) | — inline badges at natural size */
+
+.columns.badges.block > div {
+  flex-direction: row;
+  justify-content: center;
+  gap: 12px;
+  align-items: center;
+}
+
+.columns.badges.block > div > div {
+  flex: 0 0 auto;
+  order: unset;
+}
+
+.columns.badges.block > div > div picture {
+  display: inline-block;
+}
+
+.columns.badges.block > div > div img {
+  width: auto;
+  height: auto;
+}
+
 /* --- Variants: column ratios --- */
 
 /* Tablet+ (768px): apply specified ratios, accounting for gap */

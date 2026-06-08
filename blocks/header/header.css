@@ -52,7 +52,7 @@ header .nav-logo {
   display: flex;
   align-items: center;
   color: #fff;
-  margin-left: 32px;
+  margin-left: 16px;
 }
 
 header .nav-logo svg {
@@ -61,8 +61,9 @@ header .nav-logo svg {
 }
 
 header .nav-logo img {
-  height: 24px;
-  width: auto;
+  height: 17px;
+  width: 159px;
+  aspect-ratio: 159 / 17;
 }
 
 header .nav-logo picture {
@@ -75,12 +76,12 @@ header .nav-utilities {
   display: flex;
   align-items: center;
   gap: 24px;
-  padding-right: 32px;
+  padding-right: 12px;
 }
 
 header .nav-util-link {
   color: #fff;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 400;
   white-space: nowrap;
 }
@@ -177,7 +178,7 @@ header .nav-signon-btn {
   padding: 8px 20px;
   border-radius: 24px;
   color: var(--wf-text-primary);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   white-space: nowrap;
   background: transparent;
@@ -218,7 +219,7 @@ header .nav-primary-tab {
 header .nav-primary-link {
   display: block;
   padding: 16px 20px;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 400;
   color: var(--wf-text-primary);
   white-space: nowrap;
@@ -231,7 +232,7 @@ header .nav-primary-link:hover {
 }
 
 header .nav-primary-tab.active .nav-primary-link {
-  font-weight: 600;
+  font-weight: 700;
   color: var(--wf-dark);
 }
 
@@ -241,7 +242,7 @@ header .nav-primary-tab.active::after {
   bottom: 0;
   left: 20px;
   right: 20px;
-  height: 3px;
+  height: 4px;
   background-color: var(--wf-red);
   border-radius: 2px 2px 0 0;
 }
@@ -293,7 +294,7 @@ header .nav-hamburger button {
   gap: 2px;
   margin: 0;
   border: 0;
-  padding: 4px 8px;
+  padding: 0;
   background: transparent;
   cursor: pointer;
   color: var(--wf-bg-light);
@@ -304,11 +305,9 @@ header .nav-hamburger-icon::before,
 header .nav-hamburger-icon::after {
   display: block;
   position: relative;
-  width: 30px;
+  width: 31px;
   height: 2px;
   border-radius: 1px;
-  margin-bottom: 5px;
-  padding: 0 .5px;
   background: var(--wf-bg-white);
 }
 
@@ -327,10 +326,11 @@ header .nav-hamburger-icon::after {
 }
 
 header .nav-hamburger-label {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.5px;
-  margin-top: 4px;
+  margin-top: 10px;
+  letter-spacing: 0;
+  line-height: 14px;
   color: var(--wf-bg-light);
 }
 
@@ -541,7 +541,7 @@ header .nav-mobile-util-link:last-child {
   header .nav-hamburger {
     display: flex;
     order: 3;
-    padding: 25px 23px 15px 8px;
+    padding: 32px 23px 15px 6px;
     width: 60px;
     box-sizing: border-box;
   }
@@ -567,7 +567,7 @@ header .nav-mobile-util-link:last-child {
     color: var(--wf-text-primary);
     background: var(--background-color);
     font-size: 15px;
-    padding: 8px 18px;
+    padding: 9px 16px;
     order: 2;
   }
 
@@ -579,19 +579,34 @@ header .nav-mobile-util-link:last-child {
   header .nav-logo svg {
     height: 20px;
   }
-
-  header .nav-logo img {
-    height: 20px;
+}
+@media (width >= 768px) {
+  header .nav-logo {
+    margin-left: 20px;
   }
 }
 
 @media (width >= 1024px) {
+  header .nav-logo img {
+    aspect-ratio: 220 / 23;
+    height: 23px;
+    width: 220px;
+  }
+
+  header .nav-utilities {
+    padding-right: 24px;
+  }
+
+  header .nav-signon-btn {
+    padding: 9px 16px;
+  }
+
   header .nav-primary-inner {
     padding: 0;
   }
 
   header .nav-primary-inner .nav-primary-tabs {
-    padding: 0 12px;
+    padding: 0 12px 0 0;
   }
 
   header .nav-sub-inner {
@@ -603,7 +618,7 @@ header .nav-mobile-util-link:last-child {
   }
 
   header .nav-primary-link {
-    padding: 14px 16px;
+    padding: 23px 20px 13px 21px;
   }
 
   header .nav-sub-link {
@@ -617,7 +632,7 @@ header .nav-mobile-util-link:last-child {
 
 @media (width >= 1400px) {
   header .nav-primary-link {
-    padding: 14px 20px;
+    padding: 23px 20px 13px;
     font-size: 16px;
   }
 
