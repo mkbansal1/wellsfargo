@@ -125,20 +125,33 @@ Each section (line in .plain.html) can have section-metadata:
 
 ### Step 6: Handle Footnotes
 
-1. Extract all `#tcm:XX-XXXXXX-XX` references from content (href values in `<sup><a>` links)
-2. Extract **disclosure footnotes** from the bottom of the page — these are non-numbered footnotes that appear as plain text (not referenced by superscript in the body). Common ones:
+Extract ALL footnote CIDs from THREE sources:
+
+1. **Superscript references in body** — `#tcm:XX-XXXXXX-XX` href values in `<sup><a>` links
+2. **Page-specific footnotes** — Extract ALL `data-cid` values from elements in the footnotes section at the bottom of the page (`.ps-footnote-text` or similar containers between last content and pageid). These include numbered footnotes, legal disclaimers, and any page-specific disclosures.
+3. **Standard disclosure footnotes** — Always check for these known CIDs in the footnotes section:
    - "Wells Fargo Bank, N.A. Member FDIC." → CID: `tcm:84-20661-16`
    - "Equal Housing Lender" → CID: `tcm:84-226264-16`
    - "Wells Fargo Home Mortgage is a division of Wells Fargo Bank, N.A." → include if present
-3. Extract pageid (DT1/QSR/LRC pattern)
-4. Add ALL footnote CIDs (both numbered and disclosure) to metadata block:
+
+**Extraction method (Playwright):**
+```javascript
+// Get ALL footnote CIDs from the page
+document.querySelectorAll('[data-cid]').forEach(el => {
+  const cid = el.getAttribute('data-cid');
+  // Include if it's in the footnotes area (not nav/header)
+});
+```
+
+4. Extract pageid (DT1/QSR/LRC/PM pattern)
+5. Add ALL collected CIDs to metadata footnotes field:
    ```
-   <div><div><p>footnotes</p></div><div><p>tcm:84-341684-16, tcm:84-221820-16, tcm:84-20661-16, tcm:84-226264-16</p></div></div>
+   <div><div><p>footnotes</p></div><div><p>tcm:84-341684-16, tcm:84-47895-16, tcm:84-20661-16, tcm:84-226264-16</p></div></div>
    <div><div><p>pageid</p></div><div><p>DT1-...</p></div></div>
    ```
-5. Footnote reference format in body: `<sup><a href="#tcm:84-XXXXXX-16">N</a></sup>` (sup wraps the anchor, NOT the other way around)
+6. Footnote reference format in body: `<sup><a href="#tcm:84-XXXXXX-16">N</a></sup>` (sup wraps the anchor, NOT the other way around)
 
-**Important:** Do NOT only extract footnotes referenced by superscript in the body. Also include the disclosure text footnotes (Member FDIC, Equal Housing Lender) that appear in the footnotes section at the bottom of the page.
+**Critical:** Do NOT only extract footnotes referenced by superscript. Also extract page-specific disclaimers (like legal disclaimers with their own CID) and standard disclosures. The source of truth is the `data-cid` attributes in the footnotes section at the bottom of the page — capture ALL of them.
 
 ### Step 7: Write Output File
 
