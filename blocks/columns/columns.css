@@ -253,3 +253,31 @@
 
   .columns.ratio-67-33 > div > div:last-child { flex: 0 0 calc(33% - 8px); }
 }
+
+/* --- Variant: contact --- */
+
+.columns.contact-bar {
+  background: linear-gradient(var(--wf-bg-gray), var(--wf-bg-offwhite) 40%);
+  border: 1px solid var(--wf-bg-gray);
+  border-radius: 5px;
+}
+
+.columns.contact-bar > div {
+  gap: 0;
+  align-items: center;
+}
+
+.columns.contact-bar > div > div {
+  padding: 24px 32px;
+  background: transparent;
+  flex: 1;
+}
+
+.columns.contact-bar > div > div:first-child {
+  background: url('https://www17.wellsfargomedia.com/assets/images/css/template/bg_cta_sheen.png') 0 0 / cover no-repeat;
+}
+
+.columns.contact-bar > div > div:last-child {
+  border-left: 1px solid var(--wf-bg-gray);
+  flex: 0 0 auto;
+}

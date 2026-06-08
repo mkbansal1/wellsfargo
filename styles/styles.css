@@ -413,4 +413,8 @@ main .section.heading-bar.center-align h2::before {
   margin: 0 auto 25px;
 }
 
+main .section.border{
+  border:1px solid var(--wf-dark);
+}
+
 /* wealth theme — loaded from /styles/themes/wealth.css via scripts.js */
