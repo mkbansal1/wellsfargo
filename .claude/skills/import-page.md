@@ -83,6 +83,7 @@ Use Playwright to navigate and extract:
 - **Redirect handling:** After navigation, check `window.location.href`. If the page redirected to `/es/` but the requested URL was English (no `/es/` prefix), navigate again with `locale: 'en-US'` headers or use the English URL directly. Always verify you're extracting from the correct language version.
 - **Expand all accordions:** Before extracting content, expand all `<details>` elements by setting `d.open = true` on each. This ensures hidden accordion panel content is accessible in the DOM.
 - **Never skip hidden content:** Some content is in collapsed panels, hidden tabs, or lazy-loaded sections. Always expand/reveal all interactive content before extraction.
+- **Verify image placement visually:** Always take a screenshot or check DOM position relative to H2 headings before assigning images to sections. Never guess from filenames or class names alone.
 
 ### Step 4: Map Content to Blocks
 
