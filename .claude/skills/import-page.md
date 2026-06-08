@@ -68,12 +68,16 @@ Derive from URL — the last path segment becomes the filename, parent segments 
 
 Use Playwright to navigate and extract:
 1. **Page title** (from `<title>` tag)
-2. **H1** heading
-3. **Hero image** (if present — marquee/banner image)
-4. **Body content** (paragraphs, headings, lists, bold text, links, images)
-5. **Pageid** (DT1-..., QSR-..., or LRC-... pattern)
-6. **Footnote CIDs** (any `#tcm:` references in links)
-7. **Metadata footnotes** (CID list from footnote area if present)
+2. **Meta description** (from `<meta name="description" content="...">`)
+3. **Meta keywords** (from `<meta name="keywords" content="...">`)
+4. **H1** heading
+5. **Hero image** (if present — marquee/banner image)
+6. **Body content** (paragraphs, headings, lists, bold text, links, images)
+7. **Pageid** (DT1-..., QSR-..., or LRC-... pattern)
+8. **Footnote CIDs** (any `#tcm:` references in links)
+9. **Metadata footnotes** (CID list from footnote area if present)
+
+**Always include in Metadata block:** Title, Description (if present), Keywords (if present), footnotes (if any), pageid.
 
 **Critical extraction rules:**
 - **Redirect handling:** After navigation, check `window.location.href`. If the page redirected to `/es/` but the requested URL was English (no `/es/` prefix), navigate again with `locale: 'en-US'` headers or use the English URL directly. Always verify you're extracting from the correct language version.
@@ -87,7 +91,7 @@ Use the block library to find the best match. Available blocks:
 | Block | Variants | Use When |
 |-------|----------|----------|
 | **Hero** | default, `overlay-bottom` | Full-width banner image + heading + CTA. Use `overlay-bottom` when the text/heading overlaps the bottom of the image in a centered card (image above, text card overlapping bottom). Use default when text is overlaid on the left side of the image. |
-| **Cards** | `icons`, `bg-image`, `separator`, `compact`, `align-center` | Grid of items with image/icon + title + text |
+| **Cards** | `icons`, `bg-image`, `separator`, `compact`, `align-center` | Grid of items with image/icon + title + text. Use `icons bg-image` ONLY for small icon images (64x64 or similar). For full-size card images (616x353 or similar), use plain `cards` with no variant. |
 | **Accordion** | `compact` | Expandable Q&A or FAQ sections (H3 + content pairs) |
 | **Tabs** | `Yellow`, `Top`, `Tab-Fill`, `Panel-Border` | Tabbed content panels |
 | **Columns** | `panel`, `ratio-25-75`, `ratio-33-67`, `ratio-67-33`, `ratio-75-25` | Side-by-side content. Use `panel` variant when layout shows image on left + text on right inside a card/panel container with border or shadow. |
@@ -122,13 +126,19 @@ Each section (line in .plain.html) can have section-metadata:
 ### Step 6: Handle Footnotes
 
 1. Extract all `#tcm:XX-XXXXXX-XX` references from content (href values in `<sup><a>` links)
-2. Extract pageid (DT1/QSR/LRC pattern)
-3. Add to metadata block:
+2. Extract **disclosure footnotes** from the bottom of the page — these are non-numbered footnotes that appear as plain text (not referenced by superscript in the body). Common ones:
+   - "Wells Fargo Bank, N.A. Member FDIC." → CID: `tcm:84-20661-16`
+   - "Equal Housing Lender" → CID: `tcm:84-226264-16`
+   - "Wells Fargo Home Mortgage is a division of Wells Fargo Bank, N.A." → include if present
+3. Extract pageid (DT1/QSR/LRC pattern)
+4. Add ALL footnote CIDs (both numbered and disclosure) to metadata block:
    ```
-   <div><div><p>footnotes</p></div><div><p>tcm:84-341684-16, tcm:84-221820-16, ...</p></div></div>
+   <div><div><p>footnotes</p></div><div><p>tcm:84-341684-16, tcm:84-221820-16, tcm:84-20661-16, tcm:84-226264-16</p></div></div>
    <div><div><p>pageid</p></div><div><p>DT1-...</p></div></div>
    ```
-4. Footnote reference format in body: `<sup><a href="#tcm:84-XXXXXX-16">N</a></sup>` (sup wraps the anchor, NOT the other way around)
+5. Footnote reference format in body: `<sup><a href="#tcm:84-XXXXXX-16">N</a></sup>` (sup wraps the anchor, NOT the other way around)
+
+**Important:** Do NOT only extract footnotes referenced by superscript in the body. Also include the disclosure text footnotes (Member FDIC, Equal Housing Lender) that appear in the footnotes section at the bottom of the page.
 
 ### Step 7: Write Output File
 
@@ -190,6 +200,7 @@ Use `import-governance-bios.js` pattern:
 7. **ES pages** — Use `/es/` prefix in output path. Fragment paths should also use `/es/` prefix.
 8. **Missing footnotes report** — After import, check all referenced CIDs against the footnotes.json sheet and report any missing ones in table format.
 9. **Hero variant selection** — Use `overlay-bottom` when the source page shows image on top with text/heading in a card overlapping the bottom of the image (centered text below image). Use default Hero when text is positioned on the left side overlaying the full image.
+10. **Never paraphrase or translate** — Import text VERBATIM from the source page. Never reword, summarize, or translate headings, paragraphs, or link text. If the page redirected to Spanish but the requested URL is English, you MUST re-navigate to get the English content. Never manually translate Spanish text to English.
 
 ## Output: Missing Footnotes Report
 
