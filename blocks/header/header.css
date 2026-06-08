@@ -632,7 +632,7 @@ header .nav-mobile-util-link:last-child {
 
 @media (width >= 1400px) {
   header .nav-primary-link {
-    padding: 23px 21px 13px;
+    padding: 23px 20px 13px;
     font-size: 16px;
   }
 

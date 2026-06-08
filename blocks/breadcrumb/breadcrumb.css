@@ -54,6 +54,7 @@ main > .section.breadcrumb-container {
   font-weight: 600;
   line-height: 1;
   top: -2px;
+  left: -1px;
   position: relative;
 }
 
@@ -75,7 +76,7 @@ main > .section.breadcrumb-container {
 
   .breadcrumb nav ol li + li::before {
     content: '\203A';
-    margin: 0 12px;
+    margin: 0 12px 0 11px;
     color: var(--wf-text-secondary);
     font-size: 22px;
     font-weight: 400;
