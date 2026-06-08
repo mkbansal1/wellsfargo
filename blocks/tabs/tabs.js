@@ -1,5 +1,6 @@
 import { toClassName } from '../../scripts/aem.js';
 import { loadFragment } from '../fragment/fragment.js';
+import decorateProductTabs from './product-tabs.js';
 
 function decorateStandardTabs(block) {
   const tablist = document.createElement('div');
@@ -117,6 +118,11 @@ async function decorateReferenceTabs(block) {
 export default async function decorate(block) {
   if (block.classList.contains('reference')) {
     await decorateReferenceTabs(block);
+    return;
+  }
+
+  if (block.classList.contains('product')) {
+    decorateProductTabs(block);
     return;
   }
 

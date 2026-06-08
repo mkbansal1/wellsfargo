@@ -1,0 +1,197 @@
+/* ===== Product Variant ===== */
+/* Authored as | Tabs (product) | — product detail layout inside tab panels */
+.tabs.product .tabs-list {
+    border-bottom: none;
+    gap: 0;
+}
+
+.tabs.product .tabs-list button {
+    flex: 1 1 0;
+    text-align: center;
+    padding: 16px 12px;
+    font-weight: 600;
+    font-size: var(--body-font-size-s);
+    border: 1px solid var(--wf-bg-gray);
+    border-bottom: 3px solid transparent;
+    background: var(--wf-bg-light);
+}
+
+.tabs.product .tabs-list button[aria-selected="true"] {
+    background: var(--background-color);
+    border-bottom: 3px solid var(--wf-yellow);
+    font-weight: 700;
+}
+
+/* Panel wrapper */
+.tabs.product .tabs-panel {
+    padding: 0;
+    border: 1px solid var(--wf-bg-gray);
+    border-top: none;
+    overflow: visible;
+}
+
+/* Hero image — full width banner */
+.tabs.product .product-hero-img {
+    width: 100%;
+    line-height: 0;
+    overflow: hidden;
+}
+
+.tabs.product .product-hero-img img,
+.tabs.product .product-hero-img picture {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 170px;
+    object-fit: cover;
+}
+
+/* Account name heading */
+.tabs.product .product-account-heading {
+    padding: 20px 24px 8px;
+    border-bottom: 1px solid var(--wf-bg-gray);
+}
+
+.tabs.product .product-account-heading h2,
+.tabs.product .product-account-heading h4 {
+    font-size: var(--heading-font-size-l);
+    font-weight: 600;
+    margin: 0;
+    color: var(--wf-text-primary);
+}
+
+/* Details grid — rows of label + value */
+.tabs.product .product-details-grid {
+    padding: 0 24px;
+}
+
+.tabs.product .product-table-row {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 16px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--wf-bg-gray);
+    align-items: start;
+}
+
+.tabs.product .product-table-row:last-child {
+    border-bottom: none;
+}
+
+.tabs.product .product-table-label {
+    color: var(--wf-text-primary);
+    font-weight: 600;
+    font-size: var(--body-font-size-s);
+    padding-top: 2px;
+}
+
+.tabs.product .product-table-label strong {
+    font-weight: 600;
+    display: block;
+}
+
+.tabs.product .product-table-value {
+    font-size: var(--body-font-size-s);
+    color: var(--wf-text-primary);
+    line-height: 1.5;
+}
+
+.tabs.product .product-table-value p {
+    margin: 0 0 8px;
+}
+
+.tabs.product .product-table-value p:last-child {
+    margin-bottom: 0;
+}
+
+.tabs.product .product-table-value ul {
+    margin: 0 0 8px;
+    padding-left: 20px;
+}
+
+.tabs.product .product-table-value ul li {
+    margin-bottom: 4px;
+}
+
+.tabs.product .product-table-value strong {
+    font-size: var(--body-font-size-m);
+    font-weight: 700;
+    color: var(--wf-text-primary);
+}
+
+.tabs.product .product-table-value a {
+    color: var(--wf-link);
+}
+
+/* Footer — CTAs and links */
+.tabs.product .product-table-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 24px;
+    background: var(--wf-bg-light);
+    border-top: 1px solid var(--wf-bg-gray);
+}
+
+.tabs.product .product-table-footer p {
+    margin: 0;
+    font-size: var(--body-font-size-s);
+}
+
+.tabs.product .product-table-footer a {
+    color: var(--wf-link);
+    text-decoration: none;
+    font-size: var(--body-font-size-s);
+}
+
+.tabs.product .product-table-footer a strong {
+    display: inline;
+    font-weight: 600;
+}
+
+/* CTA buttons in footer */
+.tabs.product .product-table-footer strong > a,
+.tabs.product .product-table-footer a.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 22px;
+    border-radius: 24px;
+    font-weight: 600;
+    font-size: var(--body-font-size-s);
+    text-decoration: none;
+    border: 2px solid var(--wf-text-primary);
+    color: var(--wf-text-primary);
+    background: transparent;
+}
+
+.tabs.product .product-table-footer strong:first-of-type > a,
+.tabs.product .product-table-footer p:first-child strong > a {
+    background: var(--wf-red);
+    border-color: var(--wf-red);
+    color: #fff;
+}
+
+@media (width < 768px) {
+    .tabs.product .product-table-row {
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
+
+    .tabs.product .product-table-footer {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+@media (width >= 1024px) {
+    .tabs.product .tabs-list button {
+        font-size: var(--body-font-size-m);
+        padding: 18px 24px;
+    }
+
+    .tabs.product .product-table-row {
+        grid-template-columns: 240px 1fr;
+    }
+}

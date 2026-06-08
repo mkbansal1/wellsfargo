@@ -1,5 +1,7 @@
 /* stylelint-disable no-descending-specificity */
 
+@import url('product-tabs.css');
+
 /* ===== Block-Level Tokens ===== */
 .tabs {
     --tabs-border: #9c9191;
@@ -220,94 +222,4 @@
     color: var(--wf-text-primary);
     font-size: 1rem;
     line-height: 1.5;
-}
-
-/* ===== Product Variant ===== */
-/* Authored as | Tabs (product) | — product comparison cards inside tab panels */
-.tabs.product .tabs-list {
-    border-bottom: none;
-    gap: 0;
-}
-
-.tabs.product .tabs-list button {
-    flex: 1 1 0;
-    text-align: center;
-    padding: 16px 12px;
-    font-weight: 600;
-    font-size: var(--body-font-size-s);
-    border: 1px solid var(--wf-bg-gray);
-    border-bottom: 3px solid transparent;
-    background: var(--wf-bg-light);
-}
-
-.tabs.product .tabs-list button[aria-selected="true"] {
-    background: var(--background-color);
-    border-bottom: 3px solid var(--wf-yellow);
-    font-weight: 700;
-}
-
-.tabs.product .tabs-panel {
-    padding: 32px 24px;
-    border: 1px solid var(--wf-bg-gray);
-    border-top: none;
-}
-
-.tabs.product .tabs-panel > div:first-child {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 24px;
-}
-
-.tabs.product .tabs-panel h2 {
-    font-size: var(--heading-font-size-l);
-    font-weight: 400;
-    margin: 0 0 16px;
-}
-
-.tabs.product .tabs-panel strong {
-    display: block;
-    font-size: var(--body-font-size-m);
-    margin-bottom: 8px;
-    color: var(--wf-text-primary);
-}
-
-.tabs.product .tabs-panel ul {
-    padding-left: 20px;
-    margin: 0 0 16px;
-}
-
-.tabs.product .tabs-panel ul li {
-    margin-bottom: 8px;
-    line-height: 1.5;
-    font-size: var(--body-font-size-s);
-}
-
-.tabs.product .tabs-panel p {
-    font-size: var(--body-font-size-s);
-    line-height: 1.5;
-    margin: 0 0 8px;
-}
-
-.tabs.product .tabs-panel a {
-    color: var(--wf-link);
-}
-
-.tabs.product .tabs-panel a strong {
-    display: inline;
-    color: inherit;
-    font-size: inherit;
-    margin: 0;
-}
-
-@media (width >= 768px) {
-    .tabs.product .tabs-panel > div:first-child {
-        grid-template-columns: 1fr 1fr;
-    }
-}
-
-@media (width >= 1024px) {
-    .tabs.product .tabs-list button {
-        font-size: var(--body-font-size-m);
-        padding: 18px 24px;
-    }
 }
