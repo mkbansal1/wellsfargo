@@ -207,7 +207,7 @@ Use `import-governance-bios.js` pattern:
 1. **Never lose content** — If content doesn't match a known block pattern, import it as default content (paragraphs, headings, lists). Flag it for user review.
 2. **Footnote format** — `<sup>` must wrap `<a>`, never the reverse: `<sup><a href="#tcm:...">N</a></sup>`
 3. **No pageid in footnotes** — DT1/QSR/LRC IDs go in pageid metadata only, never in footnotes list.
-4. **Absolute URLs** — Convert `https://www.wellsfargo.com/path` to `/path`. Keep external URLs absolute.
+4. **Absolute URLs** — Convert `https://www.wellsfargo.com/path` to `/path`. Keep external URLs absolute. Internal links must NOT have a trailing slash (use `/about/investor-relations` not `/about/investor-relations/`). The only exception is `/` for the homepage.
 5. **Images** — Keep wellsfargomedia.com URLs as-is during import (will be migrated to DA assets later).
 6. **Div balance** — Every line must have equal `<div>` opens and `</div>` closes.
 7. **ES pages** — Use `/es/` prefix in output path. Fragment paths should also use `/es/` prefix.
