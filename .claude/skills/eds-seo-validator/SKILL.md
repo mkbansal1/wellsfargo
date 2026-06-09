@@ -66,7 +66,7 @@ node <SCRIPT_PATH> \
 
 For check-seo-deep.js: first cd to ~/.claude/skills/eds-seo-validator/ then run node scripts/check-seo-deep.js ...
 For check-cwv.mjs: run from any directory as it uses .mjs extension. Default strategy is `both` (runs mobile then desktop, combined single CSV + HTML output).
-For check-seo.js: run from a directory without a package.json that sets "type": "commonjs" — use the project-level copy at /Users/nishantgupta/Developer/Code/wellsfargo/.claude/skills/eds-seo-validator/scripts/check-seo.js
+For check-seo.js: run from a directory without a package.json that sets "type": "commonjs" — use the project-level copy at ~/.claude/skills/eds-seo-validator/scripts/check-seo.js
 ```
 
 **Parallel execution:** If the user asks for both fast + CWV, or fast + deep, dispatch both sub-agents simultaneously in the same message.
@@ -131,7 +131,7 @@ Once sitemap file, base URL, and optional auth are confirmed, dispatch a sub-age
 ```
 Run this command and return: full output + summary (total, passed, issue counts, top issues, worst pages) + CSV path.
 
-node /Users/nishantgupta/Developer/brand-concierge-capstone/wknd-adventure-concierge/.claude/skills/eds-seo-validator/scripts/check-seo.js \
+node ~/.claude/skills/eds-seo-validator/scripts/check-seo.js \
   <SITEMAP_JSON> \
   "<BASE_URL>" \
   /tmp/eds-seo-report.csv \
