@@ -415,3 +415,46 @@
   padding: 16px 0;
   flex: 1;
 }
+
+/* === Variant: promo — title top, image-left + desc-right below, 2-up grid === */
+
+.cards.promo > ul > li {
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  flex-direction: column;
+}
+
+.cards.promo > ul > li .cards-card-title h3 {
+  font-size: var(--heading-font-size-l);
+  font-weight: 400;
+  margin: 0 0 12px;
+}
+
+.cards.promo > ul > li .cards-card-row {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.cards.promo > ul > li .cards-card-row .cards-card-image {
+  flex-shrink: 0;
+  line-height: 0;
+}
+
+.cards.promo > ul > li .cards-card-row .cards-card-image img {
+  width: 101px;
+  height: 101px;
+  object-fit: cover;
+}
+
+.cards.promo > ul > li .cards-card-row .cards-card-body {
+  flex: 1;
+  padding: 0;
+}
+
+.cards.promo > ul > li .cards-card-row .cards-card-body p {
+  font-size: var(--body-font-size-m);
+  margin: 0 0 8px;
+}

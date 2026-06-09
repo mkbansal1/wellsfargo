@@ -27,5 +27,25 @@ export default function decorate(block) {
   ul.querySelectorAll('.cards-card-body a').forEach((a) => {
     a.textContent = a.textContent.replace(/\s*>+\s*$/, '');
   });
+
+  // promo variant: restructure DOM — h3 on top, then image + text row below
+  if (block.classList.contains('promo')) {
+    ul.querySelectorAll('li').forEach((li) => {
+      const body = li.querySelector('.cards-card-body');
+      const image = li.querySelector('.cards-card-image');
+      const h3 = body ? body.querySelector('h3') : null;
+      if (h3 && image && body) {
+        const title = document.createElement('div');
+        title.className = 'cards-card-title';
+        title.append(h3);
+        const row = document.createElement('div');
+        row.className = 'cards-card-row';
+        row.append(image, body);
+        li.innerHTML = '';
+        li.append(title, row);
+      }
+    });
+  }
+
   block.replaceChildren(ul);
 }
