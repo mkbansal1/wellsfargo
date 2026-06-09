@@ -19,7 +19,11 @@ export default function decorate(block) {
     if (!hasImage) li.classList.add('no-image');
     ul.append(li);
   });
-  ul.querySelectorAll('picture > img').forEach((img) => img.closest('picture').replaceWith(createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }])));
+  ul.querySelectorAll('picture > img').forEach((img) => {
+    if (!img.src.startsWith('http') || img.src.includes(window.location.hostname)) {
+      img.closest('picture').replaceWith(createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }]));
+    }
+  });
   ul.querySelectorAll('.cards-card-body a').forEach((a) => {
     a.textContent = a.textContent.replace(/\s*>+\s*$/, '');
   });
