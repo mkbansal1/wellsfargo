@@ -94,7 +94,7 @@ Use the block library to find the best match. Available blocks:
 | **Hero** | default, `overlay-bottom` | Full-width banner image + heading + CTA. Use `overlay-bottom` when the text/heading overlaps the bottom of the image in a centered card (image above, text card overlapping bottom). Use default when text is overlaid on the left side of the image. |
 | **Cards** | `icons`, `bg-image`, `separator`, `compact`, `align-center` | Grid of items with image/icon + title + text. Use `icons bg-image` ONLY for small icon images (64x64 or similar). For full-size card images (616x353 or similar), use plain `cards` with no variant. |
 | **Accordion** | `compact` | Expandable Q&A or FAQ sections (H3 + content pairs) |
-| **Tabs** | `Yellow`, `Top`, `Tab-Fill`, `Panel-Border` | Tabbed content panels |
+| **Tabs** | `Yellow`, `Top`, `Tab-Fill`, `Panel-Border`, `Centered`, `Reference` | Tabbed content panels. Use `Centered` for centered tab list with indigo indicator. Use `Reference` when tab panels need to contain other blocks (e.g., Accordion) — each tab cell contains a fragment path instead of inline content. Combine variants: `Tabs (Centered, Reference)`. |
 | **Columns** | `panel`, `ratio-25-75`, `ratio-33-67`, `ratio-67-33`, `ratio-75-25` | Side-by-side content. Use `panel` variant when layout shows image on left + text on right inside a card/panel container with border or shadow. |
 | **Text Image** | default (float wrap), `image-left`, `image-right`, `image-top`, `compact-image` | Image + text layout |
 | **Fragment** | — | Shared content referenced by path |
@@ -216,6 +216,7 @@ Use `import-governance-bios.js` pattern:
 8. **Missing footnotes report** — After import, check all referenced CIDs against the footnotes.json sheet and report any missing ones in table format.
 9. **Hero variant selection** — Use `overlay-bottom` when the source page shows image on top with text/heading in a card overlapping the bottom of the image (centered text below image). Use default Hero when text is positioned on the left side overlaying the full image.
 10. **Never paraphrase or translate** — Import text VERBATIM from the source page. Never reword, summarize, or translate headings, paragraphs, or link text. If the page redirected to Spanish but the requested URL is English, you MUST re-navigate to get the English content. Never manually translate Spanish text to English.
+11. **No block nesting** — EDS does not support blocks inside blocks. If a tab panel needs to contain an Accordion (or any other block), use the `Tabs (Reference)` variant where each tab panel references a Fragment path. The fragment page then contains the nested block. Same applies to any scenario where one block's content needs another block inside it.
 
 ## Output: Missing Footnotes Report
 
