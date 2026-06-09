@@ -1,5 +1,7 @@
 /* stylelint-disable no-descending-specificity */
 
+@import url('product-tabs.css');
+
 /* ===== Block-Level Tokens ===== */
 .tabs {
     --tabs-border: #9c9191;
