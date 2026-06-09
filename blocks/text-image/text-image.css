@@ -87,6 +87,23 @@
   color: #fff;
 }
 
+/* teal: teal gradient background with white text */
+.text-image.teal {
+  background: linear-gradient(rgb(0 127 170), rgb(0 105 140));
+  border-radius: 8px;
+  padding: 24px;
+}
+
+.text-image.teal .text-image-content {
+  color: #fff;
+}
+
+.text-image.teal .text-image-content h2,
+.text-image.teal .text-image-content h3,
+.text-image.teal .text-image-content p {
+  color: #fff;
+}
+
 /* ========================================
    Tablet & Desktop (≥768px)
    ======================================== */

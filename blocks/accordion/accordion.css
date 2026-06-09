@@ -48,12 +48,12 @@
   content: '';
   position: absolute;
   left: -3px;
-  top: 34px;
+  top: 50%;
+  transform: translateY(-50%) scale(0.7);
   width: 22px;
   height: 20px;
   min-width: 20px;
   background: url('https://www17.wellsfargomedia.com/assets/images/sprite/responsive-sprite-v15.png') -481px -132px;
-  transform: scale(0.7);
 }
 
 .accordion details[open] summary::before {
