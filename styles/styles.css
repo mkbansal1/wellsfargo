@@ -132,6 +132,7 @@ h6 {
 
 h1 { font-size: var(--heading-font-size-xl); }
 h1:first-of-type { margin: 0; }
+
 h2 { 
   font-size: var(--heading-font-size-xxl);
   font-weight: 300;
@@ -388,6 +389,25 @@ main .section.dark a:any-link {
 
 main .section.cream {
   background-color: var(--wf-cream);
+}
+
+/* App promo — teal gradient band with white text (e.g. /financial-assistance) */
+main .section.app-promo {
+  background-image: linear-gradient(164deg, #01222d 1.06%, #017994 50.47%);
+  color: var(--background-color);
+}
+
+main .section.app-promo h1,
+main .section.app-promo h2,
+main .section.app-promo h3,
+main .section.app-promo h4,
+main .section.app-promo h5,
+main .section.app-promo h6 {
+  color: var(--background-color);
+}
+
+main .section.app-promo a:any-link {
+  color: var(--background-color);
 }
 
 main .section.center-align .default-content-wrapper {
