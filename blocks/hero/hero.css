@@ -261,208 +261,161 @@ main .section.hero-container.heading-bar.center-align .hero.overlay-bottom h2::b
   }
 }
 
-/* ============================================================
-   ADD-ONS — New rules and overrides layered on top.
-   All original rules above remain untouched. The following
-   sections extend or override them via CSS source-order
-   cascade (later rules win when specificity is equal).
-   ============================================================ */
+/* === Variant: sign-on === */
 
-/* --- Default variant: mobile additions & overrides --- */
+/* Authored as | Hero (sign-on) | — row 1: hero image + headline + CTA, row 2: sign-on card */
 
-/* Drop the fixed aspect-ratio so the image flows naturally */
-.hero .hero-bg img {
-  aspect-ratio: auto;
+/* Mobile-first: image, then headline content, then sign-on card stacked */
+.hero.sign-on {
+  flex-direction: column;
+  align-items: stretch;
 }
 
-/* Full-width CTA on mobile */
-.hero .hero-content .button-wrapper a.button {
+.hero.sign-on .hero-bg {
+  position: relative;
   width: 100%;
+  line-height: 0;
 }
 
-/* --- Sign-on overlay (multi-row hero) — hidden on mobile/tablet --- */
-.hero .hero-signon {
-  display: none;
+.hero.sign-on .hero-bg img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  aspect-ratio: 57 / 20;
 }
 
-/* --- Default variant: desktop additions & overrides --- */
+.hero.sign-on .hero-content {
+  position: relative;
+  padding: 24px 20px 32px;
+  text-align: center;
+}
+
+.hero.sign-on .hero-content h1,
+.hero.sign-on .hero-content h2 {
+  font-size: var(--heading-font-size-xxl);
+  font-weight: 300;
+  line-height: 1.2;
+  color: var(--wf-dark);
+  margin: 0 0 16px;
+}
+
+.hero.sign-on .hero-content .button-wrapper {
+  margin-top: 24px;
+}
+
+/* Sign-on card */
+.hero.sign-on .hero-signon {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px 0 rgb(0 0 0 / 25%);
+  margin: 0 20px 8px;
+}
+
+.hero.sign-on .hero-signon h2 {
+  font-size: var(--heading-font-size-l);
+  font-weight: 400;
+  line-height: 1.2;
+  color: var(--wf-text-primary);
+  margin: 0;
+  padding: 24px 24px 16px;
+  background-color: var(--wf-bg-white);
+}
+
+.hero.sign-on .hero-signon .button-wrapper {
+  margin: 0;
+  padding: 0 24px 24px;
+  background-color: var(--wf-bg-white);
+}
+
+.hero.sign-on .hero-signon .button-wrapper a.button {
+  width: auto;
+  min-width: 160px;
+}
+
+/* Links section — light background, stacked dark links */
+.hero.sign-on .hero-signon p:not(.button-wrapper) {
+  margin: 0;
+  padding: 6px 24px;
+  background-color: var(--wf-bg-warm);
+  font-size: var(--body-font-size-s);
+  line-height: 1.5;
+}
+
+.hero.sign-on .hero-signon p:not(.button-wrapper):first-of-type {
+  padding-top: 20px;
+}
+
+.hero.sign-on .hero-signon p:not(.button-wrapper):last-of-type {
+  padding-bottom: 20px;
+}
+
+.hero.sign-on .hero-signon a:not(.button) {
+  color: var(--wf-text-primary);
+  text-decoration: none;
+}
+
+.hero.sign-on .hero-signon a:not(.button):hover {
+  text-decoration: underline;
+}
+
+/* Desktop: image full-bleed background, headline overlay centered, sign-on card top-left */
 @media (width >= 1024px) {
-  /* Fixed hero dimensions for the new absolute-overlay layout */
-  .hero {
-    min-height: 420px;
-    height: 553px;
+  .hero.sign-on {
+    flex-direction: row;
+    align-items: center;
+    min-height: 423px;
   }
 
-  /* Background image fills the hero box (overrides aspect-ratio 135/53) */
-  .hero .hero-bg img {
-    aspect-ratio: auto;
+  .hero.sign-on .hero-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    line-height: normal;
     height: 100%;
   }
 
-  /* Hero content becomes an absolute-positioned overlay */
-  .hero .hero-content {
-    position: absolute;
-    left: 53%;
-    top: 44%;
-    transform: translate(-50%, -50%);
-    max-width: 650px;
-    width: 560px;
-    padding: 40px;
+  .hero.sign-on .hero-bg picture {
+    display: block;
+    height: 100%;
   }
 
-  .hero .hero-content h1,
-  .hero .hero-content h2 {
-    font-size: 48px;
-    line-height: 1.15;
+  .hero.sign-on .hero-bg img {
+    height: 100%;
+    aspect-ratio: unset;
   }
 
-  .hero .hero-content p {
-    max-width: none;
-  }
-
-  .hero .hero-content .button-wrapper {
-    margin-top: 32px;
-    text-align: left;
-  }
-
-  .hero .hero-content .button-wrapper a.button {
-    width: auto;
-    min-width: 220px;
-  }
-
-  /* --- Sign-on overlay: visible at desktop, positioned top-left --- */
-  .hero .hero-signon {
-    display: flex;
-    flex-direction: column;
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    z-index: 2;
-    width: 333px;
-    color: var(--wf-text-primary);
-    padding: 0;
-    text-align: left;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
-  }
-
-  /* Sign-on top section: white background with heading + button */
-  .hero .hero-signon h2 {
-    font-size: 20px;
-    font-weight: 400;
-    color: var(--wf-dark);
-    margin: 0;
-    padding: 24px 24px 0;
-    background: var(--wf-bg-white);
-  }
-
-  .hero .hero-signon .button-wrapper {
-    margin: 0;
-    padding: 20px 24px;
-    background: var(--wf-bg-white);
-  }
-
-  .hero .hero-signon .button-wrapper a.button {
-    min-width: 170px;
-    padding: 12px 48px;
-    background: var(--wf-red);
-    border-color: var(--wf-red);
-    color: #fff;
-    font-size: var(--body-font-size-m);
-    font-weight: 600;
-    border-radius: 24px;
-  }
-
-  .hero .hero-signon .button-wrapper a.button:hover {
-    background: #b01c24;
-    border-color: #b01c24;
-  }
-
-  /* Sign-on bottom section: light gray background with links */
-  .hero .hero-signon p {
-    font-size: var(--body-font-size-s);
-    color: var(--wf-text-primary);
-    margin: 0;
-    padding: 6px 24px;
-    line-height: 1.8;
-    background: var(--wf-bg-light);
-  }
-
-  .hero .hero-signon p:last-child {
-    padding-bottom: 20px;
-  }
-
-  .hero .hero-signon p:first-of-type:not(.button-wrapper) {
-    padding-top: 16px;
-  }
-
-  .hero .hero-signon a:any-link {
-    color: var(--wf-link);
-    text-decoration: none;
-  }
-
-  .hero .hero-signon a:hover {
-    text-decoration: underline;
-  }
-}
-
-/* --- Overlay-bottom variant: mobile additions & overrides --- */
-
-/* New image min/max height constraints */
-.hero.overlay-bottom .hero-bg img {
-  min-height: 200px;
-  max-height: 350px;
-}
-
-/* Updated content box: deeper overlap, side margins, larger padding/radius.
-   align-self & width reset so the new margin-based layout takes effect
-   (overrides original align-self:center and width:82% / 88.5% @768). */
-.hero.overlay-bottom .hero-content {
-  margin-top: -32px;
-  margin-left: 20px;
-  margin-right: 20px;
-  padding: 24px 32px;
-  border-radius: 12px;
-  align-self: auto;
-  width: auto;
-}
-
-/* Larger, lighter heading */
-.hero.overlay-bottom .hero-content h1,
-.hero.overlay-bottom .hero-content h2 {
-  font-size: 40px;
-  font-weight: 400;
-  line-height: 1.25;
-}
-
-/* h2::before margin updated (uses the original's dual selector to match
-   specificity so the override wins reliably) */
-main .section.hero-container.heading-bar.center-align .hero.overlay-bottom h2::before,
-.hero.overlay-bottom .hero-content h2::before {
-  margin: 0 auto 10px;
-}
-
-/* --- Overlay-bottom variant: desktop additions & overrides --- */
-@media (width >= 1024px) {
-  /* New image min/max height constraints for desktop */
-  .hero.overlay-bottom .hero-bg img {
-    min-height: 282px;
-    max-height: 554px;
-  }
-
-  /* Counteract the new default-desktop absolute-overlay so overlay-bottom
-     keeps its in-flow centered layout. Then apply the updated margin/
-     width/padding values. */
-  .hero.overlay-bottom .hero-content {
+  .hero.sign-on .hero-content {
     position: relative;
-    left: auto;
-    top: auto;
-    transform: none;
-    margin-top: -48px;
-    margin-left: auto;
+    z-index: 1;
+    width: 100%;
+    max-width: 600px;
+    margin-left: 28%;
     margin-right: auto;
-    width: 75%;
-    padding: 24px 80px;
+    padding: 40px;
+    text-align: left;
+  }
+
+  .hero.sign-on .hero-content h1,
+  .hero.sign-on .hero-content h2 {
+    font-size: 48px;
+  }
+
+  .hero.sign-on .hero-content .button-wrapper {
+    text-align: left;
+  }
+
+  .hero.sign-on .hero-content .button-wrapper a.button {
+    width: auto;
+  }
+
+  /* Sign-on card anchored top-left over the image, with spacing from the corner */
+  .hero.sign-on .hero-signon {
+    position: absolute;
+    top: 48px;
+    left: 32px;
+    z-index: 2;
+    width: 328px;
+    margin: 0;
+    border-radius: 8px;
   }
 }
