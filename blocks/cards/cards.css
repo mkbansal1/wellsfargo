@@ -302,7 +302,6 @@
 /* === Variant: icons-bottom === */
 
 .cards.icons-bottom > ul > li {
-  background: var(--wf-bg-light);
   padding: 24px;
 }
 
