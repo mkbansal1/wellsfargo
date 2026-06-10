@@ -260,3 +260,73 @@ main .section.hero-container.heading-bar.center-align .hero.overlay-bottom h2::b
     width: 88.5%;
   }
 }
+
+
+/* === Variant: text-right — text overlaid on right of image (desktop) === */
+
+/* Authored as | Hero (text-right) | */
+.hero.text-right .hero-content :is(h1, h2) {
+  font-weight: 400;
+  line-height: 1.07;
+}
+
+.hero.text-right .hero-content p {
+  font-size: var(--body-font-size-m);
+  font-weight: 400;
+  line-height: 1.35;
+}
+
+.hero.text-right .hero-content .button-wrapper a.button {
+  border-radius: 2px;
+  padding: 11px 60px;
+  font-size: var(--body-font-size-s);
+  font-weight: 400;
+  background: #bb0826;
+}
+
+.hero.text-right .hero-content .button-wrapper a.button:hover {
+  text-decoration: underline;
+}
+
+@media (width >= 1024px) {
+  .hero-container:has(.hero.text-right) .hero-wrapper {
+    max-width: var(--content-max-width);
+    margin: 0 auto;
+    padding: 0 26px;
+  }
+
+  .hero.text-right {
+    height: auto;
+    min-height: 0;
+    aspect-ratio: 970 / 462;
+    justify-content: flex-end;
+    align-items: center;
+  }
+
+  .hero.text-right .hero-bg,
+  .hero.text-right .hero-bg picture {
+    width: 100%;
+    height: 100%;
+  }
+
+  .hero.text-right .hero-bg img {
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+  }
+
+  .hero.text-right .hero-content {
+    box-sizing: border-box;
+    max-width: 489px;
+    padding: 0 98px 0 0;
+    text-align: center;
+  }
+
+  .hero.text-right .hero-content :is(h1, h2) {
+    font-size: 42px;
+  }
+
+  .hero.text-right .hero-content p {
+    font-size: 17px;
+  }
+}
