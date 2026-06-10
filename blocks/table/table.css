@@ -47,16 +47,21 @@
   margin-bottom: 0.25em;
 }
 
-/* no-border variant — no card wrapper, rows separated by top border */
+/* no-border variant — no card wrapper, rows separated by top border, centered */
 .table.no-border {
   border: 0;
   border-radius: 0;
   padding: 0;
 }
 
+.table.no-border table {
+  margin: 0 auto;
+  width: auto;
+}
+
 .table.no-border table th,
 .table.no-border table td {
-  padding: 24px 16px 24px 0;
+  padding: 24px 16px;
   border-bottom: none;
   border-top: 1px solid #d9d9d9;
   color: var(--wf-text-primary, #3b3331);
@@ -64,7 +69,6 @@
 
 .table.no-border table th[scope="row"] {
   text-align: right;
-  padding-right: 16px;
   font-weight: 400;
 }
 
