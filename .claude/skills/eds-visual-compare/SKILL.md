@@ -162,7 +162,7 @@ Send **a single Agent tool message** with multiple parallel Agent calls — one 
 ```
 # Sub-agent for batch 1 (pages 1–50):
 Run this command and return stdout:
-node /Users/nishantgupta/Developer/Code/wellsfargo/.claude/skills/eds-visual-compare/scripts/check-visual.mjs \
+node .claude/skills/eds-visual-compare/scripts/check-visual.mjs \
   /tmp/sitemap-batch-1.json \
   "https://www.wellsfargo.com" \
   "https://main--wellsfargo--mkbansal1.aem.live" \
@@ -171,7 +171,7 @@ node /Users/nishantgupta/Developer/Code/wellsfargo/.claude/skills/eds-visual-com
 
 # Sub-agent for batch 2 (pages 51–100):
 Run this command and return stdout:
-node /Users/nishantgupta/Developer/Code/wellsfargo/.claude/skills/eds-visual-compare/scripts/check-visual.mjs \
+node .claude/skills/eds-visual-compare/scripts/check-visual.mjs \
   /tmp/sitemap-batch-2.json \
   "https://www.wellsfargo.com" \
   "https://main--wellsfargo--mkbansal1.aem.live" \
@@ -186,7 +186,7 @@ Run up to 5 batches in parallel. For 1200 pages (24 batches), run 5 waves of 5 b
 Once all batches complete:
 
 ```bash
-node /Users/nishantgupta/Developer/Code/wellsfargo/.claude/skills/eds-visual-compare/scripts/merge-reports.mjs \
+node .claude/skills/eds-visual-compare/scripts/merge-reports.mjs \
   /tmp/eds-visual-merged \
   /tmp/visual-batch-1 \
   /tmp/visual-batch-2 \

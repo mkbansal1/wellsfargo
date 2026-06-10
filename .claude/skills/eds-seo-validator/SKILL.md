@@ -41,35 +41,38 @@ Use this skill when:
 This skill uses a **two-phase approach**:
 
 1. **Input gathering** (main agent) — confirm sitemap, probe for auth, determine mode, collect any missing parameters
-2. **Sub-agent execution** — once all inputs are known, dispatch a `general-purpose` sub-agent via the Agent tool to run the script and return results
+2. **Background Bash execution** — once all inputs are known, run scripts directly using `run_in_background: true` Bash commands
 
-This keeps the main context window clean (script output can be thousands of lines) and allows multiple modes to run in parallel as separate sub-agents.
+> **IMPORTANT: Do NOT use the Agent tool to dispatch script runs.** Sub-agents launched via the Agent tool run in fully isolated sessions with no Bash permissions, regardless of settings.json. Always use background Bash commands directly instead — they inherit the current session's permissions and work reliably.
 
-### Sub-agent dispatch template
+For batched parallel execution, fire multiple `run_in_background: true` Bash calls in a single message (one per batch), then wait for all to complete before merging results.
 
-After all inputs are collected, use the Agent tool with this prompt pattern:
+### Bash dispatch template
 
-```
-Run the following command and return:
-1. The full stdout/stderr output
-2. A structured summary: total pages, passed, issues count, top 10 most common issues with counts, top 5 worst pages with issue counts
-3. The CSV file path
+After all inputs are collected, use the Bash tool with `run_in_background: true`:
 
-Command:
-node <SCRIPT_PATH> \
+Use the Bash tool with `run_in_background: true` and `timeout: 600000`. Redirect stdout to a log file so you can read results after completion:
+
+```bash
+# Single run example (fast/CWV/compare):
+cd ~/.claude/skills/eds-seo-validator && node scripts/check-seo-deep.js \
   <SITEMAP_JSON> \
   "<BASE_URL>" \
   <OUTPUT_CSV> \
-  [--auth=user:pass] \
-  [--key=API_KEY] \
-  [--strategy=mobile|desktop|both]
+  [--auth=user:pass] > /tmp/seo-deep.log 2>&1
 
-For check-seo-deep.js: first cd to ~/.claude/skills/eds-seo-validator/ then run node scripts/check-seo-deep.js ...
-For check-cwv.mjs: run from any directory as it uses .mjs extension. Default strategy is `both` (runs mobile then desktop, combined single CSV + HTML output).
-For check-seo.js: run from a directory without a package.json that sets "type": "commonjs" — use the project-level copy at /Users/nishantgupta/Developer/Code/wellsfargo/.claude/skills/eds-seo-validator/scripts/check-seo.js
+# For check-cwv.mjs (no cd needed):
+node ~/.claude/skills/eds-seo-validator/scripts/check-cwv.mjs \
+  <SITEMAP_JSON> \
+  <OUTPUT_CSV> \
+  --base-url="<BASE_URL>" \
+  [--key=API_KEY] \
+  [--strategy=both] > /tmp/cwv.log 2>&1
 ```
 
-**Parallel execution:** If the user asks for both fast + CWV, or fast + deep, dispatch both sub-agents simultaneously in the same message.
+After the background command completes, read the log file for results.
+
+**Parallel batch execution:** Send multiple `run_in_background: true` Bash tool calls in a single message (one per batch). After all complete, read each log and merge results.
 
 ---
 
@@ -131,7 +134,7 @@ Once sitemap file, base URL, and optional auth are confirmed, dispatch a sub-age
 ```
 Run this command and return: full output + summary (total, passed, issue counts, top issues, worst pages) + CSV path.
 
-node /Users/nishantgupta/Developer/brand-concierge-capstone/wknd-adventure-concierge/.claude/skills/eds-seo-validator/scripts/check-seo.js \
+node ~/.claude/skills/eds-seo-validator/scripts/check-seo.js \
   <SITEMAP_JSON> \
   "<BASE_URL>" \
   /tmp/eds-seo-report.csv \
