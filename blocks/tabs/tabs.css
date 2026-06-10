@@ -211,6 +211,29 @@
     border: 1px solid var(--tabs-border);
 }
 
+/* ===== Centered Variant ===== */
+.tabs.centered .tabs-list {
+    justify-content: center;
+    border-bottom: none;
+}
+
+.tabs.centered .tabs-list button {
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 14px 32px 13px;
+    color: var(--wf-text-secondary, #787070);
+}
+
+.tabs.centered .tabs-list button[aria-selected="true"] {
+    border-bottom-color: var(--tabs-indigo);
+    color: var(--wf-dark, #141414);
+}
+
+.tabs.centered .tabs-panel {
+    padding: 24px 0;
+    border-top: none;
+}
+
 /* ===== Reference Variant ===== */
 .tabs.reference .tabs-panel {
     padding: 24px;

@@ -64,21 +64,49 @@ Derive from URL — the last path segment becomes the filename, parent segments 
 
 **Rule:** The trailing path segment is ALWAYS the filename (not `index.plain.html` inside a folder). A URL like `/about/` maps to `content/about.plain.html`, NOT `content/about/index.plain.html`.
 
-### Step 3: Extract Content
+### Step 3: Run Importer Template
 
-Use Playwright to navigate and extract:
+**ALWAYS use the importer scripts first.** Only fall back to manual construction for truly unique page types.
+
+| Theme | Importer Script | Usage |
+|-------|----------------|-------|
+| New Theme | `tools/importer/import-es-product-landing.bundle.js` | Run via AEM import server or helix-importer-ui |
+| Old Theme | `tools/importer/old-theme/import-old-theme.bundle.js` | Run via AEM import server or helix-importer-ui |
+| Governance Bios | `tools/importer/import-governance-bios.js` | Run directly: `node tools/importer/import-governance-bios.js` |
+
+**Running the importer:**
+```bash
+# For single page using the bundled importer:
+node tools/importer/run-bulk-import.js <url> --template <template-name>
+```
+
+The importers handle: block detection, DA table structure, footnote extraction, section-metadata, div balance, and post-processing automatically.
+
+**Fall back to manual only when:**
+- Page type has no matching importer (e.g., CIB articles, Tabs with Reference fragments)
+- Importer output needs significant corrections (>50% of content wrong)
+- User explicitly requests manual import
+
+### Step 4: Extract Content (manual fallback only)
+
+If using manual import, use Playwright to navigate and extract:
 1. **Page title** (from `<title>` tag)
-2. **H1** heading
-3. **Hero image** (if present — marquee/banner image)
-4. **Body content** (paragraphs, headings, lists, bold text, links, images)
-5. **Pageid** (DT1-..., QSR-..., or LRC-... pattern)
-6. **Footnote CIDs** (any `#tcm:` references in links)
-7. **Metadata footnotes** (CID list from footnote area if present)
+2. **Meta description** (from `<meta name="description" content="...">`)
+3. **Meta keywords** (from `<meta name="keywords" content="...">`)
+4. **H1** heading
+5. **Hero image** (if present — marquee/banner image)
+6. **Body content** (paragraphs, headings, lists, bold text, links, images)
+7. **Pageid** (DT1-..., QSR-..., or LRC-... pattern)
+8. **Footnote CIDs** (any `#tcm:` references in links)
+9. **Metadata footnotes** (CID list from footnote area if present)
+
+**Always include in Metadata block:** Title, Description (if present), Keywords (if present), footnotes (if any), pageid.
 
 **Critical extraction rules:**
 - **Redirect handling:** After navigation, check `window.location.href`. If the page redirected to `/es/` but the requested URL was English (no `/es/` prefix), navigate again with `locale: 'en-US'` headers or use the English URL directly. Always verify you're extracting from the correct language version.
 - **Expand all accordions:** Before extracting content, expand all `<details>` elements by setting `d.open = true` on each. This ensures hidden accordion panel content is accessible in the DOM.
 - **Never skip hidden content:** Some content is in collapsed panels, hidden tabs, or lazy-loaded sections. Always expand/reveal all interactive content before extraction.
+- **Verify image placement visually:** Always take a screenshot or check DOM position relative to H2 headings before assigning images to sections. Never guess from filenames or class names alone.
 
 ### Step 4: Map Content to Blocks
 
@@ -87,9 +115,9 @@ Use the block library to find the best match. Available blocks:
 | Block | Variants | Use When |
 |-------|----------|----------|
 | **Hero** | default, `overlay-bottom` | Full-width banner image + heading + CTA. Use `overlay-bottom` when the text/heading overlaps the bottom of the image in a centered card (image above, text card overlapping bottom). Use default when text is overlaid on the left side of the image. |
-| **Cards** | `icons`, `bg-image`, `separator`, `compact`, `align-center` | Grid of items with image/icon + title + text |
+| **Cards** | `icons`, `bg-image`, `separator`, `compact`, `align-center` | Grid of items with image/icon + title + text. Use `icons bg-image` ONLY for small icon images (64x64 or similar). For full-size card images (616x353 or similar), use plain `cards` with no variant. |
 | **Accordion** | `compact` | Expandable Q&A or FAQ sections (H3 + content pairs) |
-| **Tabs** | `Yellow`, `Top`, `Tab-Fill`, `Panel-Border` | Tabbed content panels |
+| **Tabs** | `Yellow`, `Top`, `Tab-Fill`, `Panel-Border`, `Centered`, `Reference` | Tabbed content panels. Use `Centered` for centered tab list with indigo indicator. Use `Reference` when tab panels need to contain other blocks (e.g., Accordion) — each tab cell contains a fragment path instead of inline content. Combine variants: `Tabs (Centered, Reference)`. |
 | **Columns** | `panel`, `ratio-25-75`, `ratio-33-67`, `ratio-67-33`, `ratio-75-25` | Side-by-side content. Use `panel` variant when layout shows image on left + text on right inside a card/panel container with border or shadow. |
 | **Text Image** | default (float wrap), `image-left`, `image-right`, `image-top`, `compact-image` | Image + text layout |
 | **Fragment** | — | Shared content referenced by path |
@@ -114,21 +142,45 @@ Each section (line in .plain.html) can have section-metadata:
 | `cream` | Cream/yellow background (#FFF7E2) |
 
 **Rules:**
-- Sections with H2 + Cards or Tabs → `heading-bar, center-align`
+- Only add `heading-bar` if the source H2 has a heading-bar indicator before it in the DOM. Indicators include: `div.ps-mid-page-title-top-line`, a zero-width joiner character (`‍` / `‍`), or a thin decorative element immediately before the H2.
+- Sections with H2 (with heading-bar) + Cards or Tabs → `heading-bar, center-align`
 - Sections with Accordion (with or without H2) → ALWAYS include `narrow-width` (e.g., `heading-bar, center-align, narrow-width`)
 - Hero overlay-bottom sections → `center-align, heading-bar`
-- Plain H2 sections → `heading-bar` only (left-aligned by default)
+- Plain H2 without heading-bar indicator → no section-metadata needed
+
+**MANDATORY: Per-section check.** For EVERY section that contains an H2, verify whether the source has a heading-bar indicator before that H2. Do NOT skip any section. Missing section metadata is a recurring error — check each one individually.
 
 ### Step 6: Handle Footnotes
 
-1. Extract all `#tcm:XX-XXXXXX-XX` references from content (href values in `<sup><a>` links)
-2. Extract pageid (DT1/QSR/LRC pattern)
-3. Add to metadata block:
+Extract ALL footnote CIDs from THREE sources:
+
+1. **Superscript references in body** — `#tcm:XX-XXXXXX-XX` href values in `<sup><a>` links
+2. **Page-specific footnotes** — Extract ALL `data-cid` values from elements in the footnotes section at the bottom of the page (`.ps-footnote-text` or similar containers between last content and pageid). These include numbered footnotes, legal disclaimers, and any page-specific disclosures.
+3. **Standard disclosure footnotes** — Always check for these known CIDs in the footnotes section:
+   - "Wells Fargo Bank, N.A. Member FDIC." → CID: `tcm:84-20661-16`
+   - "Equal Housing Lender" → CID: `tcm:84-226264-16`
+   - "Wells Fargo Home Mortgage is a division of Wells Fargo Bank, N.A." → include if present
+
+**Extraction method (Playwright):**
+```javascript
+// Get ALL footnote CIDs from the page
+document.querySelectorAll('[data-cid]').forEach(el => {
+  const cid = el.getAttribute('data-cid');
+  // Include if it's in the footnotes area (not nav/header)
+});
+```
+
+4. Extract pageid (DT1/QSR/LRC/PM pattern)
+5. Add ALL collected CIDs to metadata footnotes field:
    ```
-   <div><div><p>footnotes</p></div><div><p>tcm:84-341684-16, tcm:84-221820-16, ...</p></div></div>
+   <div><div><p>footnotes</p></div><div><p>tcm:84-341684-16, tcm:84-47895-16, tcm:84-20661-16, tcm:84-226264-16</p></div></div>
    <div><div><p>pageid</p></div><div><p>DT1-...</p></div></div>
    ```
-4. Footnote reference format in body: `<sup><a href="#tcm:84-XXXXXX-16">N</a></sup>` (sup wraps the anchor, NOT the other way around)
+6. Footnote reference format in body: `<sup><a href="#tcm:84-XXXXXX-16">N</a></sup>` (sup wraps the anchor, NOT the other way around)
+
+**Critical:** Do NOT only extract footnotes referenced by superscript. Also extract page-specific disclaimers (like legal disclaimers with their own CID) and standard disclosures. The source of truth is the `data-cid` attributes in the footnotes section at the bottom of the page — capture ALL of them.
+
+**NEVER include footnote body text in page content.** The footnote/disclaimer text at the bottom of the source page (EEO statements, legal disclosures, FDIC notices, etc.) must NOT be imported into the page as default content, Cards, or any block. Only the CID goes in the metadata `footnotes` field. The footnote text lives in `/data/footnotes.json` (sheet `default` for EN, sheet `es` for Spanish) and is rendered automatically by the Disclaimers auto-block.
 
 ### Step 7: Write Output File
 
@@ -144,14 +196,48 @@ Format: One section per line, DA-compatible HTML:
 
 ### Step 8: Post-Process
 
-Run `node tools/importer/post-process.js <output-file>` if the file was generated by an importer script. Skip if manually constructed.
+**ALWAYS run post-process** on the output file — whether from importer or manually constructed:
+```bash
+node tools/importer/post-process.js <output-file>
+```
+Post-process handles: div balance, hero serialization fixes, footnote ref format (`<sup><a>`), section-metadata generation, and orphan line joining.
 
-### Step 9: Verify & Report
+### Step 9: Post-Import Validation Checklist (MANDATORY)
 
-1. Check the page renders in local preview (`http://localhost:3000/content/...`)
-2. Verify no content was lost (compare source sections vs output sections)
-3. Cross-check footnote CIDs against `/data/footnotes.json`
-4. Report missing footnotes in a table format for user to copy to sheet
+Run through EVERY item before reporting import as done. Do NOT skip any.
+
+**Metadata checks:**
+- [ ] Title extracted verbatim from `<title>` tag?
+- [ ] Description extracted from `<meta name="description">`?
+- [ ] Keywords extracted from `<meta name="keywords">`? (if present on source)
+- [ ] ALL footnote CIDs collected from `data-cid` attributes (numbered + disclosures)?
+- [ ] Pageid extracted (DT1/QSR/LRC/PM)?
+
+**Content checks:**
+- [ ] Screenshot taken to verify image placement matches source?
+- [ ] No content sections missing (compare source H2 count vs imported H2 count)?
+- [ ] Text imported VERBATIM (not paraphrased/translated)?
+- [ ] Internal links have NO trailing slash (except `/` homepage)?
+- [ ] Footnote body text NOT included in page content (no EEO, FDIC, legal text as default content or blocks)?
+
+**Section metadata checks:**
+- [ ] EVERY section with an H2 checked individually for heading-bar indicator?
+- [ ] Heading-bar indicator includes: `div.ps-mid-page-title-top-line`, zero-width joiner, or thin decorative element before H2?
+- [ ] Sections with heading-bar + Cards/Tabs have `heading-bar, center-align`?
+
+**Block structure checks:**
+- [ ] No block nesting (e.g., accordion inside tabs → use Reference + Fragments)?
+- [ ] Block tables use `<td>` for block name row (not `<th>`)?
+- [ ] Cards use plain variant for full-size images, `icons bg-image` only for small icons?
+
+**Render check:**
+- [ ] Page renders in local preview without errors?
+- [ ] Cross-check footnote CIDs against `/data/footnotes.json`?
+
+### Step 10: Report
+
+1. Report import complete with page structure summary
+2. Report missing footnotes in table format for user to copy to sheet
 
 ## Theme-Specific Import Strategies
 
@@ -184,12 +270,14 @@ Use `import-governance-bios.js` pattern:
 1. **Never lose content** — If content doesn't match a known block pattern, import it as default content (paragraphs, headings, lists). Flag it for user review.
 2. **Footnote format** — `<sup>` must wrap `<a>`, never the reverse: `<sup><a href="#tcm:...">N</a></sup>`
 3. **No pageid in footnotes** — DT1/QSR/LRC IDs go in pageid metadata only, never in footnotes list.
-4. **Absolute URLs** — Convert `https://www.wellsfargo.com/path` to `/path`. Keep external URLs absolute.
+4. **Absolute URLs** — Convert `https://www.wellsfargo.com/path` to `/path`. Keep external URLs absolute. Internal links must NOT have a trailing slash (use `/about/investor-relations` not `/about/investor-relations/`). The only exception is `/` for the homepage.
 5. **Images** — Keep wellsfargomedia.com URLs as-is during import (will be migrated to DA assets later).
 6. **Div balance** — Every line must have equal `<div>` opens and `</div>` closes.
 7. **ES pages** — Use `/es/` prefix in output path. Fragment paths should also use `/es/` prefix.
 8. **Missing footnotes report** — After import, check all referenced CIDs against the footnotes.json sheet and report any missing ones in table format.
 9. **Hero variant selection** — Use `overlay-bottom` when the source page shows image on top with text/heading in a card overlapping the bottom of the image (centered text below image). Use default Hero when text is positioned on the left side overlaying the full image.
+10. **Never paraphrase or translate** — Import text VERBATIM from the source page. Never reword, summarize, or translate headings, paragraphs, or link text. If the page redirected to Spanish but the requested URL is English, you MUST re-navigate to get the English content. Never manually translate Spanish text to English.
+11. **No block nesting** — EDS does not support blocks inside blocks. If a tab panel needs to contain an Accordion (or any other block), use the `Tabs (Reference)` variant where each tab panel references a Fragment path. The fragment page then contains the nested block. Same applies to any scenario where one block's content needs another block inside it.
 
 ## Output: Missing Footnotes Report
 
