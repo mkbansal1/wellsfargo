@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 /**
  * CWV Checker — Google PageSpeed Insights API (Lighthouse)
- * Usage: node check-cwv.js <sitemap-json> <output-csv> [options]
+ * Usage: node check-cwv.mjs <sitemap-json> <output-csv> [options]
  *
  * Options:
- *   --key=API_KEY           Google API key (recommended — without key: 1 req/2s rate limit)
- *   --base-url=URL          Remap sitemap URLs to this base (e.g. EDS preview domain)
- *   --strategy=mobile|desktop|both  Default: both (runs mobile then desktop)
+ *   --key=API_KEY                Google API key (recommended — without key: 1 req/2s rate limit)
+ *   --base-url=URL               Remap sitemap URLs to this base (e.g. EDS preview domain)
+ *   --strategy=mobile|desktop|both  Default: both (runs mobile + desktop in parallel per URL)
+ *   --batch-size=N               URLs per batch (default: 50)
+ *   --parallel=N                 Batches to run in parallel per wave (default: 3)
  *
  * Without --base-url, uses original sitemap URLs directly (checks the live site).
  *
@@ -15,20 +17,22 @@
  * Requires Node.js 18+ (native fetch).
  */
 
-import { readFileSync, writeFileSync } from 'fs';
+import { readFileSync, writeFileSync, appendFileSync } from 'fs';
 import { URL } from 'url';
 
 const [,, sitemapJsonFile, outputCsvFile, ...flags] = process.argv;
 
 if (!sitemapJsonFile || !outputCsvFile) {
-  console.error('Usage: node check-cwv.js <sitemap-json> <output-csv> [--key=API_KEY] [--base-url=URL] [--strategy=mobile|desktop|both]');
+  console.error('Usage: node check-cwv.mjs <sitemap-json> <output-csv> [--key=API_KEY] [--base-url=URL] [--strategy=mobile|desktop|both] [--batch-size=N] [--parallel=N]');
   process.exit(1);
 }
 
-const apiKey      = flags.find(f => f.startsWith('--key='))?.slice(6)      || '';
-const baseUrl     = flags.find(f => f.startsWith('--base-url='))?.slice(11) || '';
-const strategyFlag = flags.find(f => f.startsWith('--strategy='))?.slice(11) || 'both';
-const strategies  = strategyFlag === 'both' ? ['mobile', 'desktop'] : [strategyFlag];
+const apiKey       = flags.find(f => f.startsWith('--key='))?.slice(6)        || '';
+const baseUrl      = flags.find(f => f.startsWith('--base-url='))?.slice(11)  || '';
+const strategyFlag = flags.find(f => f.startsWith('--strategy='))?.slice(11)  || 'both';
+const strategies   = strategyFlag === 'both' ? ['mobile', 'desktop'] : [strategyFlag];
+const BATCH_SIZE   = parseInt(flags.find(f => f.startsWith('--batch-size='))?.slice(13) || '50', 10);
+const PARALLEL     = parseInt(flags.find(f => f.startsWith('--parallel='))?.slice(11)   || '3',  10);
 
 const CONCURRENCY = apiKey ? 3 : 1;
 const DELAY_MS    = apiKey ? 300 : 2000; // be polite; PSI without key ~1 req/2s
@@ -106,7 +110,6 @@ async function checkUrl(url, strat) {
   };
 
   // ── Field data (CrUX 75th percentile) ──────────────────────────────────────
-  // loadingExperience = origin-level; originLoadingExperience also available
   const fm = data.loadingExperience?.metrics || {};
 
   // CLS in CrUX is stored ×100 (e.g. 5 = 0.05); INP/LCP/FCP/TTFB in ms
@@ -141,25 +144,6 @@ async function checkUrl(url, strat) {
   return { url, lab, field, issues, error: null };
 }
 
-// ─── Concurrency + rate limit ─────────────────────────────────────────────────
-async function runWithConcurrency(items, fn, concurrency, delayMs) {
-  const results = [];
-  let i = 0;
-  async function worker() {
-    while (i < items.length) {
-      const idx = i++;
-      if (idx > 0 && delayMs) await new Promise(r => setTimeout(r, delayMs));
-      results[idx] = await fn(items[idx]);
-      const r = results[idx];
-      const score = r.lab?.score != null ? ` | score ${r.lab.score}` : '';
-      const err   = r.error ? ` | ERROR: ${r.error}` : '';
-      process.stderr.write(`\r  ${idx + 1}/${items.length}: ${r.url.slice(-60)}${score}${err}\n`);
-    }
-  }
-  await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, worker));
-  return results;
-}
-
 // ─── CSV helpers ───────────────────────────────────────────────────────────────
 function csvCell(v) {
   return `"${String(v ?? '').replace(/"/g, '""')}"`;
@@ -184,31 +168,131 @@ function scoreBucketsFor(valid) {
   return b;
 }
 
+// ─── CSV column definitions ────────────────────────────────────────────────────
+const isBoth = strategies.length > 1;
+
+const CSV_COLUMNS = [
+  ...(isBoth ? ['strategy'] : []),
+  'url',
+  'lab_perf_score',
+  'lab_lcp_ms', 'lab_lcp_rating', 'lab_lcp_display',
+  'lab_fcp_ms', 'lab_fcp_rating', 'lab_fcp_display',
+  'lab_cls',    'lab_cls_rating',  'lab_cls_display',
+  'lab_ttfb_ms','lab_ttfb_rating', 'lab_ttfb_display',
+  'lab_tbt_ms', 'lab_tbt_rating',
+  'lab_speed_index_ms',
+  'lab_tti_ms',
+  'field_overall',
+  'field_lcp_p75_ms', 'field_lcp_category',
+  'field_fcp_p75_ms', 'field_fcp_category',
+  'field_cls_p75',    'field_cls_category',
+  'field_inp_p75_ms', 'field_inp_category',
+  'field_ttfb_p75_ms',
+  'issues_count', 'issues',
+  'error',
+];
+
+function buildCsvRow(r) {
+  const l = r.lab   || {};
+  const f = r.field || {};
+  return [
+    ...(isBoth ? [r.strat] : []),
+    r.url,
+    l.score,
+    l.lcp_ms,  rate(l.lcp_ms,  T.lcp),  l.lcp_display,
+    l.fcp_ms,  rate(l.fcp_ms,  T.fcp),  l.fcp_display,
+    l.cls,     rate(l.cls,     T.cls),  l.cls_display,
+    l.ttfb_ms, rate(l.ttfb_ms, T.ttfb), l.ttfb_display,
+    l.tbt_ms,  rate(l.tbt_ms,  T.tbt),
+    l.speed_index_ms,
+    l.tti_ms,
+    f.overall,
+    f.lcp_p75_ms,  f.lcp_category,
+    f.fcp_p75_ms,  f.fcp_category,
+    f.cls_p75,     f.cls_category,
+    f.inp_p75_ms,  f.inp_category,
+    f.ttfb_p75_ms,
+    (r.issues || []).length,
+    (r.issues || []).join(' | '),
+    r.error || '',
+  ].map(csvCell).join(',');
+}
+
 // ─── Main ──────────────────────────────────────────────────────────────────────
 const urls       = JSON.parse(readFileSync(sitemapJsonFile, 'utf8'));
 const targetUrls = urls.map(toTargetUrl);
 const uniqueUrls = [...new Set(targetUrls)];
-const isBoth     = strategies.length > 1;
 
-// Run each strategy sequentially, tag each result with its strategy
+// Write CSV header upfront (rows appended incrementally as each URL completes)
+writeFileSync(outputCsvFile, CSV_COLUMNS.map(csvCell).join(',') + '\n');
+
+// Split into batches
+const batches = [];
+for (let i = 0; i < uniqueUrls.length; i += BATCH_SIZE) {
+  batches.push(uniqueUrls.slice(i, i + BATCH_SIZE));
+}
+
+const totalWaves = Math.ceil(batches.length / PARALLEL);
+console.error(`\nCWV check: ${uniqueUrls.length} URLs | strategy: ${strategies.join('+')} | key: ${apiKey ? 'YES' : 'NO (rate limited)'}`);
+if (!apiKey) console.error('  Tip: add --key=YOUR_API_KEY for faster checks (free at console.cloud.google.com)');
+if (baseUrl) console.error(`  Base URL: ${baseUrl}`);
+console.error(`  Batch size: ${BATCH_SIZE} | Parallel batches: ${PARALLEL} | Concurrency/batch: ${CONCURRENCY} | Batches: ${batches.length} | Waves: ${totalWaves}`);
+
 const allResults = [];
+let completed = 0;
 
+// Process one URL across all strategies in parallel, then append CSV rows
+async function processUrl(url) {
+  const stratResults = await Promise.all(
+    strategies.map(strat => checkUrl(url, strat).then(r => ({ ...r, strat })))
+  );
+  for (const r of stratResults) {
+    allResults.push(r);
+    appendFileSync(outputCsvFile, buildCsvRow(r) + '\n');
+  }
+  completed++;
+  const scores = stratResults
+    .filter(r => !r.error && r.lab)
+    .map(r => `${r.strat}:${r.lab.score ?? '?'}`)
+    .join(' ');
+  const err = stratResults.find(r => r.error);
+  process.stderr.write(`  [${completed}/${uniqueUrls.length}] ${url.slice(-70)} ${err ? `ERROR: ${err.error.slice(0, 50)}` : scores}\n`);
+}
+
+// Run a batch of URLs with CONCURRENCY workers, DELAY_MS between each URL
+async function runBatch(batch) {
+  let i = 0;
+  async function worker() {
+    while (i < batch.length) {
+      const idx = i++;
+      if (idx > 0 && DELAY_MS) await new Promise(r => setTimeout(r, DELAY_MS));
+      await processUrl(batch[idx]);
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(CONCURRENCY, batch.length) }, worker));
+}
+
+// Run waves: PARALLEL batches at a time
+for (let w = 0; w < batches.length; w += PARALLEL) {
+  const wave = batches.slice(w, w + PARALLEL);
+  const waveNum = Math.floor(w / PARALLEL) + 1;
+  const urlsInWave = wave.reduce((s, b) => s + b.length, 0);
+  console.error(`\nWave ${waveNum}/${totalWaves}: ${wave.length} batch(es) in parallel | ${urlsInWave} URLs`);
+  await Promise.all(wave.map(batch => runBatch(batch)));
+}
+
+console.log(`\nCSV report: ${outputCsvFile} (${allResults.length} rows)`);
+
+// ─── Per-strategy summary ──────────────────────────────────────────────────────
 for (const strat of strategies) {
-  console.error(`\nCWV check: ${uniqueUrls.length} URLs | strategy: ${strat} | key: ${apiKey ? 'YES' : 'NO (rate limited)'}`);
-  if (!apiKey) console.error('  Tip: add --key=YOUR_API_KEY for faster checks (free at console.cloud.google.com)');
-  if (baseUrl) console.error(`  Base URL: ${baseUrl}`);
-
-  const results = await runWithConcurrency(uniqueUrls, url => checkUrl(url, strat), CONCURRENCY, DELAY_MS);
-  results.forEach(r => allResults.push({ ...r, strat }));
-
-  // Per-strategy console summary
-  const valid   = results.filter(r => !r.error && r.lab);
-  const errored = results.filter(r => r.error);
-  const noData  = results.filter(r => !r.error && r.field?.overall === 'NO_DATA');
+  const sr      = allResults.filter(r => r.strat === strat);
+  const valid   = sr.filter(r => !r.error && r.lab);
+  const errored = sr.filter(r => r.error);
+  const noData  = sr.filter(r => !r.error && r.field?.overall === 'NO_DATA');
   const sb      = scoreBucketsFor(valid);
 
   console.log(`\n=== CWV Summary (${strat}) ===`);
-  console.log(`Total URLs:          ${results.length}`);
+  console.log(`Total URLs:          ${sr.length}`);
   console.log(`Checked:             ${valid.length}`);
   console.log(`Errors / skipped:    ${errored.length}`);
   console.log(`No CrUX field data:  ${noData.length}`);
@@ -237,84 +321,15 @@ for (const strat of strategies) {
   }
 }
 
-// ─── Combined CSV ──────────────────────────────────────────────────────────────
-const CSV_COLUMNS = [
-  ...(isBoth ? ['strategy'] : []),
-  'url',
-  'lab_perf_score',
-  'lab_lcp_ms', 'lab_lcp_rating', 'lab_lcp_display',
-  'lab_fcp_ms', 'lab_fcp_rating', 'lab_fcp_display',
-  'lab_cls',    'lab_cls_rating',  'lab_cls_display',
-  'lab_ttfb_ms','lab_ttfb_rating', 'lab_ttfb_display',
-  'lab_tbt_ms', 'lab_tbt_rating',
-  'lab_speed_index_ms',
-  'lab_tti_ms',
-  'field_overall',
-  'field_lcp_p75_ms', 'field_lcp_category',
-  'field_fcp_p75_ms', 'field_fcp_category',
-  'field_cls_p75',    'field_cls_category',
-  'field_inp_p75_ms', 'field_inp_category',
-  'field_ttfb_p75_ms',
-  'issues_count', 'issues',
-  'error',
-];
-
-const rows = allResults.map(r => {
-  const l = r.lab   || {};
-  const f = r.field || {};
-  return [
-    ...(isBoth ? [r.strat] : []),
-    r.url,
-    l.score,
-    l.lcp_ms,  rate(l.lcp_ms,  T.lcp),  l.lcp_display,
-    l.fcp_ms,  rate(l.fcp_ms,  T.fcp),  l.fcp_display,
-    l.cls,     rate(l.cls,     T.cls),  l.cls_display,
-    l.ttfb_ms, rate(l.ttfb_ms, T.ttfb), l.ttfb_display,
-    l.tbt_ms,  rate(l.tbt_ms,  T.tbt),
-    l.speed_index_ms,
-    l.tti_ms,
-    f.overall,
-    f.lcp_p75_ms,  f.lcp_category,
-    f.fcp_p75_ms,  f.fcp_category,
-    f.cls_p75,     f.cls_category,
-    f.inp_p75_ms,  f.inp_category,
-    f.ttfb_p75_ms,
-    (r.issues || []).length,
-    (r.issues || []).join(' | '),
-    r.error || '',
-  ].map(csvCell).join(',');
-});
-
-writeFileSync(outputCsvFile, [CSV_COLUMNS.map(csvCell).join(','), ...rows].join('\n') + '\n');
-console.log(`\nCSV report: ${outputCsvFile}`);
-
 // ─── Combined HTML report ──────────────────────────────────────────────────────
 const htmlPath = outputCsvFile.replace(/\.csv$/i, '.html');
 
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-const scoreLabel = r => {
-  if (r.error) return `<span class="label label-error">ERROR</span>`;
-  const s = r.lab?.score;
-  if (s == null) return `<span class="label label-error">N/A</span>`;
-  if (s >= 90) return `<span class="label label-good">GOOD</span>`;
-  if (s >= 75) return `<span class="label label-fair">FAIR</span>`;
-  return `<span class="label label-poor">POOR</span>`;
-};
-
 const metricCell = (value, rating, display) => {
   const colours = { GOOD: '#2D9D78', NEEDS_IMPROVEMENT: '#E68619', POOR: '#FF0000' };
   const col = colours[rating] ?? '#666';
   return `<span style="color:${col};font-weight:600">${esc(display ?? (value != null ? String(value) : '—'))}</span>`;
-};
-
-const sortPriority = r => {
-  if (r.error) return 2;
-  const s = r.lab?.score ?? -1;
-  if (s < 0) return 2;
-  if (s >= 90) return 3;
-  if (s >= 75) return 1;
-  return 0;
 };
 
 // Build per-strategy stats for HTML summary cards
