@@ -299,6 +299,30 @@
   margin-top: auto;
 }
 
+/* === Variant: icons-bottom === */
+
+.cards.icons-bottom > ul > li {
+  background: var(--wf-bg-light);
+  padding: 24px;
+}
+
+.cards.icons-bottom .cards-card-image {
+  order: 2;
+  padding: 16px 0 0;
+  align-self: flex-end;
+}
+
+.cards.icons-bottom .cards-card-image img {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+}
+
+.cards.icons-bottom > ul > li .cards-card-body {
+  order: 1;
+  padding: 0;
+}
+
 /* === Variant: bg-image === */
 
 /* Cards with gradient background image */
