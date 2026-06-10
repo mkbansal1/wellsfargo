@@ -253,3 +253,22 @@
 
   .columns.ratio-67-33 > div > div:last-child { flex: 0 0 calc(33% - 8px); }
 }
+
+/* --- Variant: tabular --- */
+
+.columns.tabular {
+  border: 1px solid var(--wf-bg-gray, #e2dede);
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.columns.tabular > div > div:last-child p {
+  border-top: 1px solid #d9d9d9;
+  padding: 16px 0;
+  margin: 0;
+}
+
+.columns.tabular > div > div:last-child p strong {
+  display: inline-block;
+  min-width: 180px;
+}
