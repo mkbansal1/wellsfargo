@@ -330,3 +330,162 @@ main .section.hero-container.heading-bar.center-align .hero.overlay-bottom h2::b
     font-size: 17px;
   }
 }
+
+/* === Variant: sign-on === */
+
+/* Authored as | Hero (sign-on) | — row 1: hero image + headline + CTA, row 2: sign-on card */
+
+/* Mobile-first: image, then headline content, then sign-on card stacked */
+.hero.sign-on {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.hero.sign-on .hero-bg {
+  position: relative;
+  width: 100%;
+  line-height: 0;
+}
+
+.hero.sign-on .hero-bg img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  aspect-ratio: 57 / 20;
+}
+
+.hero.sign-on .hero-content {
+  position: relative;
+  padding: 24px 20px 32px;
+  text-align: center;
+}
+
+.hero.sign-on .hero-content h1,
+.hero.sign-on .hero-content h2 {
+  font-size: var(--heading-font-size-xxl);
+  font-weight: 300;
+  line-height: 1.2;
+  color: var(--wf-dark);
+  margin: 0 0 16px;
+}
+
+.hero.sign-on .hero-content .button-wrapper {
+  margin-top: 24px;
+}
+
+/* Sign-on card */
+.hero.sign-on .hero-signon {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px 0 rgb(0 0 0 / 25%);
+  margin: 0 20px 8px;
+}
+
+.hero.sign-on .hero-signon h2 {
+  font-size: var(--heading-font-size-l);
+  font-weight: 400;
+  line-height: 1.2;
+  color: var(--wf-text-primary);
+  margin: 0;
+  padding: 24px 24px 16px;
+  background-color: var(--wf-bg-white);
+}
+
+.hero.sign-on .hero-signon .button-wrapper {
+  margin: 0;
+  padding: 0 24px 24px;
+  background-color: var(--wf-bg-white);
+}
+
+.hero.sign-on .hero-signon .button-wrapper a.button {
+  width: auto;
+  min-width: 160px;
+}
+
+/* Links section — light background, stacked dark links */
+.hero.sign-on .hero-signon p:not(.button-wrapper) {
+  margin: 0;
+  padding: 6px 24px;
+  background-color: var(--wf-bg-warm);
+  font-size: var(--body-font-size-s);
+  line-height: 1.5;
+}
+
+.hero.sign-on .hero-signon p:not(.button-wrapper):first-of-type {
+  padding-top: 20px;
+}
+
+.hero.sign-on .hero-signon p:not(.button-wrapper):last-of-type {
+  padding-bottom: 20px;
+}
+
+.hero.sign-on .hero-signon a:not(.button) {
+  color: var(--wf-text-primary);
+  text-decoration: none;
+}
+
+.hero.sign-on .hero-signon a:not(.button):hover {
+  text-decoration: underline;
+}
+
+/* Desktop: image full-bleed background, headline overlay centered, sign-on card top-left */
+@media (width >= 1024px) {
+  .hero.sign-on {
+    flex-direction: row;
+    align-items: center;
+    min-height: 423px;
+  }
+
+  .hero.sign-on .hero-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    line-height: normal;
+    height: 100%;
+  }
+
+  .hero.sign-on .hero-bg picture {
+    display: block;
+    height: 100%;
+  }
+
+  .hero.sign-on .hero-bg img {
+    height: 100%;
+    aspect-ratio: unset;
+  }
+
+  .hero.sign-on .hero-content {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 600px;
+    margin-left: 28%;
+    margin-right: auto;
+    padding: 40px;
+    text-align: left;
+  }
+
+  .hero.sign-on .hero-content h1,
+  .hero.sign-on .hero-content h2 {
+    font-size: 48px;
+  }
+
+  .hero.sign-on .hero-content .button-wrapper {
+    text-align: left;
+  }
+
+  .hero.sign-on .hero-content .button-wrapper a.button {
+    width: auto;
+  }
+
+  /* Sign-on card anchored top-left over the image, with spacing from the corner */
+  .hero.sign-on .hero-signon {
+    position: absolute;
+    top: 48px;
+    left: 32px;
+    z-index: 2;
+    width: 333px;
+    margin: 0;
+    border-radius: 8px;
+  }
+}
