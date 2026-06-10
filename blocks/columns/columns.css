@@ -256,6 +256,12 @@
 
 /* --- Variant: tabular --- */
 
+.columns.tabular {
+  border: 1px solid var(--wf-bg-gray, #e2dede);
+  border-radius: 16px;
+  padding: 24px;
+}
+
 .columns.tabular > div > div:last-child p {
   border-top: 1px solid #d9d9d9;
   padding: 16px 0;
