@@ -258,24 +258,26 @@
 /* stylelint-disable no-descending-specificity */
 
 /* Phone image left, copy + store badges right; vertically centered. */
-.columns.app-promo.block > div {
+.columns.app-promo > div {
   align-items: center;
   gap: 48px;
 }
 
-.columns.app-promo.block > div > .columns-img-col img {
+.columns.app-promo > div > .columns-img-col img {
   max-width: 290px;
   margin: 0 auto;
 }
 
 /* Store badge links sit inline at natural size */
-.columns.app-promo.block a:has(img) {
+.columns.app-promo a:has(img) {
   display: inline-block;
 }
 
-.columns.app-promo.block a:has(img) img {
+.columns.app-promo a:has(img) img {
   width: auto;
   height: 40px;
+}
+
 /* --- Variant: tabular --- */
 
 .columns.tabular {
