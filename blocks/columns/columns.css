@@ -296,3 +296,26 @@
   display: inline-block;
   min-width: 180px;
 }
+
+/* --- Variant: feature-list --- */
+
+/* Authored as | Columns (feature-list) | — each paragraph is an icon + text feature row */
+
+.columns.feature-list > div {
+  align-items: flex-start;
+}
+
+.columns.feature-list > div > div p {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 16px;
+  font-size: var(--body-font-size-m);
+  line-height: 1.4;
+}
+
+.columns.feature-list > div > div p img {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+}
