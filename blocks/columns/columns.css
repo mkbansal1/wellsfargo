@@ -254,6 +254,30 @@
   .columns.ratio-67-33 > div > div:last-child { flex: 0 0 calc(33% - 8px); }
 }
 
+/* --- Variant: app-promo --- */
+/* stylelint-disable no-descending-specificity */
+
+/* Phone image left, copy + store badges right; vertically centered. */
+.columns.app-promo > div {
+  align-items: center;
+  gap: 48px;
+}
+
+.columns.app-promo > div > .columns-img-col img {
+  max-width: 290px;
+  margin: 0 auto;
+}
+
+/* Store badge links sit inline at natural size */
+.columns.app-promo a:has(img) {
+  display: inline-block;
+}
+
+.columns.app-promo a:has(img) img {
+  width: auto;
+  height: 40px;
+}
+
 /* --- Variant: tabular --- */
 
 .columns.tabular {
