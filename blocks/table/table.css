@@ -1,0 +1,101 @@
+.table {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--wf-bg-gray, #e2dede);
+  border-radius: 16px;
+  padding: 24px 16px 16px;
+}
+
+.table table {
+  width: 100%;
+  max-width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+.table table th {
+  font-weight: 600;
+  color: var(--wf-text-secondary, #787070);
+  vertical-align: top;
+}
+
+.table table th,
+.table table td {
+  padding: 12px 16px 12px 8px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--wf-bg-gray, #e2dede);
+  color: var(--wf-text-secondary, #787070);
+}
+
+.table table th p,
+.table table td p {
+  margin: 0;
+}
+
+.table table td p + p {
+  margin-top: 0.5em;
+}
+
+.table table td ul,
+.table table td ol {
+  margin: 0.5em 0;
+  padding-left: 1.25em;
+}
+
+.table table td li {
+  margin-bottom: 0.25em;
+}
+
+/* no-border variant — no card wrapper, rows separated by top border, centered */
+.table.no-border {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+}
+
+.table.no-border table {
+  margin: 0 auto;
+  width: auto;
+}
+
+.table.no-border table th,
+.table.no-border table td {
+  padding: 24px 16px;
+  border-bottom: none;
+  border-top: 1px solid #d9d9d9;
+  color: var(--wf-text-primary, #3b3331);
+}
+
+.table.no-border table th[scope="row"] {
+  text-align: right;
+  font-weight: 400;
+}
+
+/* no-header variant */
+.table.no-header table th {
+  font-weight: 400;
+}
+
+/* row-header variant — first column is th */
+.table.row-header table th[scope="row"] {
+  font-weight: 600;
+}
+
+/* bordered variant */
+.table.bordered table th,
+.table.bordered table td {
+  border: 1px solid var(--wf-bg-gray, #e2dede);
+}
+
+/* striped variant */
+.table.striped tbody tr:nth-child(even) th,
+.table.striped tbody tr:nth-child(even) td {
+  background-color: var(--wf-bg-light, #f9f7f6);
+}
+
+/* Last row — remove bottom border (must be last for specificity) */
+.table.table table tbody tr:last-child th,
+.table.table table tbody tr:last-child td {
+  border-bottom: none;
+}

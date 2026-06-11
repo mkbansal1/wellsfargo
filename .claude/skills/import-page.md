@@ -114,12 +114,13 @@ Use the block library to find the best match. Available blocks:
 
 | Block | Variants | Use When |
 |-------|----------|----------|
-| **Hero** | default, `overlay-bottom` | Full-width banner image + heading + CTA. Use `overlay-bottom` when the text/heading overlaps the bottom of the image in a centered card (image above, text card overlapping bottom). Use default when text is overlaid on the left side of the image. |
-| **Cards** | `icons`, `bg-image`, `separator`, `compact`, `align-center` | Grid of items with image/icon + title + text. Use `icons bg-image` ONLY for small icon images (64x64 or similar). For full-size card images (616x353 or similar), use plain `cards` with no variant. |
-| **Accordion** | `compact` | Expandable Q&A or FAQ sections (H3 + content pairs) |
-| **Tabs** | `Yellow`, `Top`, `Tab-Fill`, `Panel-Border`, `Centered`, `Reference` | Tabbed content panels. Use `Centered` for centered tab list with indigo indicator. Use `Reference` when tab panels need to contain other blocks (e.g., Accordion) — each tab cell contains a fragment path instead of inline content. Combine variants: `Tabs (Centered, Reference)`. |
-| **Columns** | `panel`, `ratio-25-75`, `ratio-33-67`, `ratio-67-33`, `ratio-75-25` | Side-by-side content. Use `panel` variant when layout shows image on left + text on right inside a card/panel container with border or shadow. |
-| **Text Image** | default (float wrap), `image-left`, `image-right`, `image-top`, `compact-image` | Image + text layout |
+| **Hero** | default, `overlay-bottom`, `no-image`, `text-right` | Full-width banner image + heading + CTA. Use `overlay-bottom` when the text/heading overlaps the bottom of the image in a centered card (image above, text card overlapping bottom). Use default when text is overlaid on the left side. Use `text-right` when text is on the right side. Use `no-image` for text-only hero banners. |
+| **Cards** | `icons`, `icons-middle`, `icons-bottom`, `highlight`, `bg-image`, `bg-light`, `separator`, `align-center`, `no-border`, `two-up`, `three-up`, `four-up`, `list`, `promo`, `callout` | Grid of items with image/icon + title + text. Use `icons bg-image` ONLY for small icon images (64x64 or similar). For full-size card images (616x353 or similar), use plain `cards` with no variant. Use `highlight` for stat cards with gradient heading area. Use `icons-bottom` for text on top + icon bottom-right (stats/progress). Use `icons-middle` for heading top + icon middle + CTA bottom. Use `two-up`/`three-up`/`four-up` to force column counts. Use `no-border` to remove card borders. Use `callout` for single-card CTAs. Use `list` for list-style cards. Use `promo` for promotional cards. |
+| **Accordion** | `compact`, `numbered` | Expandable Q&A or FAQ sections (H3 + content pairs). Use `numbered` when panels should display sequential numbering. |
+| **Tabs** | `Yellow`, `Indigo`, `Top`, `Tab-Fill`, `Panel-Border`, `Centered`, `Text-Center`, `Reference` | Tabbed content panels. Use `Yellow` for yellow indicator, `Indigo` for indigo indicator. Use `Centered` for centered tab list. Use `Text-Center` for centered tab text. Use `Reference` when tab panels need to contain other blocks — each tab cell contains a fragment path. Combine variants: `Tabs (Yellow, Top, Tab-Fill, Panel-Border, Reference)`. |
+| **Columns** | `panel`, `center`, `center-headings`, `contact`, `badges`, `ratio-25-75`, `ratio-33-67`, `ratio-67-33`, `ratio-75-25` | Side-by-side content. Use `panel` variant for image + text in a card/panel container. Use `center` for centered column content. Use `center-headings` for centered headings only. Use `contact` for contact info layout. Use `badges` for badge/icon grid. |
+| **Table** | default, `striped`, `bordered`, `no-border`, `no-header`, `row-header` | Data tables. Use `no-border` for clean borderless tables (e.g., finance breakdowns). Use `striped` for alternating row colors. Use `bordered` for full borders. Use `row-header` when first column is the header. Combine: `Table (Striped, Bordered)`. |
+| **Text Image** | default (float wrap), `image-left`, `image-right`, `image-top`, `compact-image` | Image + text layout. Combine: `Text Image (compact-image, image-right)`. |
 | **Fragment** | — | Shared content referenced by path |
 | **Contact Bar** | — | Phone/hours/location info |
 | **Learning Navigation** | — | Image + nav link list |
@@ -140,13 +141,16 @@ Each section (line in .plain.html) can have section-metadata:
 | `warm` | Warm beige background (#F4F0ED) |
 | `dark` | Dark background (#141414) with white text |
 | `cream` | Cream/yellow background (#FFF7E2) |
+| `border` | Bottom border separator between sections |
 
 **Rules:**
-- Only add `heading-bar` if the source H2 has a `div.ps-mid-page-title-top-line` element before it in the DOM. If no such element exists before the H2, do NOT add `heading-bar`.
+- Only add `heading-bar` if the source H2 has a heading-bar indicator before it in the DOM. Indicators include: `div.ps-mid-page-title-top-line`, a zero-width joiner character (`‍` / `‍`), or a thin decorative element immediately before the H2.
 - Sections with H2 (with heading-bar) + Cards or Tabs → `heading-bar, center-align`
 - Sections with Accordion (with or without H2) → ALWAYS include `narrow-width` (e.g., `heading-bar, center-align, narrow-width`)
 - Hero overlay-bottom sections → `center-align, heading-bar`
-- Plain H2 without `div.ps-mid-page-title-top-line` → no section-metadata needed
+- Plain H2 without heading-bar indicator → no section-metadata needed
+
+**MANDATORY: Per-section check.** For EVERY section that contains an H2, verify whether the source has a heading-bar indicator before that H2. Do NOT skip any section. Missing section metadata is a recurring error — check each one individually.
 
 ### Step 6: Handle Footnotes
 
@@ -177,6 +181,8 @@ document.querySelectorAll('[data-cid]').forEach(el => {
 6. Footnote reference format in body: `<sup><a href="#tcm:84-XXXXXX-16">N</a></sup>` (sup wraps the anchor, NOT the other way around)
 
 **Critical:** Do NOT only extract footnotes referenced by superscript. Also extract page-specific disclaimers (like legal disclaimers with their own CID) and standard disclosures. The source of truth is the `data-cid` attributes in the footnotes section at the bottom of the page — capture ALL of them.
+
+**NEVER include footnote body text in page content.** The footnote/disclaimer text at the bottom of the source page (EEO statements, legal disclosures, FDIC notices, etc.) must NOT be imported into the page as default content, Cards, or any block. Only the CID goes in the metadata `footnotes` field. The footnote text lives in `/data/footnotes.json` (sheet `default` for EN, sheet `es` for Spanish) and is rendered automatically by the Disclaimers auto-block.
 
 ### Step 7: Write Output File
 
@@ -214,12 +220,17 @@ Run through EVERY item before reporting import as done. Do NOT skip any.
 - [ ] No content sections missing (compare source H2 count vs imported H2 count)?
 - [ ] Text imported VERBATIM (not paraphrased/translated)?
 - [ ] Internal links have NO trailing slash (except `/` homepage)?
+- [ ] Footnote body text NOT included in page content (no EEO, FDIC, legal text as default content or blocks)?
+
+**Section metadata checks:**
+- [ ] EVERY section with an H2 checked individually for heading-bar indicator?
+- [ ] Heading-bar indicator includes: `div.ps-mid-page-title-top-line`, zero-width joiner, or thin decorative element before H2?
+- [ ] Sections with heading-bar + Cards/Tabs have `heading-bar, center-align`?
 
 **Block structure checks:**
 - [ ] No block nesting (e.g., accordion inside tabs → use Reference + Fragments)?
 - [ ] Block tables use `<td>` for block name row (not `<th>`)?
 - [ ] Cards use plain variant for full-size images, `icons bg-image` only for small icons?
-- [ ] heading-bar only added when source has `div.ps-mid-page-title-top-line` before H2?
 
 **Render check:**
 - [ ] Page renders in local preview without errors?

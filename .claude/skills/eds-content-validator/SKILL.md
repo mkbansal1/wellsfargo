@@ -83,7 +83,7 @@ fetch(first, { method: 'HEAD' }).then(r => console.log('Probe status:', r.status
 ```
 Run this command and return the results as described below.
 
-node /Users/nishantgupta/Developer/Code/wellsfargo/.claude/skills/eds-content-validator/scripts/check-content.mjs \
+node .claude/skills/eds-content-validator/scripts/check-content.mjs \
   /tmp/sitemap-urls.json \
   "https://www.wellsfargo.com" \
   "https://main--wellsfargo--mkbansal1.aem.live" \
@@ -138,7 +138,7 @@ cd .claude/skills/eds-content-validator && npm install && npx playwright install
 ```
 Run this command and return the results as described below.
 
-cd /Users/nishantgupta/Developer/Code/wellsfargo/.claude/skills/eds-content-validator && \
+cd .claude/skills/eds-content-validator && \
 node scripts/check-content-deep.mjs \
   /tmp/sitemap-urls.json \
   "https://www.wellsfargo.com" \
@@ -196,7 +196,7 @@ Return: (same structured summary as fast compare)
 ```
 Run this command and return the results as described below.
 
-node /Users/nishantgupta/Developer/Code/wellsfargo/.claude/skills/eds-content-validator/scripts/check-content-audit.mjs \
+node .claude/skills/eds-content-validator/scripts/check-content-audit.mjs \
   /tmp/sitemap-urls.json \
   "https://main--wellsfargo--mkbansal1.aem.live" \
   /tmp/eds-content-audit \
@@ -312,7 +312,7 @@ Send a **single Agent tool message** with one call per batch:
 
 ```
 # Batch 1 (pages 1–100):
-node /Users/nishantgupta/Developer/Code/wellsfargo/.claude/skills/eds-content-validator/scripts/check-content.mjs \
+node .claude/skills/eds-content-validator/scripts/check-content.mjs \
   /tmp/sitemap-batch-1.json \
   "https://www.wellsfargo.com" \
   "https://main--wellsfargo--mkbansal1.aem.live" \
@@ -320,7 +320,7 @@ node /Users/nishantgupta/Developer/Code/wellsfargo/.claude/skills/eds-content-va
   --max=100 --concurrency=5 --offset=0
 
 # Batch 2 (pages 101–200):
-node /Users/nishantgupta/Developer/Code/wellsfargo/.claude/skills/eds-content-validator/scripts/check-content.mjs \
+node .claude/skills/eds-content-validator/scripts/check-content.mjs \
   /tmp/sitemap-batch-2.json \
   "https://www.wellsfargo.com" \
   "https://main--wellsfargo--mkbansal1.aem.live" \
@@ -331,7 +331,7 @@ node /Users/nishantgupta/Developer/Code/wellsfargo/.claude/skills/eds-content-va
 ### Step 3: Merge batch outputs
 
 ```bash
-node /Users/nishantgupta/Developer/Code/wellsfargo/.claude/skills/eds-content-validator/scripts/merge-content-reports.mjs \
+node .claude/skills/eds-content-validator/scripts/merge-content-reports.mjs \
   /tmp/eds-content-merged \
   /tmp/content-batch-1 \
   /tmp/content-batch-2 \
