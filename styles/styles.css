@@ -391,22 +391,22 @@ main .section.cream {
   background-color: var(--wf-cream);
 }
 
-/* App promo — teal gradient band with white text (e.g. /financial-assistance) */
-main .section.app-promo {
+/* Dark-blue — teal/navy gradient band with white text */
+main .section.dark-blue {
   background-image: linear-gradient(164deg, #01222d 1.06%, #017994 50.47%);
   color: var(--background-color);
 }
 
-main .section.app-promo h1,
-main .section.app-promo h2,
-main .section.app-promo h3,
-main .section.app-promo h4,
-main .section.app-promo h5,
-main .section.app-promo h6 {
+main .section.dark-blue h1,
+main .section.dark-blue h2,
+main .section.dark-blue h3,
+main .section.dark-blue h4,
+main .section.dark-blue h5,
+main .section.dark-blue h6 {
   color: var(--background-color);
 }
 
-main .section.app-promo a:any-link {
+main .section.dark-blue a:any-link {
   color: var(--background-color);
 }
 
