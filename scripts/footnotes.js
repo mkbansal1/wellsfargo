@@ -90,18 +90,20 @@ async function handleFootnoteClick(e) {
   const cid = link.getAttribute('href').slice(hashIndex + 1);
 
   const sheetData = await fetchFootnotes();
-  const footnotesAttr = getMetadata('footnotes');
-  const map = buildFootnoteMap(sheetData, footnotesAttr);
-  let entry = map.get(cid);
-  // fallback: cid present in sheet but not in metadata order
-  if (!entry) {
-    const row = sheetData.find((r) => r.cid === cid);
-    if (row) entry = { number: null, value: row.value || '' };
+  const row = sheetData.find((r) => r.cid === cid);
+  if (!row) return; // not found — allow default anchor behavior
+
+  // Number shown in the popup comes from the superscript link text itself
+  // (the authoritative displayed marker), falling back to the metadata map.
+  const linkNumber = link.textContent.replace(/[^0-9]/g, '');
+  let number = linkNumber || null;
+  if (!number) {
+    const map = buildFootnoteMap(sheetData, getMetadata('footnotes'));
+    number = map.get(cid)?.number || null;
   }
-  if (!entry) return; // not found — allow default anchor behavior
 
   e.preventDefault();
-  openFootnote(entry);
+  openFootnote({ number, value: row.value || '' });
 }
 
 function decorateSuperscriptLinks(root) {
