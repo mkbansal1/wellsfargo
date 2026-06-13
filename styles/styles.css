@@ -440,7 +440,7 @@ main .section.border{
 /* Arrow-prefixed lists: ul inside a default-content-wrapper that contains an h3 */
 main .section > div.default-content-wrapper:has(h3) ul {
   list-style: none;
-  padding-left: 0;
+  padding-left: 32px;
 }
 
 main .section > div.default-content-wrapper:has(h3) ul li {
