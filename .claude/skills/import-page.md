@@ -100,7 +100,7 @@ If using manual import, use Playwright to navigate and extract:
 8. **Footnote CIDs** (any `#tcm:` references in links)
 9. **Metadata footnotes** (CID list from footnote area if present)
 
-**Always include in Metadata block:** Title, Description (if present), Keywords (if present), footnotes (if any), pageid.
+**Always include in Metadata block:** Title, Description, Keywords, footnotes (if any), and pageid. Extract each value VERBATIM from the source — never trim, truncate, or summarize any metadata content (full keyword lists, full descriptions).
 
 **Critical extraction rules:**
 - **Redirect handling:** After navigation, check `window.location.href`. If the page redirected to `/es/` but the requested URL was English (no `/es/` prefix), navigate again with `locale: 'en-US'` headers or use the English URL directly. Always verify you're extracting from the correct language version.
@@ -172,6 +172,13 @@ document.querySelectorAll('[data-cid]').forEach(el => {
 });
 ```
 
+**Footnote ordering & duplication rules:**
+- **Preserve source order** — the footnotes metadata CID list MUST follow the exact sequence the footnotes appear in on the source page (top to bottom). Do not reorder or sort.
+- **Duplicates are kept** — if the same footnote is displayed multiple times on the page, add its CID multiple times in the metadata footnotes field (once per occurrence), preserving position.
+- **Numbered vs. unnumbered** — a footnote is "numbered" only if its source has a matching superscript reference (`a[href*="#tcm:<cid>"]`) in the page body. Footnotes with no in-body superscript reference (e.g. standalone disclosures like Member FDIC, Equal Housing Lender) are unnumbered.
+- **Never use `<ol>`** for footnote numbering — numbering comes from the `<sup><a>` markers in body content and the footnotes engine, not an ordered list.
+- **Superscript format** — any source `<sup>` footnote reference MUST be authored as `<sup><a href="#tcm:...">N</a></sup>` (the `<sup>` wraps the anchor, never the reverse).
+
 4. Extract pageid (DT1/QSR/LRC/PM pattern)
 5. Add ALL collected CIDs to metadata footnotes field:
    ```
@@ -186,15 +193,32 @@ document.querySelectorAll('[data-cid]').forEach(el => {
 
 ### Step 7: Write Output File
 
-Format: One section per line, DA-compatible HTML:
+**Format: DA table authoring format.** Pages pushed to DA MUST use `<table>` blocks with the block name in the first row and `<hr>` section breaks between sections. This is the ONLY format the DA editor renders as proper blocks. Do NOT use the rendered `<div class="blockname">` format — DA shows that as raw text (e.g. "style / heading-bar") and does not reconstruct the block tables.
+
+**Key rules for DA table format:**
+- Each section is separated by an `<hr>` (DA's section-break marker). Do NOT wrap sections in extra `<div>`s.
+- A block is a `<table>`; the first row is a single cell with the block name (`<tr><td>Hero</td></tr>` or, for multi-column blocks, `<tr><td colspan="2">Cards</td></tr>`).
+- `colspan="2"` (or matching column count) is REQUIRED on the block-name header row of any block whose body rows have 2+ columns (Cards, Accordion, Section Metadata, Columns, Metadata, Table). Single-cell blocks (Hero, Divider, Fragment) use a plain `<td>`.
+- **Hero** is single-cell: image + heading + CTA all in one `<td>` (hero.js reads `:scope > div > div`).
+- **Section Metadata** is its own table after the block: `<table><tr><td colspan="2">Section Metadata</td></tr><tr><td>style</td><td>center-align, heading-bar</td></tr></table>`.
+- **Footnote refs** stay as `<sup><a href="#tcm:...">N</a></sup>` (bare hash — DA keeps it when the doc is in table format).
+
 ```html
-<div><h1 id="slug">Title</h1></div>
-<div><div class="hero overlay-bottom"><div><div><p><picture><img src="..." alt=""></picture></p><h2>...</h2><p>...</p></div></div></div><div class="section-metadata"><div><div><p>style</p></div><div><p>center-align, heading-bar</p></div></div></div></div>
-<div><h2>Section heading</h2><div class="cards icons bg-image">...</div><div class="section-metadata">...</div></div>
-...
-<div><div class="fragment"><div><div><p>/fragments/path</p></div></div></div></div>
-<div><div class="metadata"><div><div><p>Title</p></div><div><p>Page Title</p></div></div><div><div><p>footnotes</p></div><div><p>tcm:...</p></div></div><div><div><p>pageid</p></div><div><p>DT1-...</p></div></div></div></div>
+<h1 id="slug">Title</h1>
+<hr>
+<table><tr><td>Hero</td></tr><tr><td><picture><img src="..." alt=""></picture><h2>...</h2><p>... <sup><a href="#tcm:84-XXXXXX-16">1</a></sup></p></td></tr></table>
+<table><tr><td colspan="2">Section Metadata</td></tr><tr><td>style</td><td>center-align, heading-bar</td></tr></table>
+<hr>
+<h2>Section heading</h2>
+<table><tr><td colspan="2">Cards</td></tr><tr><td><picture><img src="..." alt=""></picture></td><td><h3>Card title</h3><p>...</p></td></tr></table>
+<table><tr><td colspan="2">Section Metadata</td></tr><tr><td>style</td><td>heading-bar, center-align</td></tr></table>
+<hr>
+<table><tr><td>Fragment</td></tr><tr><td>/fragments/path</td></tr></table>
+<hr>
+<table><tr><td colspan="2">Metadata</td></tr><tr><td>Title</td><td>Page Title</td></tr><tr><td>Description</td><td>...</td></tr><tr><td>Keywords</td><td>...</td></tr><tr><td>footnotes</td><td>tcm:...</td></tr><tr><td>pageid</td><td>DT1-...</td></tr></table>
 ```
+
+**DA-pulled pages are different.** When a page is pulled DOWN from DA it comes in *rendered* format (`<body><header></header><main>…<div class="hero">…</main><footer></footer></body>`). That format renders on the live site but is NOT editable as blocks in the DA editor. To re-author or re-push such a page, first convert it back to the table format above.
 
 ### Step 8: Post-Process
 
@@ -202,7 +226,9 @@ Format: One section per line, DA-compatible HTML:
 ```bash
 node tools/importer/post-process.js <output-file>
 ```
-Post-process handles: div balance, hero serialization fixes, footnote ref format (`<sup><a>`), section-metadata generation, and orphan line joining.
+Post-process handles: div balance, hero serialization fixes, footnote ref format (`<sup><a>`, including anchors with extra attributes), trailing-slash removal on internal links (incl. before `?query`/`#hash`), `<ol>`→`<p>` flattening for footnotes, pageid stripped from the footnotes CID list, section-metadata generation (accordions always get `narrow-width`), and orphan line joining.
+
+The script auto-detects the DA-pulled `<body>/<main>` wrapper and adapts (unwraps, processes, re-wraps), so it works on both freshly-imported files and DA-pulled files. It does NOT convert rendered `<div class="blockname">` markup into DA table format — that conversion is manual (see Step 7).
 
 ### Step 9: Post-Import Validation Checklist (MANDATORY)
 
@@ -231,6 +257,14 @@ Run through EVERY item before reporting import as done. Do NOT skip any.
 - [ ] No block nesting (e.g., accordion inside tabs → use Reference + Fragments)?
 - [ ] Block tables use `<td>` for block name row (not `<th>`)?
 - [ ] Cards use plain variant for full-size images, `icons bg-image` only for small icons?
+
+**DA format checks (before pushing to DA):**
+- [ ] File is in DA TABLE format (`<table>` blocks + `<hr>` section breaks), NOT rendered `<div class="blockname">` format?
+- [ ] Multi-column block headers have `colspan="2"` (Cards, Accordion, Section Metadata, Columns, Metadata, Table)?
+- [ ] Section Metadata renders as a table (NOT as literal "style / heading-bar" text)?
+- [ ] Footnote refs are `<sup><a href="#tcm:...">N</a></sup>` (bare hash, sup wraps anchor)?
+- [ ] Metadata block includes Title, Description, Keywords, footnotes, pageid (Keywords not dropped)?
+- [ ] After pushing to DA, reload the DA editor and confirm blocks render as tables (not raw text)?
 
 **Render check:**
 - [ ] Page renders in local preview without errors?
@@ -272,7 +306,7 @@ Use `import-governance-bios.js` pattern:
 1. **Never lose content** — If content doesn't match a known block pattern, import it as default content (paragraphs, headings, lists). Flag it for user review.
 2. **Footnote format** — `<sup>` must wrap `<a>`, never the reverse: `<sup><a href="#tcm:...">N</a></sup>`
 3. **No pageid in footnotes** — DT1/QSR/LRC IDs go in pageid metadata only, never in footnotes list.
-4. **Absolute URLs** — Convert `https://www.wellsfargo.com/path` to `/path`. Keep external URLs absolute. Internal links must NOT have a trailing slash (use `/about/investor-relations` not `/about/investor-relations/`). The only exception is `/` for the homepage.
+4. **Absolute URLs** — Convert `https://www.wellsfargo.com/path` to `/path`. Keep external URLs absolute. Internal links must NOT have a trailing slash anywhere in the path: strip it before a query string or hash too (`/about/investor-relations`, `/mortgage/rates?utm=x`, `/about#team` — never `/about/investor-relations/`, `/mortgage/rates/?utm=x`, `/about/#team`). The only exception is `/` for the homepage.
 5. **Images** — Keep wellsfargomedia.com URLs as-is during import (will be migrated to DA assets later).
 6. **Div balance** — Every line must have equal `<div>` opens and `</div>` closes.
 7. **ES pages** — Use `/es/` prefix in output path. Fragment paths should also use `/es/` prefix.

@@ -128,7 +128,20 @@ export default async function buildFootnotes(footnotesAttr, pageid) {
 
   if (footnotesAttr) {
     const cids = footnotesAttr.split(',').map((id) => id.trim());
-    let numberCounter = 0;
+
+    // Build cid -> number map from in-body superscript references.
+    // A footnote is numbered only if its cid is referenced by an
+    // a[href*="#tcm:<cid>"] in the page; the number is the link's own text.
+    const main = document.querySelector('main');
+    const numberByCid = new Map();
+    if (main) {
+      main.querySelectorAll('a[href*="#tcm:"]').forEach((a) => {
+        const href = a.getAttribute('href');
+        const cid = href.slice(href.indexOf('#tcm:') + 1);
+        const num = a.textContent.replace(/[^0-9]/g, '');
+        if (num && !numberByCid.has(cid)) numberByCid.set(cid, num);
+      });
+    }
 
     cids.forEach((cid) => {
       const entry = sheetData.find((row) => row.cid === cid);
@@ -138,15 +151,14 @@ export default async function buildFootnotes(footnotesAttr, pageid) {
       item.className = 'footnote-item';
       item.setAttribute('data-cid', entry.cid || '');
       item.setAttribute('data-ctid', entry.ctid || '');
-      item.setAttribute('data-numbered', entry.numbered || 'false');
 
-      const isNumbered = entry.numbered === 'true' || entry.numbered === true;
-      if (isNumbered) {
-        numberCounter += 1;
+      const number = numberByCid.get(cid);
+      item.setAttribute('data-numbered', number ? 'true' : 'false');
+      if (number) {
         item.id = cid;
         const numSpan = document.createElement('span');
         numSpan.className = 'footnote-number';
-        numSpan.textContent = `${numberCounter}.`;
+        numSpan.textContent = `${number}.`;
         item.appendChild(numSpan);
       }
 
