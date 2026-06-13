@@ -437,4 +437,28 @@ main .section.border{
   border:1px solid var(--wf-dark);
 }
 
+/* Arrow-prefixed lists: ul inside a default-content-wrapper that contains an h3 */
+main .section > div.default-content-wrapper:has(h3) ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+main .section > div.default-content-wrapper:has(h3) ul li {
+  position: relative;
+  padding-left: 36px;
+  margin-bottom: 16px;
+}
+
+main .section > div.default-content-wrapper:has(h3) ul li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.2em;
+  width: 18px;
+  height: 18px;
+  background-color: var(--wf-text-secondary, #787070);
+  -webkit-mask: url("/icons/arrow-right.svg") no-repeat center / contain; /* stylelint-disable-line property-no-vendor-prefix */
+  mask: url("/icons/arrow-right.svg") no-repeat center / contain;
+}
+
 /* wealth theme — loaded from /styles/themes/wealth.css via scripts.js */
