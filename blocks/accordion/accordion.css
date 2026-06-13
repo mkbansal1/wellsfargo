@@ -84,7 +84,7 @@
 }
 
 .accordion.compact details summary::before {
-  top: 14px;
+  top: 22px;
 }
 
 .accordion.compact details .accordion-item-body {
