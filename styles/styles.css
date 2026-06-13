@@ -445,17 +445,18 @@ main .section > div.default-content-wrapper:has(h3) ul {
 
 main .section > div.default-content-wrapper:has(h3) ul li {
   position: relative;
-  padding-left: 36px;
-  margin-bottom: 16px;
+  padding-left: 24px;
+  margin-bottom: 8px;
+  line-height: 1.4;
 }
 
 main .section > div.default-content-wrapper:has(h3) ul li::before {
   content: "";
   position: absolute;
   left: 0;
-  top: 0.2em;
-  width: 18px;
-  height: 18px;
+  top: 0.3em;
+  width: 14px;
+  height: 14px;
   background-color: var(--wf-text-secondary, #787070);
   -webkit-mask: url("/icons/arrow-right.svg") no-repeat center / contain; /* stylelint-disable-line property-no-vendor-prefix */
   mask: url("/icons/arrow-right.svg") no-repeat center / contain;
