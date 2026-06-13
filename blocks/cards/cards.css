@@ -71,9 +71,6 @@
   color: var(--wf-link);
   font-weight: 400;
   text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 13px;
   font-size: 17px;
 }
 
@@ -84,11 +81,14 @@
 
 .cards .cards-card-body p:last-child a:not(.button)::after {
   content: '\203A';
+  display: inline-block;
+  margin-left: 8px;
   font-size: 23px;
   font-weight: 600;
   line-height: 0;
   position: relative;
-  top: -1px;
+  top: 2px;
+  text-decoration: none;
 }
 
 /* Tablet: default — 2 cards per row, centered */
