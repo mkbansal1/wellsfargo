@@ -25,7 +25,10 @@ export default function decorate(block) {
     }
   });
   ul.querySelectorAll('.cards-card-body a').forEach((a) => {
-    a.textContent = a.textContent.replace(/\s*>+\s*$/, '');
+    const last = a.lastChild;
+    if (last && last.nodeType === Node.TEXT_NODE) {
+      last.textContent = last.textContent.replace(/\s*>+\s*$/, '');
+    }
   });
 
   // promo variant: restructure DOM — h3 on top, then image + text row below
