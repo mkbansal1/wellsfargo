@@ -6,6 +6,12 @@
 //   - Footnote refs normalized to <sup><a href="#tcm:...">N</a></sup>
 //       (handles "Opens a modal dialog" text, anchors with extra attributes,
 //        and bare <a href="#tcm:">N</a> not yet wrapped in <sup>)
+//   - Footnote with LOST CID (anchor href="/" or "#" + "Opens a modal dialog for
+//       footnote N" text) reduced to bare <sup>N</sup> and WARNED (CID unrecoverable)
+//   - Trailing arrow baked into link text (">", "&gt;", "›") stripped — arrows are
+//       CSS decoration, not content
+//   - Metadata block missing a Keywords row is WARNED (keywords must be authored
+//       verbatim from the source <meta name="keywords">)
 //   - Absolute wellsfargo.com links -> relative
 //   - Internal links: trailing slash removed, including before ?query and #hash
 //       (never touches external links or bare "/")
@@ -55,6 +61,7 @@ function splitTopLevelDivs(inner) {
 
 function postProcess(filePath) {
   let html = fs.readFileSync(filePath, 'utf8');
+  const warnings = [];
 
   // DA-format adapter: pages pulled from DA are wrapped as
   //   <body><header></header><main>…sections…</main><footer></footer></body>
@@ -80,6 +87,20 @@ function postProcess(filePath) {
     if (openSup && closeSup) return m; // already correctly wrapped
     return `<sup><a href="${href}">${num}</a></sup>`;
   });
+  // Pattern 5: footnote whose CID was LOST during import — the anchor points at
+  //   "/" (or "#") and still shows the "Opens a modal dialog for footnote N" text.
+  //   The CID is gone, so it cannot be auto-recovered. Strip the broken anchor to a
+  //   bare "<sup>N</sup>" marker and WARN so an author can wire the correct CID.
+  html = html.replace(/<a href="[/#]"[^>]*><sup>Opens a modal dialog for footnote (\d+)<\/sup>\s*<\/a>/g, (m, num) => {
+    warnings.push(`footnote ${num}: CID lost on import (href was "/" or "#") — superscript left bare, author must add the #tcm: CID`);
+    return `<sup>${num}</sup>`;
+  });
+
+  // 1b. Strip a trailing arrow that was baked into LINK TEXT (e.g. "Learn more >",
+  //   "Learn more &gt;", "Learn more ›"). The arrow is decoration added by CSS, not
+  //   content — it must not live in the authored text. Only trims the trailing glyph,
+  //   never inner markup.
+  html = html.replace(/(>[^<]*?)\s*(?:&gt;|›|>)\s*(<\/a>)/g, '$1$2');
 
   // 2. Convert absolute wellsfargo.com links to relative and strip trailing slash.
   html = html.replace(/https:\/\/www\.wellsfargo\.com\//g, '/');
@@ -391,8 +412,15 @@ function postProcess(filePath) {
     html = `<body>\n  <header></header>\n  <main>${sections}</main>\n  <footer></footer>\n</body>`;
   }
 
+  // Guard: a metadata block without a Keywords row almost always means keywords were
+  //   not carried over from the source. Cannot be auto-filled (source not available
+  //   here) — WARN so an author copies <meta name="keywords"> verbatim into Metadata.
+  if (/<div class="metadata">/.test(html) && !/<p>Keywords<\/p>/.test(html)) {
+    warnings.push('Metadata block has no Keywords row — copy the source <meta name="keywords"> content verbatim into a Keywords row (after Description)');
+  }
+
   fs.writeFileSync(filePath, html);
-  return filePath;
+  return { filePath, warnings };
 }
 
 // CLI: accept file paths as arguments
@@ -407,6 +435,7 @@ args.forEach((filePath) => {
     console.error('File not found:', filePath);
     return;
   }
-  postProcess(filePath);
+  const { warnings } = postProcess(filePath);
   console.log('✅', filePath);
+  warnings.forEach((w) => console.log('   ⚠ ', w));
 });
