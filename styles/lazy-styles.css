@@ -40,3 +40,84 @@
   height: 16px;
   vertical-align: middle;
 }
+
+/* === Footnote popup (bottom sheet, all viewports) === */
+dialog.footnote-modal {
+  width: 100%;
+  max-width: 100%;
+  margin: auto auto 0;
+  padding: 0;
+  border: none;
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -2px 16px rgb(0 0 0 / 20%);
+  box-sizing: border-box;
+}
+
+dialog.footnote-modal::backdrop {
+  background: rgb(0 0 0 / 50%);
+}
+
+.footnote-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--wf-bg-gray, #e2dede);
+}
+
+.footnote-modal-title {
+  margin: 0;
+  font-size: var(--heading-font-size-l, 22px);
+  font-weight: 400;
+  color: var(--wf-text-primary);
+}
+
+.footnote-modal-close {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 28px;
+  line-height: 1;
+  color: var(--wf-text-primary);
+  cursor: pointer;
+}
+
+.footnote-modal-body {
+  padding: 20px 24px 28px;
+}
+
+.footnote-modal-body .footnote-item {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: var(--body-font-size-s);
+  line-height: 1.5;
+  color: var(--wf-text-primary);
+}
+
+.footnote-modal-body .footnote-item .footnote-number {
+  flex-shrink: 0;
+  min-width: 20px;
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+dialog.footnote-modal .footnote-modal-body p {
+  margin: 0 0 12px;
+}
+
+dialog.footnote-modal .footnote-modal-body p:last-child {
+  margin-bottom: 0;
+}
+
+/* center the content column on wider screens while keeping the bar full-width */
+@media (width >= 768px) {
+  .footnote-modal-header,
+  .footnote-modal-body {
+    max-width: var(--content-max-width, 1400px);
+    margin-inline: auto;
+  }
+}

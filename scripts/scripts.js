@@ -189,10 +189,11 @@ async function loadLazy(doc) {
 
   loadFooter(doc.querySelector('footer'));
 
-  // Footnotes — only load JS if metadata exists
+  // Footnotes — load JS if metadata exists or any footnote superscript links are present
   const footnotesAttr = getMetadata('footnotes');
   const pageid = getMetadata('pageid');
-  if (footnotesAttr || pageid) {
+  const hasFootnoteLinks = !!main.querySelector('a[href*="#tcm:"]');
+  if (footnotesAttr || pageid || hasFootnoteLinks) {
     const { default: buildFootnotes } = await import('./footnotes.js');
     await buildFootnotes(footnotesAttr, pageid);
   }

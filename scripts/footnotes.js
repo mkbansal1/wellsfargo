@@ -2,21 +2,24 @@ import { decorateIcons, getMetadata } from './aem.js';
 
 const FOOTNOTES_SHEET_URL = '/data/footnotes.json';
 
+const MODAL_TITLE = { en: 'Footnote', es: 'Nota al pie' };
+const CLOSE_LABEL = { en: 'Close', es: 'Cerrar' };
+
 function getLang() {
   const locale = getMetadata('locale') || document.documentElement.lang || 'en';
   return locale.startsWith('es') ? 'es' : 'en';
 }
 
+let sheetPromise;
 async function fetchFootnotes() {
-  const lang = getLang();
-  try {
-    const resp = await fetch(`${FOOTNOTES_SHEET_URL}?sheet=${lang}`);
-    if (!resp.ok) return [];
-    const json = await resp.json();
-    return json.data || [];
-  } catch (e) {
-    return [];
+  if (!sheetPromise) {
+    const lang = getLang();
+    sheetPromise = fetch(`${FOOTNOTES_SHEET_URL}?sheet=${lang}`)
+      .then((resp) => (resp.ok ? resp.json() : { data: [] }))
+      .then((json) => json.data || [])
+      .catch(() => []);
   }
+  return sheetPromise;
 }
 
 function renderFootnoteValue(value) {
@@ -25,7 +28,94 @@ function renderFootnoteValue(value) {
   return wrapper;
 }
 
+let modal;
+let modalBody;
+function getModal() {
+  if (modal) return modal;
+  const lang = getLang();
+  modal = document.createElement('dialog');
+  modal.className = 'footnote-modal';
+  modal.innerHTML = `
+    <div class="footnote-modal-header">
+      <h2 class="footnote-modal-title">${MODAL_TITLE[lang]}</h2>
+      <button type="button" class="footnote-modal-close" aria-label="${CLOSE_LABEL[lang]}">&times;</button>
+    </div>
+    <div class="footnote-modal-body"></div>`;
+  modalBody = modal.querySelector('.footnote-modal-body');
+  modal.querySelector('.footnote-modal-close').addEventListener('click', () => modal.close());
+  // backdrop click closes
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) modal.close();
+  });
+  document.body.appendChild(modal);
+  return modal;
+}
+
+function openFootnote(entry) {
+  getModal();
+  modalBody.innerHTML = '';
+  const item = document.createElement('div');
+  item.className = 'footnote-item';
+  if (entry.number) {
+    const numSpan = document.createElement('span');
+    numSpan.className = 'footnote-number';
+    numSpan.textContent = `${entry.number}.`;
+    item.appendChild(numSpan);
+  }
+  item.appendChild(renderFootnoteValue(entry.value));
+  modalBody.appendChild(item);
+  modal.showModal();
+}
+
+/* Delegated handler — covers superscripts inside fragments/lazy content too. */
+async function handleFootnoteClick(e) {
+  const link = e.target.closest('a[href*="#tcm:"]');
+  if (!link) return;
+  const hashIndex = link.getAttribute('href').indexOf('#tcm:');
+  const cid = link.getAttribute('href').slice(hashIndex + 1);
+
+  const sheetData = await fetchFootnotes();
+  const row = sheetData.find((r) => r.cid === cid);
+  if (!row) return; // not found — allow default anchor behavior
+
+  // Number shown in the popup always comes from the superscript link text.
+  const number = link.textContent.replace(/[^0-9]/g, '') || null;
+
+  e.preventDefault();
+  openFootnote({ number, value: row.value || '' });
+}
+
+function decorateSuperscriptLinks(root) {
+  root.querySelectorAll('a[href*="#tcm:"]').forEach((link) => {
+    if (link.dataset.footnoteDecorated) return;
+    link.dataset.footnoteDecorated = 'true';
+    link.setAttribute('role', 'button');
+    const num = link.textContent.trim();
+    link.setAttribute('aria-label', num ? `Open footnote ${num}` : 'Open footnote');
+    link.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        link.click();
+      }
+    });
+  });
+}
+
+export function initFootnotePopups() {
+  const main = document.querySelector('main');
+  if (!main || main.dataset.footnotePopups) return;
+  main.dataset.footnotePopups = 'true';
+  main.addEventListener('click', handleFootnoteClick);
+  decorateSuperscriptLinks(main);
+  // re-decorate lazily-injected superscripts (fragments, tabs)
+  const obs = new MutationObserver(() => decorateSuperscriptLinks(main));
+  obs.observe(main, { childList: true, subtree: true });
+}
+
 export default async function buildFootnotes(footnotesAttr, pageid) {
+  // Always enable popups (works even without footnotes metadata).
+  initFootnotePopups();
+
   if (!footnotesAttr && !pageid) return;
 
   const sheetData = await fetchFootnotes();
