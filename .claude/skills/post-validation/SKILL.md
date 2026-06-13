@@ -141,6 +141,14 @@ for f in <files>; do
   grep -o '<ol>[^<]*<li>[^<]*tcm:' "$f" && echo "  ! footnote ordered-list not flattened"
   # f. Div balance per line
   awk '{o=gsub(/<div/,"&"); c=gsub(/<\/div>/,"&"); if(o!=c) print "  ! line "NR" div imbalance ("o" open / "c" close)"}' "$f"
+  # g. Footnote CID lost on import — anchor points at "/" or "#" with modal text,
+  #    OR a bare <sup>N</sup> the pipeline left after reducing a lost-CID footnote.
+  grep -oE '<a href="[/#]"[^>]*><sup>Opens a modal dialog for footnote [0-9]+' "$f" && echo "  ! footnote CID lost (broken anchor) — look up #tcm: CID and wire it back"
+  grep -oE '<sup>[0-9]+</sup>' "$f" | head && echo "  ! bare <sup>N</sup> present — confirm it is not a footnote that lost its CID"
+  # h. No trailing arrow baked into link text (CSS adds the arrow, it is not content)
+  grep -oE '>[^<]*(&gt;|›|>)</a>' "$f" | head && echo "  ! trailing arrow in link text — strip it (arrow is CSS decoration)"
+  # i. Metadata block must have a Keywords row (keywords are frequently dropped)
+  grep -q '<div class="metadata">' "$f" && ! grep -q '<p>Keywords</p>' "$f" && echo "  ! Metadata block missing Keywords row — copy source <meta name=keywords> verbatim"
 done
 ```
 
