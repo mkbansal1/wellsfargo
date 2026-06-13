@@ -17,6 +17,46 @@ NOT import pages — import is handled by the `import-page` skill / content-impo
 
 ---
 
+## How to Invoke
+
+Invoke the skill by name and pass the page URL(s) or path(s) as the argument:
+
+```
+/post-validation /mortgage
+/post-validation /mortgage /es/about/inclusion /about/investor-relations/fixed-income
+/post-validation https://main--wellsfargo--mkbansal1.aem.live/mortgage
+```
+
+It also triggers automatically from natural-language requests such as:
+- "validate the imported mortgage page"
+- "post process and validate /mortgage and /mortgage/buying-a-house"
+- "run post-validation on these pages: …"
+- "check for missing footnotes on /about/investor-relations/fixed-income"
+- "give me the final import status for the pages I just imported"
+
+**Accepted arguments**
+- One or more **page paths** (`/mortgage`, `/es/about/inclusion`) — preferred form
+- One or more **full URLs** (EDS preview or prod) — origin and trailing slash are stripped
+- One or more **content file paths** (`content/mortgage.plain.html`) — used as-is
+- Mix and match freely; separate multiple inputs with spaces
+
+**Optional flags** (passed through to the footnote checker in Step 4)
+- `--base=<url>` — footnotes-sheet origin to validate against (default:
+  `https://main--wellsfargo--mkbansal1.aem.live`); point it at a feature-branch
+  preview when validating un-merged content
+- `--json` — emit the footnote report as JSON instead of a table (for chaining batches)
+
+**Prerequisites**
+- The page(s) must already be imported locally (a `content/**/*.plain.html` file
+  exists). Un-imported inputs are reported as `NOT_IMPORTED` and skipped.
+- Network access to the `--base` origin is needed for the footnotes-sheet cross-check.
+  Without it, the checker treats all CIDs as missing (a visible signal, not a silent pass).
+
+**Run from the repository root** so `tools/importer/post-process.js` and the skill's
+script resolve correctly.
+
+---
+
 ## Input
 
 The user provides one or more **page URLs** or **content paths**, e.g.:
