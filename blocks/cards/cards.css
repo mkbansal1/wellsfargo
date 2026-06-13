@@ -37,7 +37,7 @@
 }
 
 .cards .cards-card-body {
-  padding: 20px 24px 28px;
+  padding: 32px 24px 24px;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -48,18 +48,18 @@
 }
 
 .cards .cards-card-body h3 {
-  font-size: var(--heading-font-size-s);
-  font-weight: 600;
-  line-height: 1.27;
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 1.25;
   margin: 0 0 8px;
-  color: var(--wf-text-primary);
+  color: var(--wf-dark);
 }
 
 .cards .cards-card-body p {
-  font-size: var(--body-font-size-s);
+  font-size: 17px;
   line-height: 1.29;
   margin: 0 0 8px;
-  color: var(--wf-text-primary);
+  color: var(--wf-dark);
 }
 
 .cards .cards-card-body p:last-child {
@@ -69,25 +69,21 @@
 
 .cards .cards-card-body a:not(.button) {
   color: var(--wf-link);
-  font-weight: 600;
+  font-weight: 400;
   text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 13px;
   font-size: 17px;
 }
 
-.cards .cards-card-body p:last-child a:not(.button)::after {
-  content: '\203A';
-  font-size: 23px;
-  font-weight: 600;
-  line-height: 0;
-  position: relative;
-  top: -1px;
+.cards .cards-card-body a:not(.button):hover {
+  color: var(--wf-link-hover);
+  text-decoration: underline;
 }
 
-.cards .cards-card-body a:not(.button):hover {
-  text-decoration: underline;
+.cards .cards-card-body p:last-child a:not(.button)::after {
+  content: '\00A0\203A';
+  font-size: 23px;
+  font-weight: 600;
+  text-decoration: none;
 }
 
 /* Tablet: default — 2 cards per row, centered */
@@ -196,11 +192,7 @@
 
 /* Cards without images get adjusted padding and styling */
 .cards > ul > li.no-image .cards-card-body {
-  padding: 28px 24px;
-}
-
-.cards > ul > li.no-image .cards-card-body h3 {
-  font-weight: 600;
+  padding: 32px 24px 24px;
 }
 
 
