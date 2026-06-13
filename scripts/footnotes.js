@@ -28,21 +28,6 @@ function renderFootnoteValue(value) {
   return wrapper;
 }
 
-/* cid -> { number, value }. Numbering follows the footnotes metadata order. */
-function buildFootnoteMap(sheetData, footnotesAttr) {
-  const map = new Map();
-  if (!footnotesAttr) return map;
-  let numberCounter = 0;
-  footnotesAttr.split(',').map((id) => id.trim()).forEach((cid) => {
-    const entry = sheetData.find((row) => row.cid === cid);
-    if (!entry) return;
-    const isNumbered = entry.numbered === 'true' || entry.numbered === true;
-    if (isNumbered) numberCounter += 1;
-    map.set(cid, { number: isNumbered ? numberCounter : null, value: entry.value || '' });
-  });
-  return map;
-}
-
 let modal;
 let modalBody;
 function getModal() {
@@ -93,14 +78,8 @@ async function handleFootnoteClick(e) {
   const row = sheetData.find((r) => r.cid === cid);
   if (!row) return; // not found — allow default anchor behavior
 
-  // Number shown in the popup comes from the superscript link text itself
-  // (the authoritative displayed marker), falling back to the metadata map.
-  const linkNumber = link.textContent.replace(/[^0-9]/g, '');
-  let number = linkNumber || null;
-  if (!number) {
-    const map = buildFootnoteMap(sheetData, getMetadata('footnotes'));
-    number = map.get(cid)?.number || null;
-  }
+  // Number shown in the popup always comes from the superscript link text.
+  const number = link.textContent.replace(/[^0-9]/g, '') || null;
 
   e.preventDefault();
   openFootnote({ number, value: row.value || '' });
