@@ -226,7 +226,11 @@ document.querySelectorAll('[data-cid]').forEach(el => {
 ```bash
 node tools/importer/post-process.js <output-file>
 ```
-Post-process handles: div balance, hero serialization fixes, footnote ref format (`<sup><a>`, including anchors with extra attributes), trailing-slash removal on internal links (incl. before `?query`/`#hash`), `<ol>`→`<p>` flattening for footnotes, pageid stripped from the footnotes CID list, section-metadata generation (accordions always get `narrow-width`), and orphan line joining.
+Post-process handles: div balance, hero serialization fixes, footnote ref format (`<sup><a>`, including anchors with extra attributes), trailing-slash removal on internal links (incl. before `?query`/`#hash`), trailing-arrow removal from link text (`>`, `&gt;`, `›` are CSS decoration, never content), `<ol>`→`<p>` flattening for footnotes, pageid stripped from the footnotes CID list, section-metadata generation (accordions always get `narrow-width`), and orphan line joining.
+
+The script also emits `⚠` warnings (it cannot auto-fix these — an author must act):
+- **Footnote CID lost on import** — a footnote anchor that points at `/` or `#` and still shows "Opens a modal dialog for footnote N" has lost its CID. Post-process reduces it to a bare `<sup>N</sup>` and warns; look up the correct `#tcm:` CID from `/data/footnotes.json` and wire it back as `<sup><a href="#tcm:...">N</a></sup>`.
+- **Keywords row missing** — a Metadata block with no Keywords row almost always means keywords weren't carried over. Copy the source `<meta name="keywords">` content verbatim into a Keywords row (after Description).
 
 The script auto-detects the DA-pulled `<body>/<main>` wrapper and adapts (unwraps, processes, re-wraps), so it works on both freshly-imported files and DA-pulled files. It does NOT convert rendered `<div class="blockname">` markup into DA table format — that conversion is manual (see Step 7).
 
