@@ -75,8 +75,10 @@ function isExternalLink(link, allowList) {
   const host = url.hostname.toLowerCase();
   if (host === window.location.hostname.toLowerCase()) return false;
   if (EDS_HOST_RE.test(host)) return false;
-  // Exact-host exclusion: excluding "wellsfargo.com"/"www.wellsfargo.com" still
-  // lets subdomains (connect.secure.wellsfargo.com, stories.wf.com, …) trigger.
+  // Any Wells Fargo host is first-party — never show the interstitial for it.
+  if (host.includes('wellsfargo')) return false;
+  // Additional exact-host exclusions from the placeholders sheet (e.g. wf.com,
+  // wellsfargomedia.com, or other trusted destinations).
   if (allowList.includes(host)) return false;
   return true;
 }
