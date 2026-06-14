@@ -51,16 +51,34 @@ export default async function decorate(block) {
       });
     } else if (i === 1) {
       section.classList.add('footer-social');
+      const networkNames = {
+        facebook: 'Facebook',
+        linkedin: 'LinkedIn',
+        instagram: 'Instagram',
+        pinterest: 'Pinterest',
+        youtube: 'YouTube',
+        x: 'X',
+        twitter: 'X',
+      };
       section.querySelectorAll('a').forEach((link) => {
+        // Icon may still be authored as ":name:" text, or already decorated by
+        // decorateIcons (run during loadFragment) into <span class="icon icon-name">.
         const text = link.textContent.trim();
-        const match = text.match(/^:([a-z-]+):$/);
-        if (match) {
-          const icon = match[1];
+        const textMatch = text.match(/^:([a-z-]+):$/);
+        const decoratedIcon = link.querySelector('span.icon[class*="icon-"]');
+        const icon = textMatch
+          ? textMatch[1]
+          : decoratedIcon && [...decoratedIcon.classList].find((c) => c.startsWith('icon-'))?.slice(5);
+        if (!icon) return;
+
+        link.classList.add('footer-social-icon', `icon-${icon}`);
+        const name = networkNames[icon] || icon.charAt(0).toUpperCase() + icon.slice(1);
+        link.setAttribute('aria-label', `Wells Fargo on ${name}`);
+        link.setAttribute('target', '_blank');
+        link.setAttribute('rel', 'noopener');
+
+        if (textMatch) {
           link.textContent = '';
-          link.classList.add('footer-social-icon', `icon-${icon}`);
-          link.setAttribute('aria-label', `Wells Fargo ${icon} page`);
-          link.setAttribute('target', '_blank');
-          link.setAttribute('rel', 'noopener');
           const img = document.createElement('img');
           img.classList.add('icon');
           img.src = `/icons/${icon}.svg`;
