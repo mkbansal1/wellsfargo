@@ -207,6 +207,11 @@ async function loadLazy(doc) {
     await buildFootnotes(footnotesAttr, pageid);
   }
 
+  // Leaving-site interstitial — delegated on document, so it covers links in
+  // main, header, footer, and lazily-injected fragments. The dialog is built
+  // on first qualifying click.
+  import('./leaving-site.js').then(({ default: initLeavingSite }) => initLeavingSite());
+
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
   loadFonts();
 }
