@@ -31,6 +31,29 @@ export default function decorate(block) {
     }
   });
 
+  // Generic link text (e.g. "Learn more", "Más información (en inglés)") gives screen
+  // reader users no context. Add an aria-label combining the link text with the card's
+  // heading so the destination is clear out of context.
+  const GENERIC_LINK_TEXT = [
+    'learn more',
+    'más información (en inglés)',
+    'más información',
+    'get inspired',
+  ];
+  ul.querySelectorAll('li').forEach((li) => {
+    const heading = li.querySelector('h2, h3, h4');
+    if (!heading) return;
+    const headingText = heading.textContent.trim();
+    if (!headingText) return;
+    li.querySelectorAll('.cards-card-body a').forEach((a) => {
+      if (a.hasAttribute('aria-label')) return;
+      const linkText = a.textContent.trim();
+      if (GENERIC_LINK_TEXT.includes(linkText.toLowerCase())) {
+        a.setAttribute('aria-label', `${linkText} about ${headingText}`);
+      }
+    });
+  });
+
   // promo variant: restructure DOM — h3 on top, then image + text row below
   if (block.classList.contains('promo')) {
     ul.querySelectorAll('li').forEach((li) => {
