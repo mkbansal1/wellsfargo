@@ -51,15 +51,6 @@ export default async function decorate(block) {
       });
     } else if (i === 1) {
       section.classList.add('footer-social');
-      const networkNames = {
-        facebook: 'Facebook',
-        linkedin: 'LinkedIn',
-        instagram: 'Instagram',
-        pinterest: 'Pinterest',
-        youtube: 'YouTube',
-        x: 'X',
-        twitter: 'X',
-      };
       section.querySelectorAll('a').forEach((link) => {
         // Icon may still be authored as ":name:" text, or already decorated by
         // decorateIcons (run during loadFragment) into <span class="icon icon-name">.
@@ -72,8 +63,7 @@ export default async function decorate(block) {
         if (!icon) return;
 
         link.classList.add('footer-social-icon', `icon-${icon}`);
-        const name = networkNames[icon] || icon.charAt(0).toUpperCase() + icon.slice(1);
-        link.setAttribute('aria-label', `Wells Fargo on ${name}`);
+        link.setAttribute('aria-label', `Wells Fargo ${icon}`);
         link.setAttribute('target', '_blank');
         link.setAttribute('rel', 'noopener');
 
