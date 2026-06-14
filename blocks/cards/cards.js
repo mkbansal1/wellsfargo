@@ -21,7 +21,25 @@ export default function decorate(block) {
   });
   ul.querySelectorAll('picture > img').forEach((img) => {
     if (!img.src.startsWith('http') || img.src.includes(window.location.hostname)) {
-      img.closest('picture').replaceWith(createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }]));
+      // Preserve intrinsic dimensions so the optimized <img> has explicit width/height
+      // (avoids CLS / "Image elements do not have explicit width and height").
+      const width = img.getAttribute('width') || img.naturalWidth;
+      const height = img.getAttribute('height') || img.naturalHeight;
+      const optimized = createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }]);
+      const newImg = optimized.querySelector('img');
+      const setDimensions = (w, h) => {
+        if (w && h) {
+          newImg.setAttribute('width', w);
+          newImg.setAttribute('height', h);
+        }
+      };
+      if (width && height) {
+        setDimensions(width, height);
+      } else {
+        // Source not yet loaded — backfill from natural size once available.
+        newImg.addEventListener('load', () => setDimensions(newImg.naturalWidth, newImg.naturalHeight), { once: true });
+      }
+      img.closest('picture').replaceWith(optimized);
     }
   });
   ul.querySelectorAll('.cards-card-body a').forEach((a) => {
