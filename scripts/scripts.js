@@ -165,6 +165,8 @@ async function loadEager(doc) {
     // image so its LCP candidate is fetched eagerly, not lazily.
     const sections = [...main.querySelectorAll('.section')];
     const lcpIndex = Math.max(0, sections.findIndex((section) => section.querySelector('img')));
+    // Prioritize the LCP image: eager loading + high fetch priority.
+    sections[lcpIndex]?.querySelector('img')?.setAttribute('fetchpriority', 'high');
     await Promise.all(sections.slice(0, lcpIndex + 1).map(
       (section, i) => loadSection(section, i === lcpIndex ? waitForFirstImage : undefined),
     ));
