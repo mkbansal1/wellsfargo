@@ -160,7 +160,14 @@ async function loadEager(doc) {
   if (main) {
     decorateMain(main);
     document.body.classList.add('appear');
-    await loadSection(main.querySelector('.section'), waitForFirstImage);
+    // The LCP image usually lives in the hero, but auto-blocks (e.g. breadcrumb)
+    // can be the first section. Eager-load through the first section that has an
+    // image so its LCP candidate is fetched eagerly, not lazily.
+    const sections = [...main.querySelectorAll('.section')];
+    const lcpIndex = Math.max(0, sections.findIndex((section) => section.querySelector('img')));
+    await Promise.all(sections.slice(0, lcpIndex + 1).map(
+      (section, i) => loadSection(section, i === lcpIndex ? waitForFirstImage : undefined),
+    ));
   }
 
   try {
