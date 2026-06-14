@@ -49,7 +49,9 @@ export default function decorate(block) {
       if (a.hasAttribute('aria-label')) return;
       const linkText = a.textContent.trim();
       if (GENERIC_LINK_TEXT.includes(linkText.toLowerCase())) {
-        a.setAttribute('aria-label', `${linkText} about ${headingText}`);
+        const label = `${linkText} about ${headingText}`;
+        a.setAttribute('aria-label', label);
+        a.setAttribute('title', label);
       }
     });
   });
