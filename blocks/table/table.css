@@ -261,4 +261,108 @@
   }
 }
 
+/* --- product-card variant ---
+   Self-contained product card: full-width centered heading (row 1) with a
+   yellow accent bar beneath it, full-width APY spotlight, striped 2-column
+   rate rows in the middle, and a full-width centered footer with a pill CTA.
+   Full-width rows are single-cell colspan rows (.full-width-row from JS). */
+.table.product-card {
+  border: 1px solid var(--wf-bg-gray, #e2dede);
+  border-radius: 16px;
+  padding: 32px 24px;
+  margin: 0 auto;
+  max-width: 66.6%;
+}
+
+.table.product-card table {
+  font-size: 16px;
+}
+
+/* All data cells: no per-cell borders; spacing handled per row type */
+.table.product-card table th,
+.table.product-card table td {
+  border: 0;
+  padding: 14px 8px;
+  color: var(--wf-text-primary, #3b3331);
+}
+
+/* 2-column rate rows: label left, value right */
+.table.product-card table tr:not(.full-width-row) td:first-child {
+  text-align: left;
+  font-weight: 400;
+}
+
+.table.product-card table tr:not(.full-width-row) td:last-child {
+  text-align: right;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+/* Stripe the 2-column data rows only (every other rate row) */
+.table.product-card table tr:not(.full-width-row):nth-of-type(even) td {
+  background-color: var(--wf-bg-light, #f9f7f6);
+}
+
+/* Full-width rows: centered, span the whole card */
+.table.product-card table tr.full-width-row td {
+  text-align: center;
+  padding: 8px;
+}
+
+/* Row 1 — product heading with a yellow accent bar beneath it */
+.table.product-card table tr.full-width-row:first-child td {
+  padding-bottom: 20px;
+}
+
+.table.product-card table tr.full-width-row:first-child td h3 {
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.25;
+  margin: 0 0 16px;
+}
+
+.table.product-card table tr.full-width-row:first-child td h3::after {
+  content: "";
+  display: block;
+  width: 64px;
+  height: 3px;
+  margin: 16px auto 0;
+  background-color: var(--wf-yellow, #ffcd41);
+}
+
+/* Row 2 — APY spotlight */
+.table.product-card table tr.full-width-row:nth-child(2) td {
+  padding-bottom: 16px;
+}
+
+.table.product-card table tr.full-width-row:nth-child(2) td p:first-child,
+.table.product-card table tr.full-width-row:nth-child(2) td strong {
+  font-size: 34px;
+  font-weight: 400;
+  color: var(--wf-text-primary, #3b3331);
+}
+
+.table.product-card table tr.full-width-row:nth-child(2) td p + p {
+  font-size: 14px;
+  color: var(--wf-text-secondary, #787070);
+  margin-top: 4px;
+}
+
+/* Footer full-width rows (after the data rows): notes + pill CTA */
+.table.product-card table tr.full-width-row td p {
+  margin: 0;
+}
+
+.table.product-card table tr.full-width-row td a.button,
+.table.product-card table tr.full-width-row td strong > a {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 12px 40px;
+  border-radius: 24px;
+  background-color: var(--wf-red, #d71e28);
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+}
+
 /* stylelint-enable no-descending-specificity */

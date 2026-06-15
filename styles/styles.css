@@ -433,8 +433,21 @@ main .section.heading-bar.center-align h2::before {
   margin: 0 auto 25px;
 }
 
-main .section.border{
-  border:1px solid var(--wf-dark);
+/* cols-2 — flow the section's block wrappers (e.g. product tables) into a
+   responsive grid: 1 col on mobile, 2 per row at tablet+. Default content
+   (section heading) stays full width above the grid. */
+main .section.cols-2 .default-content-wrapper {
+  grid-column: 1 / -1;
+}
+
+@media (width >= 768px) {
+  main .section.cols-2 > .section-container,
+  main .section.cols-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    align-items: start;
+  }
 }
 
 /* Arrow-prefixed lists: ul inside a default-content-wrapper that contains an h3 */
