@@ -433,6 +433,20 @@ main .section.heading-bar.center-align h2::before {
   margin: 0 auto 25px;
 }
 
+/* heading-bar-bottom — same accent bar rendered beneath the heading */
+main .section.heading-bar-bottom h2::after {
+  content: "";
+  display: block;
+  width: 96px;
+  height: 2px;
+  margin: 25px 0 0;
+  background-color: var(--heading-bar-color);
+}
+
+main .section.heading-bar-bottom.center-align h2::after {
+  margin: 25px auto 0;
+}
+
 /* cols-2 — flow the section's block wrappers (e.g. product tables) into a
    responsive grid: 1 col on mobile, 2 per row at tablet+. Default content
    (section heading) stays full width above the grid. */

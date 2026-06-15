@@ -100,6 +100,167 @@
   border-bottom: none;
 }
 
+/* ---------------------------------------------------------------------------
+   comparison variant — mobile-first product comparison grid
+   Mobile: 2-column sliding window with prev/next + dot pagination.
+   Desktop: all columns side by side, no pagination.
+   (descending-specificity is a false positive here: this variant never
+   coexists with .striped/.bordered, which target the same th/td.)
+--------------------------------------------------------------------------- */
+/* stylelint-disable no-descending-specificity */
+.table.comparison {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  overflow: visible;
+}
+
+.table.comparison table {
+  table-layout: fixed;
+  width: 100%;
+  text-align: center;
+}
+
+.table.comparison table th,
+.table.comparison table td {
+  padding: 16px 12px;
+  text-align: center;
+  vertical-align: top;
+  border: 0;
+  color: var(--wf-text-primary, #3b3331);
+}
+
+/* product-name header: accent bar + brand link color */
+.table.comparison thead th {
+  position: relative;
+  padding-bottom: 12px;
+  font-weight: 600;
+  font-size: 17px;
+}
+
+.table.comparison thead th a {
+  color: var(--wf-link, #5a469b);
+  text-decoration: none;
+}
+
+.table.comparison thead th a:hover {
+  text-decoration: underline;
+}
+
+/* 4px gradient accent bar under each product name (colors confirmed from source) */
+.table.comparison thead th::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 0;
+  height: 4px;
+  border-radius: 2px;
+}
+
+.table.comparison thead th:nth-child(1)::after {
+  background: linear-gradient(191deg, #dea63c, #fade8d);
+}
+
+.table.comparison thead th:nth-child(2)::after {
+  background: linear-gradient(191deg, #a245b0, #d988df);
+}
+
+.table.comparison thead th:nth-child(3)::after {
+  background: linear-gradient(191deg, #2c64d4, #81a9f8);
+}
+
+.table.comparison thead th:nth-child(4)::after {
+  background: linear-gradient(191deg, #8d6337, #bfa58a);
+}
+
+.table.comparison table strong {
+  font-weight: 600;
+}
+
+/* CTA links render as pill buttons (Open now / Avoid the fee stay as links) */
+.table.comparison tbody tr:last-child td a {
+  display: inline-block;
+  background: var(--wf-red, #d71e28);
+  color: #fff;
+  padding: 10px 24px;
+  border-radius: 24px;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.table.comparison tbody tr:last-child td a:hover {
+  background: #b3161f;
+}
+
+/* pagination controls — mobile only */
+.table.comparison .table-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.table.comparison .table-page-prev,
+.table.comparison .table-page-next {
+  background: none;
+  border: 0;
+  font-size: 24px;
+  line-height: 1;
+  color: var(--wf-dark, #141414);
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.table.comparison .table-page-prev:disabled,
+.table.comparison .table-page-next:disabled {
+  color: var(--wf-bg-gray, #e2dede);
+  cursor: default;
+}
+
+.table.comparison .table-page-dot {
+  width: 12px;
+  height: 12px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--wf-dark, #141414);
+  background: transparent;
+  cursor: pointer;
+}
+
+.table.comparison .table-page-dot[aria-current="true"] {
+  background: var(--wf-dark, #141414);
+}
+
+/* mobile sliding window: show 2 columns based on data-start (step of 1) */
+@media (width < 1024px) {
+  .table.comparison table th,
+  .table.comparison table td {
+    width: 50%;
+  }
+
+  .table.comparison[data-start="1"] :is(th, td):nth-child(n+3) {
+    display: none;
+  }
+
+  .table.comparison[data-start="2"] :is(th, td):nth-child(1),
+  .table.comparison[data-start="2"] :is(th, td):nth-child(n+4) {
+    display: none;
+  }
+
+  .table.comparison[data-start="3"] :is(th, td):nth-child(-n+2) {
+    display: none;
+  }
+}
+
+/* desktop: all columns side by side, no pagination */
+@media (width >= 1024px) {
+  .table.comparison .table-pagination {
+    display: none;
+  }
+}
+
 /* --- product-card variant ---
    Self-contained product card: full-width centered heading (row 1) with a
    yellow accent bar beneath it, full-width APY spotlight, striped 2-column
@@ -203,3 +364,5 @@
   font-weight: 600;
   text-decoration: none;
 }
+
+/* stylelint-enable no-descending-specificity */
