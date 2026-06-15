@@ -200,6 +200,15 @@ p.button-wrapper {
   margin: 12px 0;
   text-align: center;
 }
+/* Adjacent authored buttons align horizontally instead of stacking. */
+p.button-wrapper:has(+ p.button-wrapper) {
+  display: inline-flex;
+  margin-right: 12px;
+}
+
+p.button-wrapper + p.button-wrapper {
+  display: inline-flex;
+}
 
 a.button:any-link,
 button.button {
@@ -433,6 +442,20 @@ main .section.heading-bar.center-align h2::before {
   margin: 0 auto 25px;
 }
 
+/* heading-bar-bottom — same accent bar rendered beneath the heading */
+main .section.heading-bar-bottom h2::after {
+  content: "";
+  display: block;
+  width: 96px;
+  height: 2px;
+  margin: 25px 0 0;
+  background-color: var(--heading-bar-color);
+}
+
+main .section.heading-bar-bottom.center-align h2::after {
+  margin: 25px auto 0;
+}
+
 /* cols-2 — flow the section's block wrappers (e.g. product tables) into a
    responsive grid: 1 col on mobile, 2 per row at tablet+. Default content
    (section heading) stays full width above the grid. */
@@ -444,10 +467,39 @@ main .section.cols-2 .default-content-wrapper {
   main .section.cols-2 > .section-container,
   main .section.cols-2 {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 16px;
     align-items: start;
   }
+
+  main .section.cols-2 > div {
+    min-width: 0;
+  }
+}
+
+/* Arrow-prefixed lists: ul inside a default-content-wrapper that contains an h3 */
+main .section > div.default-content-wrapper:has(h3) ul {
+  list-style: none;
+  padding-left: 32px;
+}
+
+main .section > div.default-content-wrapper:has(h3) ul li {
+  position: relative;
+  padding-left: 24px;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+main .section > div.default-content-wrapper:has(h3) ul li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.3em;
+  width: 14px;
+  height: 14px;
+  background-color: var(--wf-text-secondary, #787070);
+  -webkit-mask: url("/icons/arrow-right.svg") no-repeat center / contain; /* stylelint-disable-line property-no-vendor-prefix */
+  mask: url("/icons/arrow-right.svg") no-repeat center / contain;
 }
 
 /* wealth theme — loaded from /styles/themes/wealth.css via scripts.js */
