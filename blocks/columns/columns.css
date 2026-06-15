@@ -296,3 +296,57 @@
   display: inline-block;
   min-width: 180px;
 }
+
+/* --- Variant: cta-banner --- */
+
+/* Authored as | Columns (cta-banner) | — light gradient promo banner with
+   a center divider, bordered + rounded. Each side vertically centered. */
+.columns.cta-banner {
+  background: linear-gradient(180deg, #e9e8e4 0%, #fcfcfc 40%, #fcfcfc 100%);
+  border: 1px solid #e7e4db;
+  border-radius: 5px;
+  padding: 24px 32px;
+}
+
+.columns.cta-banner > div {
+  align-items: center;
+  gap: 0;
+}
+
+.columns.cta-banner > div > div {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 24px;
+  padding: 8px 32px;
+}
+
+.columns.cta-banner > div > div:first-child {
+  border-bottom: 1px solid #d9d9d9;
+}
+
+.columns.cta-banner > div > div h2,
+.columns.cta-banner > div > div h3 {
+  margin: 0;
+  font-weight: 400;
+  font-size: var(--heading-font-size-l);
+  white-space: nowrap;
+}
+
+.columns.cta-banner > div > div p {
+  margin: 0;
+}
+
+@media (width >= 768px) {
+  .columns.cta-banner > div > div:first-child {
+    border-bottom: none;
+    border-right: 1px solid #d9d9d9;
+    justify-content: center;
+  }
+
+  .columns.cta-banner > div > div:last-child {
+    justify-content: center;
+    text-align: center;
+    display: block;
+  }
+}
