@@ -296,7 +296,27 @@
   display: inline-block;
   min-width: 180px;
 }
+/* --- Variant: compact --- */
 
+/* Authored as | Columns (compact) | — image renders at its natural size
+   instead of stretching to fill the cell; text column takes remaining width.
+   The max-height cap keeps a small/thin graphic from ballooning if DA drops the
+   img width/height on publish and EDS falls back to an upscaled rendition. */
+
+.columns.compact > div > .columns-img-col img {
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: 320px;
+}
+
+@media (width >= 768px) {
+  .columns.compact > div > .columns-img-col {
+    flex: 0 0 auto;
+    align-self: flex-start;
+    max-width: 220px;
+  }
+}
 /* --- Variant: cta-banner --- */
 
 /* Authored as | Columns (cta-banner) | — light gradient promo banner with
