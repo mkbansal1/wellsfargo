@@ -21,6 +21,10 @@
   --wf-bg-offwhite: #F8F8F8;
   --wf-green: #468254;
   --wf-cream: #FFF7E2;
+  --wf-banner-taupe-top: #786960;
+  --wf-banner-taupe-bottom: #675B53;
+  --wf-banner-blue-top: #3A71AD;
+  --wf-banner-blue-bottom: #326295;
 
   /* semantic aliases */
   --background-color: var(--wf-bg-white);
