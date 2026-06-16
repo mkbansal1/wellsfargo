@@ -21,6 +21,10 @@
   --wf-bg-offwhite: #F8F8F8;
   --wf-green: #468254;
   --wf-cream: #FFF7E2;
+  --wf-banner-taupe-top: #786960;
+  --wf-banner-taupe-bottom: #675B53;
+  --wf-banner-blue-top: #3A71AD;
+  --wf-banner-blue-bottom: #326295;
 
   /* semantic aliases */
   --background-color: var(--wf-bg-white);
@@ -322,6 +326,12 @@ main img {
   width: 100%;
 }
 
+body main.error {
+  display: block;
+  margin-top: calc(var(--nav-height)/2);
+  min-height: calc(100vh / 1.5);
+}
+
 /* sections — 1400px max-width */
 main > .section {
   max-width: var(--content-max-width);
@@ -400,6 +410,26 @@ main .section.cream {
   background-color: var(--wf-cream);
 }
 
+main .section.border{
+  border:1px solid var(--wf-dark);
+}
+
+/* light-text — white text for content overlaid on a dark image (no background change).
+   Scoped to desktop where the hero text overlays the image; on mobile/tablet the first
+   hero shows a light text card (overlay-bottom-mobile) and must keep dark text. */
+@media (width >= 1024px) {
+  main .section.light-text,
+  main .section.light-text h1,
+  main .section.light-text h2,
+  main .section.light-text h3,
+  main .section.light-text h4,
+  main .section.light-text h5,
+  main .section.light-text h6,
+  main .section.light-text p {
+    color: var(--background-color);
+  }
+}
+
 /* Dark-blue — teal/navy gradient band with white text */
 main .section.dark-blue {
   background-image: linear-gradient(164deg, #01222d 1.06%, #017994 50.47%);
@@ -443,7 +473,8 @@ main .section.heading-bar.center-align h2::before {
 }
 
 /* heading-bar-bottom — same accent bar rendered beneath the heading */
-main .section.heading-bar-bottom h2::after {
+main .section.heading-bar-bottom h2::after,
+main .section.heading-bar-bottom h3::after {
   content: "";
   display: block;
   width: 96px;
@@ -452,7 +483,8 @@ main .section.heading-bar-bottom h2::after {
   background-color: var(--heading-bar-color);
 }
 
-main .section.heading-bar-bottom.center-align h2::after {
+main .section.heading-bar-bottom.center-align h2::after,
+main .section.heading-bar-bottom.center-align h3::after {
   margin: 25px auto 0;
 }
 

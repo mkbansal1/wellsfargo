@@ -296,6 +296,7 @@
   display: inline-block;
   min-width: 180px;
 }
+
 /* --- Variant: compact --- */
 
 /* Authored as | Columns (compact) | — image renders at its natural size
@@ -317,6 +318,7 @@
     max-width: 220px;
   }
 }
+
 /* --- Variant: cta-banner --- */
 
 /* Authored as | Columns (cta-banner) | — light gradient promo banner with
@@ -368,5 +370,101 @@
     justify-content: center;
     text-align: center;
     display: block;
+  }
+}
+
+/* --- Variant: feature-banner --- */
+
+/* Authored as | Columns (feature-banner) | — full-bleed image flush against a
+ * solid color text panel with white serif heading. col1 = image only, col2 =
+ * heading (+ optional subhead). Panel color comes from the --feature-banner-bg
+ * custom property; default is the taupe gradient, overridable by a color
+ * modifier class (e.g. banner-taupe) added in block options. Mobile-first:
+ * stacked < 768px, side-by-side >= 768px (50:50 default, 45:55 with
+ * ratio-45-55). */
+
+.columns.feature-banner > div {
+  gap: 0;
+  align-items: stretch;
+}
+
+.columns.feature-banner > div > div {
+  margin: 0;
+}
+
+.columns.feature-banner > div > .columns-img-col,
+.columns.feature-banner > div > div:has(picture) {
+  padding: 0;
+  line-height: 0;
+}
+
+.columns.feature-banner picture,
+.columns.feature-banner > div > div:has(picture) img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.columns.feature-banner > div > div:not(:has(picture)) {
+  background: var(
+    --feature-banner-bg,
+    linear-gradient(var(--wf-banner-taupe-top), var(--wf-banner-taupe-bottom))
+  );
+  color: var(--wf-bg-white);
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.columns.feature-banner h2,
+.columns.feature-banner h3 {
+  color: var(--wf-bg-white);
+  font-family: georgia, 'Times New Roman', times, serif;
+  font-weight: 400;
+  margin: 0 0 8px;
+}
+
+.columns.feature-banner p {
+  color: var(--wf-bg-white);
+  font-weight: 400;
+  margin: 0;
+}
+
+/* Color modifier classes set the panel background custom property. Applied as a
+ * block option, e.g. | Columns (feature-banner, banner-taupe) |. Add new colors
+ * here as one line each (no JS needed). */
+.columns.feature-banner.banner-taupe {
+  --feature-banner-bg: linear-gradient(var(--wf-banner-taupe-top), var(--wf-banner-taupe-bottom));
+}
+
+.columns.feature-banner.banner-blue {
+  --feature-banner-bg: linear-gradient(var(--wf-banner-blue-top), var(--wf-banner-blue-bottom));
+}
+
+@media (width >= 768px) {
+  .columns.feature-banner > div {
+    flex-flow: row nowrap;
+  }
+
+  .columns.feature-banner > div > div:has(picture) {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+
+  .columns.feature-banner > div > div:not(:has(picture)) {
+    flex: 1 1 50%;
+    padding: 48px 56px;
+  }
+
+  .columns.feature-banner.ratio-45-55 > div > div:has(picture) {
+    flex: 0 0 45%;
+    max-width: 45%;
+  }
+
+  .columns.feature-banner.ratio-45-55 > div > div:not(:has(picture)) {
+    flex: 0 0 55%;
+    max-width: 55%;
   }
 }
