@@ -51,29 +51,26 @@ Bad:  .ps-wealth-wrapper { color: #0C2340; }  (path-scoped in shared CSS)
 Good: .wealth { --wf-wealth-text: #1C2533; }  (class-scoped via page metadata)
 ```
 
-### Rule 3: Navigation — Four Variants, Always Selected by Metadata
+### Rule 3: Navigation — Four Variants, Selected by the Metadata Sheet (Not Page Metadata)
 
-There are exactly four header/footer pairs. Selection is always via page metadata. NEVER hardcode a nav or footer path in JS.
+There are exactly four header/footer pairs. Selection is driven by the **bulk metadata spreadsheet** at `/wellsfargo/metadata` (the `metadata.json` sheet), which maps URL path patterns to `nav` and `footer` values. NEVER hardcode a nav or footer path in JS, and NEVER set `nav`/`footer` in individual page metadata.
 
-| Audience            | `nav:` metadata value     | `footer:` metadata value         |
-|---------------------|---------------------------|----------------------------------|
-| Default (consumer)  | `/nav`                    | `/footer`                        |
-| Business            | `/biz/nav`                | `/biz/footer`                    |
-| CIB / Institutional | `/cib/nav`                | `/cib/footer`                    |
-| Wealth              | `/investing-wealth/nav`   | `/investing-wealth/footer`       |
-| Spanish home only   | `/es/nav`                 | `/es/footer`                     |
+| Audience            | Path pattern (in metadata sheet) | `nav` value               | `footer` value                   |
+|---------------------|----------------------------------|---------------------------|----------------------------------|
+| Default (consumer)  | `/**`                            | `/nav`                    | `/footer`                        |
+| Business            | `/biz/**`                        | `/biz/nav`                | `/biz/footer`                    |
+| CIB / Institutional | `/cib/**`                        | `/cib/nav`                | `/cib/footer`                    |
+| Wealth              | `/investing-wealth/**`           | `/investing-wealth/nav`   | `/investing-wealth/footer`       |
+| Spanish home only   | `/es/**`                         | `/es/nav`                 | `/es/footer`                     |
 
-Every page must declare its variant:
+Do NOT add `nav`, `footer`, `locale`, or `template` to page-level metadata — these are all resolved from the metadata sheet by path prefix. A page only needs to declare page-specific keys (e.g. `theme: wealth` where applicable):
 ```
-nav: /cib/nav
-footer: /cib/footer
 theme: default
-locale: en
 ```
 
-When editing nav/footer code, changes to one variant must never affect another. Test all four variants after any nav/footer change.
+When editing nav/footer code, changes to one variant must never affect another. Test all four variants after any nav/footer change. To change which nav/footer a path uses, edit the row in the `/wellsfargo/metadata` sheet — not the page.
 
-**Locale:** Locale is controlled by the metadata sheet (not page-level metadata). Do NOT add `locale` to individual page metadata — it is determined by path prefix (e.g., `/es/` pages are Spanish).
+**Locale & global keys:** `locale`, `nav`, `footer`, and `template` are all controlled by the metadata sheet (not page-level metadata). They are determined by path prefix (e.g., `/es/` pages are Spanish and get the Spanish nav/footer). Do NOT add any of these to individual page metadata.
 
 ### Rule 4: Design Tokens — Use Confirmed Values, Never Approximate
 
@@ -205,7 +202,7 @@ Run through this checklist before completing any task. Fix every failure before 
 - [ ] Did I create a new block when Block Collection or Block Party would have worked? → Use the existing block with a CSS class variation.
 - [ ] Is a proposed block ≥70% similar to an existing block? → Make it a class variation, not a new block directory.
 - [ ] Does `theme: wealth` or any `--wf-wealth-*` variable appear outside `/investing-wealth/` scope? → Remove it.
-- [ ] Is any nav or footer path hardcoded in JS? → Read it from page metadata.
+- [ ] Is any nav or footer path hardcoded in JS, or set in page metadata? → Remove it; nav/footer are resolved from the `/wellsfargo/metadata` sheet by path.
 - [ ] Is any color value not from the confirmed token set? → Replace with the exact token value.
 - [ ] Is any phone number, sign-on URL, app store link, rate, or tool URL hardcoded? → Move to `placeholders.json` or `/configs/`.
 - [ ] Does `grep -r "www17.wellsfargomedia.com" .` return any results? → Migrate the image to `/assets/`.
