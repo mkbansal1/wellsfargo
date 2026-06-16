@@ -317,6 +317,12 @@ main img {
   width: 100%;
 }
 
+body main.error {
+  display: block;
+  margin-top: calc(var(--nav-height)/2);
+  min-height: calc(100vh / 1.5);
+}
+
 /* sections — 1400px max-width */
 main > .section {
   max-width: var(--content-max-width);
