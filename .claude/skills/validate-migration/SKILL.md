@@ -261,6 +261,8 @@ Both `footnotes` and `pageid` fixes are written to the DA metadata block by `pat
 
 **Missing-from-sheet table columns:** `cid | ctid | numbered | value`
 
+> **Format rule:** The `value` column must always be wrapped in `<p>` tags — e.g. `<p>Footnote text here.</p>`. This is the exact format required by the footnotes sheet. Never display the raw text without the `<p>` wrapper.
+
 ### Rule 4 — `hrefs` ✅ (implemented)
 
 Detects and corrects five classes of link problems in the EDS document. Runs on the **main page and all discovered reference pages** (fragments / tab pages). No source-page comparison needed — these are purely structural EDS document fixes.
@@ -827,6 +829,8 @@ The author must locate the correct paragraph and insert the anchor manually:
 
 These cids appear on the source page but are not in `/data/footnotes.json?sheet=en`.
 They must be added to the sheet before these footnotes will render on the EDS page.
+
+**Always wrap the `value` column in `<p>` tags.** This is the exact format required by the sheet — never display raw text without the wrapper.
 
 | cid | ctid | numbered | value |
 |-----|------|----------|-------|
