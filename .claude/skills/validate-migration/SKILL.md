@@ -248,7 +248,7 @@ The extractor checks `div.ps-footnote` first; falls back to `div.c20` for old th
 1. Playwright renders the source page (shared session with Rule 2, no extra browser launch).
 2. Container auto-detected: `div.ps-footnote` (new theme) or `div.c20` (old theme).
 3. All `[data-cid]` children of the container are extracted: `{ cid, ctid, numbered, value, footnotesTheme }`.
-4. Entries whose `value` text matches `^(DT1|DT2|QSR|LRC|PM)-` are **separated out as pageId entries** — they go into the `pageid` metadata field, never into `footnotes`.
+4. Entries whose `value` text matches `^(DT1|DT2|QSR|LRC|PM|RO)-` are **separated out as pageId entries** — they go into the `pageid` metadata field, never into `footnotes`.
 5. The remaining cids, **in source order**, form the expected `footnotes` metadata value.
 6. The EDS page's `<meta name="footnotes">` is compared; sequence must match exactly.
 7. `/data/footnotes.json?sheet={en|es}` is fetched from the EDS domain. Sheet language = `es` if the page path starts with `/es`, else `en`.
@@ -264,7 +264,7 @@ The extractor checks `div.ps-footnote` first; falls back to `div.c20` for old th
 
 **Fix actions — `pageid` field:**
 
-Entries whose `valueText` matches `^(DT1|DT2|QSR|LRC|PM)-` are extracted as the page identifier. The `valueText` itself (e.g. `DT1-04012027-18-8449606-1.1`) is the `pageid` value — not the TCM `data-cid`.
+Entries whose `valueText` matches `^(DT1|DT2|QSR|LRC|PM|RO)-` are extracted as the page identifier. The `valueText` itself (e.g. `DT1-04012027-18-8449606-1.1`) is the `pageid` value — not the TCM `data-cid`. When a page has **multiple** pageId entries, all of them are joined into a **comma-separated list** as the `pageid` value (e.g. `LRC-0625, RO-4582113`).
 
 | EDS state | Status | Action |
 |---|---|---|
