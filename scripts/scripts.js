@@ -54,11 +54,30 @@ function buildBreadcrumbBlock(main) {
   const isHomepage = window.location.pathname === '/' || window.location.pathname === '/index';
   const hideBreadcrumb = document.head.querySelector('meta[name="hide-breadcrumb"]')?.content === 'true';
 
-  if (isHomepage || hideBreadcrumb) return;
+  if (isHomepage || hideBreadcrumb || window.isErrorPage) return;
 
   const section = document.createElement('div');
   section.append(buildBlock('breadcrumb', { elems: [] }));
   main.prepend(section);
+}
+
+/**
+ * On error pages (e.g. 404), replace the main content with a locale-specific
+ * error fragment. Spanish pages (path under /es) use /es/fragments/404; all
+ * others use /fragments/404. See https://www.aem.live/docs/error-pages.
+ * @param {Element} main The container element
+ */
+function loadErrorPage(main) {
+  if (window.errorCode !== '404') return;
+  const isEs = window.location.pathname.startsWith('/es/') || window.location.pathname === '/es';
+  const fragmentPath = isEs ? '/es/fragments/404' : '/fragments/404';
+  const link = document.createElement('a');
+  link.href = fragmentPath;
+  link.textContent = fragmentPath;
+  const section = main.querySelector('.section');
+  if (section) {
+    section.replaceChildren(buildBlock('fragment', { elems: [link] }));
+  }
 }
 
 /**
@@ -159,6 +178,7 @@ async function loadEager(doc) {
   }
   const main = doc.querySelector('main');
   if (main) {
+    if (window.isErrorPage) loadErrorPage(main);
     decorateMain(main);
     document.body.classList.add('appear');
     // The LCP image usually lives in the hero, but auto-blocks (e.g. breadcrumb)
