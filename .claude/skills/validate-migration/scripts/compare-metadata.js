@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable */
 /**
  * compare-metadata.js
  *
@@ -36,7 +37,7 @@
  *   2  script error (bad args, network failure, etc.)
  */
 
-import { parse }         from 'node-html-parser';
+import { parse } from 'node-html-parser';
 import { writeFileSync } from 'fs';
 import { createRequire } from 'module';
 
@@ -63,10 +64,10 @@ if (!args['eds-url'] || !args['source-url']) {
   process.exit(2);
 }
 
-const EDS_URL    = args['eds-url'].replace(/\/$/, '');
+const EDS_URL = args['eds-url'].replace(/\/$/, '');
 const SOURCE_URL = args['source-url'];
-const RULES      = (args['rules'] || 'metadata').split(',').map(r => r.trim());
-const OUTPUT     = args['output'] || null;
+const RULES = (args.rules || 'metadata').split(',').map((r) => r.trim());
+const OUTPUT = args.output || null;
 
 // ---------------------------------------------------------------------------
 // Derive EDS base URL and page path from EDS_URL
@@ -75,7 +76,7 @@ function parseEdsUrl(url) {
   const m = url.match(/^(https:\/\/[^/]+)(\/.*)?$/);
   return {
     baseUrl: m ? m[1] : url,
-    path:    m ? (m[2] || '/') : '/',
+    path: m ? (m[2] || '/') : '/',
   };
 }
 
@@ -92,13 +93,13 @@ function extractMetadata(root) {
   const meta = {};
   const titleEl = root.querySelector('title');
   if (titleEl) meta.title = normalise(titleEl.text);
-  root.querySelectorAll('meta[name]').forEach(el => {
-    const name    = (el.getAttribute('name') || '').toLowerCase();
+  root.querySelectorAll('meta[name]').forEach((el) => {
+    const name = (el.getAttribute('name') || '').toLowerCase();
     const content = normalise(el.getAttribute('content') || '');
     if (name && content) meta[name] = content;
   });
-  root.querySelectorAll('meta[property]').forEach(el => {
-    const prop    = (el.getAttribute('property') || '').toLowerCase();
+  root.querySelectorAll('meta[property]').forEach((el) => {
+    const prop = (el.getAttribute('property') || '').toLowerCase();
     const content = normalise(el.getAttribute('content') || '');
     if (prop && content) meta[prop] = content;
   });
@@ -117,7 +118,9 @@ async function fetchPage(url) {
   if (!response.ok) throw new Error(`HTTP ${response.status} for ${url}`);
   const html = await response.text();
   const root = parse(html);
-  return { root, metadata: extractMetadata(root), statusCode: response.status, finalUrl: response.url };
+  return {
+    root, metadata: extractMetadata(root), statusCode: response.status, finalUrl: response.url,
+  };
 }
 
 /**
@@ -126,7 +129,7 @@ async function fetchPage(url) {
  * Paginates automatically if total > limit.
  */
 async function fetchFootnotesSheet(baseUrl, edPath) {
-  const lang      = edPath.startsWith('/es') ? 'es' : 'en';
+  const lang = edPath.startsWith('/es') ? 'es' : 'en';
   const baseSheet = `${baseUrl}/data/footnotes.json?sheet=${lang}`;
 
   async function getPage(offset, limit = 1000) {
@@ -137,9 +140,9 @@ async function fetchFootnotesSheet(baseUrl, edPath) {
   }
 
   const first = await getPage(0);
-  const rows  = [...(first.data || [])];
+  const rows = [...(first.data || [])];
   const total = first.total || rows.length;
-  let offset  = rows.length;
+  let offset = rows.length;
   while (offset < total) {
     const next = await getPage(offset);
     rows.push(...(next.data || []));
@@ -204,9 +207,9 @@ function extractReferencePaths(root) {
 async function fetchSourceRendered(url, { needSups, needFootnotes, needLinkStyles }) {
   const { chromium } = require('playwright');
 
-  console.error(`[compare-metadata] Launching Playwright to render source page...`);
+  console.error('[compare-metadata] Launching Playwright to render source page...');
   const browser = await chromium.launch({ headless: true });
-  const page    = await browser.newPage();
+  const page = await browser.newPage();
 
   try {
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
@@ -222,9 +225,9 @@ async function fetchSourceRendered(url, { needSups, needFootnotes, needLinkStyle
         //               (no <a> inside; JS injects the number; href derived from data-footnote)
         const all = Array.from(document.querySelectorAll('sup.c20ref, sup[data-footnote]'));
         return all.map((sup, idx) => {
-          const tcmId  = sup.getAttribute('data-footnote');
+          const tcmId = sup.getAttribute('data-footnote');
           const anchor = sup.querySelector('a');
-          const href   = anchor?.getAttribute('href') ?? null;
+          const href = anchor?.getAttribute('href') ?? null;
 
           // Strip hidden accessibility spans that are inside the sup (new theme only)
           const hidden = sup.querySelector('.hidden, [data-translation-text]');
@@ -239,7 +242,7 @@ async function fetchSourceRendered(url, { needSups, needFootnotes, needLinkStyle
             text = String(idx + 1);
           }
 
-          const number   = parseInt(text, 10);
+          const number = parseInt(text, 10);
           // 'old' = data-footnote only, no <a> inside (href derived from tcmId)
           // 'new' = has <a href="..."> inside sup
           const supTheme = anchor ? 'new' : 'old';
@@ -254,24 +257,27 @@ async function fetchSourceRendered(url, { needSups, needFootnotes, needLinkStyle
             range.setStart(sup.parentElement, 0);
             range.setEndBefore(sup);
             contextBefore = range.toString()
-              .replace(/footnote\s*\d+/gi, '')   // strip "Footnote N" accessibility text
-              .replace(/[^\w\s]/g, ' ')           // strip ® ™ etc.
-              .replace(/\s+/g, ' ').trim()
+              .replace(/footnote\s*\d+/gi, '') // strip "Footnote N" accessibility text
+              .replace(/[^\w\s]/g, ' ') // strip ® ™ etc.
+              .replace(/\s+/g, ' ')
+              .trim()
               .slice(-80);
           } catch (_) { /* ignore — context is best-effort */ }
 
-          return { tcmId, href, number: isNaN(number) ? null : number, supTheme, contextBefore };
-        }).filter(s => s.tcmId && s.number !== null);
+          return {
+            tcmId, href, number: isNaN(number) ? null : number, supTheme, contextBefore,
+          };
+        }).filter((s) => s.tcmId && s.number !== null);
       });
 
-      const oldCount = result.sups.filter(s => s.supTheme === 'old').length;
-      const newCount = result.sups.filter(s => s.supTheme === 'new').length;
+      const oldCount = result.sups.filter((s) => s.supTheme === 'old').length;
+      const newCount = result.sups.filter((s) => s.supTheme === 'new').length;
       console.error(`[compare-metadata] [links] Source sups found (raw): ${result.sups.length} (new-theme: ${newCount}, old-theme: ${oldCount})`);
 
       // Deduplicate by sup number — same number may appear multiple times when
       // the source page renders the same footnote across several tab sections.
       const dedupedSups = [];
-      const seenNums    = new Set();
+      const seenNums = new Set();
       for (const s of result.sups) {
         if (!seenNums.has(s.number)) { seenNums.add(s.number); dedupedSups.push(s); }
       }
@@ -288,16 +294,17 @@ async function fetchSourceRendered(url, { needSups, needFootnotes, needLinkStyle
         const container = document.querySelector('.ps-footnote') || document.querySelector('div.c20');
         if (!container) return [];
         const footnotesTheme = container.classList.contains('ps-footnote') ? 'new' : 'old';
-        return Array.from(container.querySelectorAll('[data-cid]')).map(el => {
-          const cid      = el.getAttribute('data-cid')      || '';
-          const ctid     = el.getAttribute('data-ctid')     || '';
+        return Array.from(container.querySelectorAll('[data-cid]')).map((el) => {
+          const cid = el.getAttribute('data-cid') || '';
+          const ctid = el.getAttribute('data-ctid') || '';
           const numbered = el.getAttribute('data-numbered') === 'true';
-          const c20Text  = el.querySelector('.c20Text');
-          const c20no    = el.querySelector('.c20no');
-          let value, valueText;
+          const c20Text = el.querySelector('.c20Text');
+          const c20no = el.querySelector('.c20no');
+          let value; let
+            valueText;
           if (c20Text) {
             // New theme: text is wrapped in .c20Text
-            value     = c20Text.innerHTML.trim();
+            value = c20Text.innerHTML.trim();
             valueText = c20Text.textContent.trim();
           } else {
             // Old theme: text is directly in the div; strip the .c20no number label
@@ -307,11 +314,13 @@ async function fetchSourceRendered(url, { needSups, needFootnotes, needLinkStyle
             if (cloneNo) cloneNo.remove();
             // Remove non-standard attributes (e.g. enrollmentid) from all anchors
             clone.querySelectorAll('a[enrollmentid]').forEach((a) => a.removeAttribute('enrollmentid'));
-            value     = clone.innerHTML.trim();
+            value = clone.innerHTML.trim();
             valueText = clone.textContent.trim();
           }
-          return { cid, ctid, numbered, value, valueText, footnotesTheme };
-        }).filter(f => f.cid);
+          return {
+            cid, ctid, numbered, value, valueText, footnotesTheme,
+          };
+        }).filter((f) => f.cid);
       });
       const theme = result.footnotes[0]?.footnotesTheme || 'unknown';
       console.error(`[compare-metadata] [footnotes] Source footnotes found: ${result.footnotes.length} (theme: ${theme})`);
@@ -321,25 +330,26 @@ async function fetchSourceRendered(url, { needSups, needFootnotes, needLinkStyle
     //   New theme: a.ps-btn-primary (primary)  |  a.ps-btn-secondary (secondary)
     //   Old theme: a.c93 without .secondarybtn (primary)  |  a.c93.secondarybtn (secondary)
     if (needLinkStyles) {
-      result.linkStyles = await page.evaluate(() =>
-        Array.from(document.querySelectorAll('a.ps-btn-primary, a.ps-btn-secondary, a.c93')).map(a => {
-          let style, sourceClass;
-          if (a.classList.contains('ps-btn-primary')) {
-            style = 'primary';   sourceClass = 'ps-btn-primary';
-          } else if (a.classList.contains('ps-btn-secondary')) {
-            style = 'secondary'; sourceClass = 'ps-btn-secondary';
-          } else if (a.classList.contains('secondarybtn')) {
-            // a.c93.secondarybtn — old-theme secondary
-            style = 'secondary'; sourceClass = 'c93 secondarybtn';
-          } else {
-            // a.c93 without secondarybtn — old-theme primary
-            style = 'primary';   sourceClass = 'c93';
-          }
-          return { href: a.getAttribute('href') || '', text: a.textContent.trim(), style, sourceClass };
-        })
-      );
-      const oldCount = result.linkStyles.filter(b => b.sourceClass?.startsWith('c93')).length;
-      const newCount = result.linkStyles.filter(b => b.sourceClass?.startsWith('ps-btn')).length;
+      result.linkStyles = await page.evaluate(() => Array.from(document.querySelectorAll('a.ps-btn-primary, a.ps-btn-secondary, a.c93')).map((a) => {
+        let style; let
+          sourceClass;
+        if (a.classList.contains('ps-btn-primary')) {
+          style = 'primary'; sourceClass = 'ps-btn-primary';
+        } else if (a.classList.contains('ps-btn-secondary')) {
+          style = 'secondary'; sourceClass = 'ps-btn-secondary';
+        } else if (a.classList.contains('secondarybtn')) {
+          // a.c93.secondarybtn — old-theme secondary
+          style = 'secondary'; sourceClass = 'c93 secondarybtn';
+        } else {
+          // a.c93 without secondarybtn — old-theme primary
+          style = 'primary'; sourceClass = 'c93';
+        }
+        return {
+          href: a.getAttribute('href') || '', text: a.textContent.trim(), style, sourceClass,
+        };
+      }));
+      const oldCount = result.linkStyles.filter((b) => b.sourceClass?.startsWith('c93')).length;
+      const newCount = result.linkStyles.filter((b) => b.sourceClass?.startsWith('ps-btn')).length;
       console.error(`[compare-metadata] [hrefs] 4.4: Source styled buttons found: ${result.linkStyles.length} (new-theme: ${newCount}, old-theme: ${oldCount})`);
     }
 
@@ -364,7 +374,7 @@ async function fetchSourceRendered(url, { needSups, needFootnotes, needLinkStyle
  */
 function ruleTheme(sourceRoot) {
   const isNewTheme = !!sourceRoot.querySelector('#ps-rsk-foundation');
-  const theme      = isNewTheme ? 'new' : 'old';
+  const theme = isNewTheme ? 'new' : 'old';
 
   return {
     detected: {
@@ -394,45 +404,48 @@ function ruleTheme(sourceRoot) {
 const GLOBAL_ONLY_FIELDS = ['locale', 'nav', 'footer', 'template'];
 
 function ruleMetadata(edsMeta, sourceMeta, sourceRoot) {
-  const FIELDS  = ['title', 'description', 'keywords'];
+  const FIELDS = ['title', 'description', 'keywords'];
   const results = {};
 
   // Check for global-metadata-only fields that must be removed from page metadata
   for (const field of GLOBAL_ONLY_FIELDS) {
     if (edsMeta[field]) {
       results[field] = {
-        eds:    edsMeta[field],
+        eds: edsMeta[field],
         source: null,
         status: 'forbidden',
         action: 'REMOVE',
-        note:   `"${field}" must come from global metadata, not page metadata. Will be removed.`,
+        note: `"${field}" must come from global metadata, not page metadata. Will be removed.`,
       };
     }
   }
 
   for (const field of FIELDS) {
-    const edsVal    = edsMeta[field]    || '';
+    const edsVal = edsMeta[field] || '';
     const sourceVal = sourceMeta[field] || '';
-    const edsTrim   = edsVal.toLowerCase().trim();
-    const srcTrim   = sourceVal.toLowerCase().trim();
+    const edsTrim = edsVal.toLowerCase().trim();
+    const srcTrim = sourceVal.toLowerCase().trim();
 
-    let status, action, note;
+    let status; let action; let
+      note;
 
     if (!sourceVal) {
       status = 'source_missing'; action = 'NONE';
-      note   = 'Source page has no value for this field — skip.';
+      note = 'Source page has no value for this field — skip.';
     } else if (!edsVal) {
       status = 'eds_missing'; action = 'ADD';
-      note   = 'EDS document is missing this field. Will be added from source.';
+      note = 'EDS document is missing this field. Will be added from source.';
     } else if (edsTrim !== srcTrim) {
       status = 'mismatch'; action = 'UPDATE';
-      note   = 'Values differ. EDS will be updated to match source.';
+      note = 'Values differ. EDS will be updated to match source.';
     } else {
       status = 'ok'; action = 'NONE';
-      note   = 'Values match.';
+      note = 'Values match.';
     }
 
-    results[field] = { eds: edsVal || null, source: sourceVal || null, status, action, note };
+    results[field] = {
+      eds: edsVal || null, source: sourceVal || null, status, action, note,
+    };
   }
 
   // Theme detection + breadcrumb check
@@ -450,7 +463,7 @@ function ruleMetadata(edsMeta, sourceMeta, sourceRoot) {
   // If NEITHER is found the breadcrumb should be hidden in EDS.
   if (sourceRoot) {
     const isNewTheme = !!sourceRoot.querySelector('#ps-rsk-foundation');
-    const theme      = isNewTheme ? 'new' : 'old';
+    const theme = isNewTheme ? 'new' : 'old';
 
     // New-theme breadcrumb
     const hasNewThemeBreadcrumb = !!sourceRoot.querySelector('.ps-rsk-breadcrumb-container');
@@ -458,25 +471,22 @@ function ruleMetadata(edsMeta, sourceMeta, sourceRoot) {
     // Old-theme breadcrumb — two possible patterns:
     //   1. <nav aria-label="breadcrumbs"> (case-insensitive aria-label)
     //   2. <ul class="c67"> — TCM legacy breadcrumb widget
-    const hasOldThemeBreadcrumb =
-      Array.from(sourceRoot.querySelectorAll('nav')).some(nav =>
-        (nav.getAttribute('aria-label') || '').toLowerCase().includes('breadcrumb')
-      ) ||
-      !!sourceRoot.querySelector('ul.c67');
+    const hasOldThemeBreadcrumb = Array.from(sourceRoot.querySelectorAll('nav')).some((nav) => (nav.getAttribute('aria-label') || '').toLowerCase().includes('breadcrumb'))
+      || !!sourceRoot.querySelector('ul.c67');
 
-    const hasBreadcrumb     = hasNewThemeBreadcrumb || hasOldThemeBreadcrumb;
+    const hasBreadcrumb = hasNewThemeBreadcrumb || hasOldThemeBreadcrumb;
     const edsHideBreadcrumb = (edsMeta['hide-breadcrumb'] || '').toLowerCase().trim();
 
-    console.error(`[compare-metadata] [metadata] Theme: ${theme} | breadcrumb: ${hasBreadcrumb} (new=${hasNewThemeBreadcrumb}, old=${hasOldThemeBreadcrumb} [nav-aria=${Array.from(sourceRoot.querySelectorAll('nav')).some(n=>(n.getAttribute('aria-label')||'').toLowerCase().includes('breadcrumb'))} ul.c67=${!!sourceRoot.querySelector('ul.c67')}])`);
+    console.error(`[compare-metadata] [metadata] Theme: ${theme} | breadcrumb: ${hasBreadcrumb} (new=${hasNewThemeBreadcrumb}, old=${hasOldThemeBreadcrumb} [nav-aria=${Array.from(sourceRoot.querySelectorAll('nav')).some((n) => (n.getAttribute('aria-label') || '').toLowerCase().includes('breadcrumb'))} ul.c67=${!!sourceRoot.querySelector('ul.c67')}])`);
 
     if (!hasBreadcrumb) {
       const alreadySet = edsHideBreadcrumb === 'true';
       results['hide-breadcrumb'] = {
-        eds:    edsHideBreadcrumb || null,
+        eds: edsHideBreadcrumb || null,
         source: 'true',
-        status: alreadySet ? 'ok'   : 'eds_missing',
+        status: alreadySet ? 'ok' : 'eds_missing',
         action: alreadySet ? 'NONE' : 'ADD',
-        note:   alreadySet
+        note: alreadySet
           ? `Source (${theme} theme) has no breadcrumb; hide-breadcrumb=true already set in EDS.`
           : `Source (${theme} theme) has no breadcrumb — adding hide-breadcrumb=true to EDS.`,
       };
@@ -498,7 +508,7 @@ function ruleMetadata(edsMeta, sourceMeta, sourceRoot) {
  */
 function extractEdsSupLinks(root) {
   const linked = new Map();
-  const bare   = new Set();
+  const bare = new Set();
 
   for (const anchor of root.querySelectorAll('a')) {
     const sup = anchor.querySelector('sup');
@@ -547,21 +557,27 @@ function ruleSupLinksAllPages(pageContexts, sourceSups) {
   for (const { pageKey, root } of pageContexts) {
     const { linked, bare } = extractEdsSupLinks(root);
 
-    for (const { tcmId, href: sourceHref, number, supTheme } of sourceSups) {
+    for (const {
+      tcmId, href: sourceHref, number, supTheme,
+    } of sourceSups) {
       // Old theme has no <a> in source — expected href is derived from data-footnote.
       // New theme has an explicit <a href="..."> — use that href directly.
       const expectedHref = sourceHref || `#${tcmId}`;
-      const resultKey    = pageKey === 'main' ? `sup-${number}` : `${pageKey}/sup-${number}`;
-      const themeNote    = supTheme === 'old'
+      const resultKey = pageKey === 'main' ? `sup-${number}` : `${pageKey}/sup-${number}`;
+      const themeNote = supTheme === 'old'
         ? ` [old-theme: href derived from data-footnote="${tcmId}"]`
         : '';
 
       if (linked.has(number)) {
         const edsHref = linked.get(number);
-        const ok      = edsHref === expectedHref;
+        const ok = edsHref === expectedHref;
         results[resultKey] = {
-          supNumber: number, tcmId, page: pageKey, supTheme: supTheme || 'new',
-          eds: { href: edsHref }, source: { tcmId, expectedHref },
+          supNumber: number,
+          tcmId,
+          page: pageKey,
+          supTheme: supTheme || 'new',
+          eds: { href: edsHref },
+          source: { tcmId, expectedHref },
           status: ok ? 'ok' : 'mismatch',
           action: ok ? 'NONE' : 'UPDATE_HREF',
           note: ok
@@ -570,9 +586,14 @@ function ruleSupLinksAllPages(pageContexts, sourceSups) {
         };
       } else if (bare.has(number)) {
         results[resultKey] = {
-          supNumber: number, tcmId, page: pageKey, supTheme: supTheme || 'new',
-          eds: { href: null }, source: { tcmId, expectedHref },
-          status: 'missing_anchor', action: 'WRAP_ANCHOR',
+          supNumber: number,
+          tcmId,
+          page: pageKey,
+          supTheme: supTheme || 'new',
+          eds: { href: null },
+          source: { tcmId, expectedHref },
+          status: 'missing_anchor',
+          action: 'WRAP_ANCHOR',
           note: `<sup>${number}</sup> exists in "${pageKey}" but is not wrapped in <a href="${expectedHref}">${themeNote}.`,
         };
       }
@@ -583,18 +604,25 @@ function ruleSupLinksAllPages(pageContexts, sourceSups) {
   // Pass 2: any source sup not found in any page context → MISSING_CONTENT
   // Action is ADD_SUP (auto-fixable via text-context matching in patch-document.js).
   // If no matching paragraph is found in EDS, patch-document logs it as unresolved.
-  for (const { tcmId, href: sourceHref, number, supTheme, contextBefore } of sourceSups) {
-    const foundSomewhere = Object.values(results).some(r => r.supNumber === number);
+  for (const {
+    tcmId, href: sourceHref, number, supTheme, contextBefore,
+  } of sourceSups) {
+    const foundSomewhere = Object.values(results).some((r) => r.supNumber === number);
     if (!foundSomewhere) {
       const expectedHref = sourceHref || `#${tcmId}`;
-      const themeNote    = supTheme === 'old'
+      const themeNote = supTheme === 'old'
         ? ` [old-theme: href derived from data-footnote="${tcmId}"]`
         : '';
       results[`sup-${number}`] = {
-        supNumber: number, tcmId, page: 'main', supTheme: supTheme || 'new',
+        supNumber: number,
+        tcmId,
+        page: 'main',
+        supTheme: supTheme || 'new',
         contextBefore: contextBefore || '',
-        eds: null, source: { tcmId, expectedHref },
-        status: 'missing_content', action: 'ADD_SUP',
+        eds: null,
+        source: { tcmId, expectedHref },
+        status: 'missing_content',
+        action: 'ADD_SUP',
         note: `<sup>${number}</sup> is absent from all EDS pages — will attempt to auto-insert at matched paragraph. Add <a href="${expectedHref}"><sup>${number}</sup></a>${themeNote}.`,
       };
     }
@@ -627,7 +655,7 @@ const MAJOR_BLOCKS = ['cards', 'accordion', 'tabs', 'columns', 'carousel'];
 function getSectionStyles(section) {
   return (section.getAttribute('class') || '')
     .split(/\s+/)
-    .map(s => s.trim())
+    .map((s) => s.trim())
     .filter(Boolean);
 }
 
@@ -644,18 +672,20 @@ function computeExpectedStyles(section) {
   // Direct-child h2 only (section heading, not a heading buried inside a block).
   // Use childNodes because node-html-parser does not expose `.children`.
   const hasH2 = Array.from(section.childNodes || [])
-    .some(c => c.tagName === 'H2');
+    .some((c) => c.tagName === 'H2');
 
   // Any major block anywhere in the section (blocks may be wrapped in an extra div)
-  const hasMajorBlock = MAJOR_BLOCKS.some(b => !!section.querySelector(`.${b}`));
-  const hasAccordion  = !!section.querySelector('.accordion');
+  const hasMajorBlock = MAJOR_BLOCKS.some((b) => !!section.querySelector(`.${b}`));
+  const hasAccordion = !!section.querySelector('.accordion');
 
   const expected = [];
-  if (hasH2)                  expected.push('heading-bar');
+  if (hasH2) expected.push('heading-bar');
   if (hasH2 && hasMajorBlock) expected.push('center-align');
-  if (hasAccordion)           expected.push('narrow-width');
+  if (hasAccordion) expected.push('narrow-width');
 
-  return { expected, hasH2, hasMajorBlock, hasAccordion };
+  return {
+    expected, hasH2, hasMajorBlock, hasAccordion,
+  };
 }
 
 /**
@@ -674,32 +704,36 @@ function ruleSectionMetadata(edsRoot) {
   console.error(`[compare-metadata] [section-metadata] Scanning ${sections.length} section(s)...`);
 
   for (let i = 0; i < sections.length; i++) {
-    const section    = sections[i];
+    const section = sections[i];
     const sectionKey = `section-${i + 1}`;
 
     const actual = getSectionStyles(section);
-    const { expected, hasH2, hasMajorBlock, hasAccordion } = computeExpectedStyles(section);
+    const {
+      expected, hasH2, hasMajorBlock, hasAccordion,
+    } = computeExpectedStyles(section);
 
     if (expected.length === 0) continue; // No rules apply — skip silently
 
-    const missing = expected.filter(s => !actual.includes(s));
+    const missing = expected.filter((s) => !actual.includes(s));
 
     results[sectionKey] = {
       sectionIndex: i,
-      actualStyles:   actual,
+      actualStyles: actual,
       expectedStyles: expected,
-      missingStyles:  missing,
-      hasH2, hasMajorBlock, hasAccordion,
-      status: missing.length === 0 ? 'ok'              : 'missing-styles',
-      action: missing.length === 0 ? 'NONE'             : 'UPDATE_SECTION_META',
+      missingStyles: missing,
+      hasH2,
+      hasMajorBlock,
+      hasAccordion,
+      status: missing.length === 0 ? 'ok' : 'missing-styles',
+      action: missing.length === 0 ? 'NONE' : 'UPDATE_SECTION_META',
       note: missing.length === 0
         ? `Section ${i + 1}: styles correct (${expected.join(', ')}).`
         : `Section ${i + 1}: missing [${missing.join(', ')}]; current styles: [${actual.join(', ') || 'none'}].`,
     };
   }
 
-  const total   = Object.keys(results).length;
-  const needFix = Object.values(results).filter(r => r.action !== 'NONE').length;
+  const total = Object.keys(results).length;
+  const needFix = Object.values(results).filter((r) => r.action !== 'NONE').length;
   console.error(`[compare-metadata] [section-metadata] ${total} section(s) with expected styles; ${needFix} need fix.`);
 
   return results;
@@ -730,11 +764,11 @@ function ruleSectionMetadata(edsRoot) {
 // document to patch.
 // ---------------------------------------------------------------------------
 
-const WF_ORIGIN          = 'https://www.wellsfargo.com/';
-const SLASH_RE           = /^(\/.+?)\/([?#].*)?$/;
-const ARROW_TEXT         = /[>›]\s*$/;
-const PDF_PATH_RE        = /^\/assets\/pdf\//;
-const PDF_EXT_RE         = /-pdf$/i;
+const WF_ORIGIN = 'https://www.wellsfargo.com/';
+const SLASH_RE = /^(\/.+?)\/([?#].*)?$/;
+const ARROW_TEXT = /[>›]\s*$/;
+const PDF_PATH_RE = /^\/assets\/pdf\//;
+const PDF_EXT_RE = /-pdf$/i;
 const NEW_WINDOW_RE_TEST = /opens?\s+in\s+new\s+window/i;
 
 /**
@@ -747,16 +781,20 @@ const NEW_WINDOW_RE_TEST = /opens?\s+in\s+new\s+window/i;
 function scanPageHrefs(root, pageKey, results, seq) {
   for (const anchor of root.querySelectorAll('a[href]')) {
     const rawHref = anchor.getAttribute('href') || '';
-    const text    = anchor.text;
+    const { text } = anchor;
 
     // --- 4.1: absolute first-party URL ---
     let hrefAfter41 = rawHref;
     if (rawHref.startsWith(WF_ORIGIN)) {
       seq.count++;
-      hrefAfter41 = '/' + rawHref.slice(WF_ORIGIN.length);
+      hrefAfter41 = `/${rawHref.slice(WF_ORIGIN.length)}`;
       results[`wf-${seq.count}`] = {
-        subRule: '4.1', type: 'absolute-wf', action: 'REWRITE_ABSOLUTE', page: pageKey,
-        href: rawHref, expectedHref: hrefAfter41,
+        subRule: '4.1',
+        type: 'absolute-wf',
+        action: 'REWRITE_ABSOLUTE',
+        page: pageKey,
+        href: rawHref,
+        expectedHref: hrefAfter41,
         note: `Absolute first-party href → root-relative: "${hrefAfter41}" (page: ${pageKey})`,
       };
     }
@@ -769,8 +807,12 @@ function scanPageHrefs(root, pageKey, results, seq) {
         seq.count++;
         const fixedHref = m[1] + (m[2] || '');
         results[`slash-${seq.count}`] = {
-          subRule: '4.2', type: 'trailing-slash', action: 'STRIP_SLASH', page: pageKey,
-          href: hrefAfter41, expectedHref: fixedHref,
+          subRule: '4.2',
+          type: 'trailing-slash',
+          action: 'STRIP_SLASH',
+          page: pageKey,
+          href: hrefAfter41,
+          expectedHref: fixedHref,
           note: `Trailing slash in internal path → "${fixedHref}" (page: ${pageKey})`,
         };
       }
@@ -780,11 +822,16 @@ function scanPageHrefs(root, pageKey, results, seq) {
     if (ARROW_TEXT.test(text)) {
       seq.count++;
       const glyphMatch = text.match(/\s*([>›])\s*$/);
-      const glyph      = glyphMatch ? glyphMatch[1] : '>';
-      const fixedText  = text.replace(/\s*[>›]\s*$/, '').trimEnd();
+      const glyph = glyphMatch ? glyphMatch[1] : '>';
+      const fixedText = text.replace(/\s*[>›]\s*$/, '').trimEnd();
       results[`arrow-${seq.count}`] = {
-        subRule: '4.3', type: 'trailing-arrow', action: 'STRIP_ARROW', page: pageKey,
-        href: rawHref, text, expectedText: fixedText,
+        subRule: '4.3',
+        type: 'trailing-arrow',
+        action: 'STRIP_ARROW',
+        page: pageKey,
+        href: rawHref,
+        text,
+        expectedText: fixedText,
         note: `Trailing arrow "${glyph}" in link text → "${fixedText}" (page: ${pageKey})`,
       };
     }
@@ -793,7 +840,7 @@ function scanPageHrefs(root, pageKey, results, seq) {
     // Only applies to hrefs under /assets/pdf/ (after 4.1 normalization).
     if (PDF_PATH_RE.test(hrefAfter41)) {
       const hasBrokenExt = PDF_EXT_RE.test(hrefAfter41);
-      const hasNewWindow  = NEW_WINDOW_RE_TEST.test(text);
+      const hasNewWindow = NEW_WINDOW_RE_TEST.test(text);
       if (hasBrokenExt || hasNewWindow) {
         seq.count++;
         const fixedHref = hasBrokenExt
@@ -804,13 +851,19 @@ function scanPageHrefs(root, pageKey, results, seq) {
           : text;
         const noteParts = [];
         if (hasBrokenExt) noteParts.push(`href "${hrefAfter41}" → "${fixedHref}"`);
-        if (hasNewWindow)  noteParts.push(`text: stripped "opens in new window"`);
+        if (hasNewWindow) noteParts.push('text: stripped "opens in new window"');
         results[`pdf-${seq.count}`] = {
-          subRule: '4.5', type: 'pdf-link', action: 'FIX_PDF_LINK', page: pageKey,
-          href: hrefAfter41, expectedHref: fixedHref,
-          text, expectedText: fixedText,
-          hasBrokenExt, hasNewWindow,
-          note: noteParts.join('; ') + ` (page: ${pageKey})`,
+          subRule: '4.5',
+          type: 'pdf-link',
+          action: 'FIX_PDF_LINK',
+          page: pageKey,
+          href: hrefAfter41,
+          expectedHref: fixedHref,
+          text,
+          expectedText: fixedText,
+          hasBrokenExt,
+          hasNewWindow,
+          note: `${noteParts.join('; ')} (page: ${pageKey})`,
         };
       }
     }
@@ -843,14 +896,14 @@ function normalizeHrefForMatch(href) {
  *   MANUAL      — link not found in any EDS page (inspect manually)
  */
 function scanLinkStyles(pageContexts, sourceButtons, results, seq) {
-  const meaningful = sourceButtons.filter(b => b.href && b.href !== '#');
+  const meaningful = sourceButtons.filter((b) => b.href && b.href !== '#');
   if (meaningful.length === 0) return;
 
   console.error(`[compare-metadata] [hrefs] 4.4: ${meaningful.length} styled button(s) to validate (skipped href='#' ones)`);
 
   for (const btn of meaningful) {
     const wrapTag = btn.style === 'primary' ? 'strong' : 'em';
-    const action  = btn.style === 'primary' ? 'WRAP_STRONG' : 'WRAP_EM';
+    const action = btn.style === 'primary' ? 'WRAP_STRONG' : 'WRAP_EM';
     const normSrc = normalizeHrefForMatch(btn.href);
 
     let foundInAnyPage = false;
@@ -867,13 +920,14 @@ function scanLinkStyles(pageContexts, sourceButtons, results, seq) {
         const isWrapped = parentTag === wrapTag;
 
         results[`style-${seq.count}`] = {
-          subRule: '4.4', type: 'link-style',
-          action:  isWrapped ? 'NONE' : action,
-          status:  isWrapped ? 'ok'   : 'missing-wrapper',
-          page:    pageKey,
-          href:    normSrc,           // root-relative (for patch-document matching)
-          sourceHref:  btn.href,
-          text:    btn.text,
+          subRule: '4.4',
+          type: 'link-style',
+          action: isWrapped ? 'NONE' : action,
+          status: isWrapped ? 'ok' : 'missing-wrapper',
+          page: pageKey,
+          href: normSrc, // root-relative (for patch-document matching)
+          sourceHref: btn.href,
+          text: btn.text,
           wrapper: wrapTag,
           buttonStyle: btn.style,
           sourceClass: btn.sourceClass || '',
@@ -887,7 +941,8 @@ function scanLinkStyles(pageContexts, sourceButtons, results, seq) {
     if (!foundInAnyPage) {
       seq.count++;
       results[`style-${seq.count}`] = {
-        subRule: '4.4', type: 'link-style',
+        subRule: '4.4',
+        type: 'link-style',
         action: 'MANUAL',
         status: 'missing-content',
         page: 'main',
@@ -911,7 +966,7 @@ function scanLinkStyles(pageContexts, sourceButtons, results, seq) {
  */
 function ruleLinkRewrites(pageContexts, sourceButtons = []) {
   const results = {};
-  const seq     = { count: 0 };
+  const seq = { count: 0 };
   for (const { pageKey, root } of pageContexts) {
     scanPageHrefs(root, pageKey, results, seq);
     console.error(`[compare-metadata] [hrefs] Scanned "${pageKey}": ${seq.count} issue(s) so far`);
@@ -926,71 +981,85 @@ function ruleLinkRewrites(pageContexts, sourceButtons = []) {
 // ---------------------------------------------------------------------------
 // Rule 3: footnotes
 // ---------------------------------------------------------------------------
-const PAGE_ID_RE = /^(DT1|DT2|QSR|LRC|PM)-/;
+const PAGE_ID_RE = /^(DT1|DT2|QSR|LRC|PM|RO)-/;
 
 function ruleFootnotes(edsMeta, sourceFootnotes, sheetRows) {
   // Split source footnotes into two groups:
   //   pageIdEntries  — valueText matches DT1/DT2/QSR/LRC/PM prefix  → go to `pageid` metadata
   //   realFootnotes  — everything else                               → go to `footnotes` metadata
-  const pageIdEntries = sourceFootnotes.filter(f =>  PAGE_ID_RE.test(f.valueText));
-  const realFootnotes = sourceFootnotes.filter(f => !PAGE_ID_RE.test(f.valueText));
+  const pageIdEntries = sourceFootnotes.filter((f) => PAGE_ID_RE.test(f.valueText));
+  const realFootnotes = sourceFootnotes.filter((f) => !PAGE_ID_RE.test(f.valueText));
   console.error(`[compare-metadata] [footnotes] Real footnotes (after filter): ${realFootnotes.length}`);
   if (pageIdEntries.length > 0) {
-    console.error(`[compare-metadata] [footnotes] PageId entries found: ${pageIdEntries.map(f => f.valueText).join(', ')}`);
+    console.error(`[compare-metadata] [footnotes] PageId entries found: ${pageIdEntries.map((f) => f.valueText).join(', ')}`);
   }
 
   const fields = {};
 
   // ---- footnotes field ----
-  const expectedCids = realFootnotes.map(f => f.cid);
-  const expectedStr  = expectedCids.join(', ');
+  const expectedCids = realFootnotes.map((f) => f.cid);
+  const expectedStr = expectedCids.join(', ');
 
-  const edsCidsStr = (edsMeta['footnotes'] || '').trim();
-  const edsCids    = edsCidsStr ? edsCidsStr.split(',').map(s => s.trim()) : [];
+  const edsCidsStr = (edsMeta.footnotes || '').trim();
+  const edsCids = edsCidsStr ? edsCidsStr.split(',').map((s) => s.trim()) : [];
 
-  let fnStatus, fnAction, fnNote;
-  if (!edsCidsStr) {
+  let fnStatus; let fnAction; let
+    fnNote;
+  if (!expectedStr && !edsCidsStr) {
+    // No real footnotes on source and none on EDS — nothing to add (don't write an empty row).
+    fnStatus = 'ok'; fnAction = 'NONE';
+    fnNote = 'Source has no footnotes (only pageId entries); EDS has none. Nothing to do.';
+  } else if (!edsCidsStr) {
     fnStatus = 'eds_missing'; fnAction = 'ADD';
-    fnNote   = `EDS page has no "footnotes" metadata. ${expectedCids.length} cid(s) will be added.`;
+    fnNote = `EDS page has no "footnotes" metadata. ${expectedCids.length} cid(s) will be added.`;
   } else if (edsCids.join(', ') !== expectedStr) {
     fnStatus = 'mismatch'; fnAction = 'UPDATE';
-    fnNote   = `Footnote sequence differs — EDS has ${edsCids.length} cid(s), source has ${expectedCids.length}. Sequence matters; EDS will be updated.`;
+    fnNote = `Footnote sequence differs — EDS has ${edsCids.length} cid(s), source has ${expectedCids.length}. Sequence matters; EDS will be updated.`;
   } else {
     fnStatus = 'ok'; fnAction = 'NONE';
-    fnNote   = `All ${expectedCids.length} footnote cid(s) present and in correct sequence.`;
+    fnNote = `All ${expectedCids.length} footnote cid(s) present and in correct sequence.`;
   }
-  fields.footnotes = { eds: edsCidsStr || null, source: expectedStr, status: fnStatus, action: fnAction, note: fnNote };
+  fields.footnotes = {
+    eds: edsCidsStr || null, source: expectedStr, status: fnStatus, action: fnAction, note: fnNote,
+  };
 
   // ---- pageid field ----
-  // Source may have one or more pageId entries; use the first one (pages have a single pageId).
+  // Source may have one or more pageId entries. Join them as a comma-separated list.
   // The valueText (e.g. "DT1-04012027-18-8449606-1.1") is the pageid value — not the TCM cid.
   if (pageIdEntries.length > 0) {
-    const sourcePageId  = pageIdEntries[0].valueText.trim();
-    const edsPageId     = (edsMeta['pageid'] || '').trim();
-    let piStatus, piAction, piNote;
+    const sourcePageId = pageIdEntries.map((f) => f.valueText.trim()).join(', ');
+    const edsPageId = (edsMeta.pageid || '').trim();
+    let piStatus; let piAction; let
+      piNote;
 
     if (!edsPageId) {
       piStatus = 'eds_missing'; piAction = 'ADD';
-      piNote   = `EDS page is missing "pageid" metadata. Source pageId: "${sourcePageId}".`;
+      piNote = `EDS page is missing "pageid" metadata. Source pageId: "${sourcePageId}".`;
     } else if (edsPageId !== sourcePageId) {
       piStatus = 'mismatch'; piAction = 'UPDATE';
-      piNote   = `EDS pageid "${edsPageId}" differs from source "${sourcePageId}".`;
+      piNote = `EDS pageid "${edsPageId}" differs from source "${sourcePageId}".`;
     } else {
       piStatus = 'ok'; piAction = 'NONE';
-      piNote   = `pageid "${edsPageId}" matches source.`;
+      piNote = `pageid "${edsPageId}" matches source.`;
     }
-    fields.pageid = { eds: edsPageId || null, source: sourcePageId, status: piStatus, action: piAction, note: piNote };
+    fields.pageid = {
+      eds: edsPageId || null, source: sourcePageId, status: piStatus, action: piAction, note: piNote,
+    };
     console.error(`[compare-metadata] [footnotes] pageid: ${piStatus} (EDS="${edsPageId || 'none'}", source="${sourcePageId}")`);
   }
 
   // ---- sheet coverage (real footnotes only) ----
-  const sheetCids        = new Set(sheetRows.map(r => r.cid));
+  const sheetCids = new Set(sheetRows.map((r) => r.cid));
   const missingFromSheet = realFootnotes
-    .filter(f => !sheetCids.has(f.cid))
-    .map(({ cid, ctid, numbered, value }) => ({ cid, ctid, numbered, value }));
+    .filter((f) => !sheetCids.has(f.cid))
+    .map(({
+      cid, ctid, numbered, value,
+    }) => ({
+      cid, ctid, numbered, value,
+    }));
 
   if (missingFromSheet.length > 0) {
-    console.error(`[compare-metadata] [footnotes] Missing from sheet: ${missingFromSheet.map(f => f.cid).join(', ')}`);
+    console.error(`[compare-metadata] [footnotes] Missing from sheet: ${missingFromSheet.map((f) => f.cid).join(', ')}`);
   }
 
   return { fields, missingFromSheet };
@@ -999,7 +1068,9 @@ function ruleFootnotes(edsMeta, sourceFootnotes, sheetRows) {
 // ---------------------------------------------------------------------------
 // Report builder
 // ---------------------------------------------------------------------------
-function buildReport({ edsUrl, sourceUrl, sourceTheme, edsFetch, sourceFetch, ruleResults, missingFromSheet, refPages }) {
+function buildReport({
+  edsUrl, sourceUrl, sourceTheme, edsFetch, sourceFetch, ruleResults, missingFromSheet, refPages,
+}) {
   const fixes = [];
 
   for (const [ruleName, fields] of Object.entries(ruleResults)) {
@@ -1010,52 +1081,52 @@ function buildReport({ edsUrl, sourceUrl, sourceTheme, edsFetch, sourceFetch, ru
 
       if (ruleName === 'section-metadata') {
         fix = {
-          rule:          'section-metadata',
+          rule: 'section-metadata',
           field,
-          action:        detail.action,
-          page:          'main',
-          currentValue:  detail.actualStyles?.join(', ')   || null,
+          action: detail.action,
+          page: 'main',
+          currentValue: detail.actualStyles?.join(', ') || null,
           expectedValue: detail.expectedStyles?.join(', ') || null,
-          sectionIndex:  detail.sectionIndex,
+          sectionIndex: detail.sectionIndex,
           missingStyles: detail.missingStyles || [],
-          note:          detail.note,
+          note: detail.note,
         };
       } else if (ruleName === 'hrefs') {
         // hrefs rule has a different shape — no eds/source comparison objects
         fix = {
-          rule:          'hrefs',
+          rule: 'hrefs',
           field,
-          action:        detail.action,
-          subRule:       detail.subRule,
-          page:          detail.page || 'main',
-          currentValue:  detail.href  ?? detail.text  ?? null,
+          action: detail.action,
+          subRule: detail.subRule,
+          page: detail.page || 'main',
+          currentValue: detail.href ?? detail.text ?? null,
           expectedValue: detail.expectedHref ?? detail.expectedText ?? null,
-          note:          detail.note,
+          note: detail.note,
         };
         if (detail.type === 'trailing-arrow') {
-          fix.href         = detail.href;
-          fix.text         = detail.text;
+          fix.href = detail.href;
+          fix.text = detail.text;
           fix.expectedText = detail.expectedText;
         }
         if (detail.type === 'link-style') {
-          fix.href        = detail.href;        // normalized root-relative href
-          fix.text        = detail.text;
-          fix.wrapper     = detail.wrapper;     // 'strong' or 'em'
+          fix.href = detail.href; // normalized root-relative href
+          fix.text = detail.text;
+          fix.wrapper = detail.wrapper; // 'strong' or 'em'
           fix.buttonStyle = detail.buttonStyle; // 'primary' or 'secondary'
         }
       } else {
         fix = {
-          rule:          ruleName,
+          rule: ruleName,
           field,
-          action:        detail.action,
-          currentValue:  detail.eds?.href ?? detail.eds ?? null,
+          action: detail.action,
+          currentValue: detail.eds?.href ?? detail.eds ?? null,
           expectedValue: detail.source?.expectedHref ?? detail.source ?? null,
-          note:          detail.note,
+          note: detail.note,
         };
         if (ruleName === 'links') {
           fix.supNumber = detail.supNumber;
-          fix.tcmId     = detail.tcmId;
-          fix.page      = detail.page || 'main';
+          fix.tcmId = detail.tcmId;
+          fix.page = detail.page || 'main';
           if (detail.contextBefore) fix.contextBefore = detail.contextBefore;
         }
       }
@@ -1065,31 +1136,32 @@ function buildReport({ edsUrl, sourceUrl, sourceTheme, edsFetch, sourceFetch, ru
   }
 
   // Rule 0 (theme) is informational — exclude it from field-level pass/fail counts
-  const allDetails  = Object.entries(ruleResults)
+  const allDetails = Object.entries(ruleResults)
     .filter(([name]) => name !== 'theme')
     .flatMap(([, r]) => Object.values(r));
-  const passed      = allDetails.filter(d => d.status === 'ok').length;
-  const total       = allDetails.length;
-  const autoFixes   = fixes.filter(f => f.action !== 'MANUAL').length;
-  const manualFixes = fixes.filter(f => f.action === 'MANUAL').length;
+  const passed = allDetails.filter((d) => d.status === 'ok').length;
+  const total = allDetails.length;
+  const autoFixes = fixes.filter((f) => f.action !== 'MANUAL').length;
+  const manualFixes = fixes.filter((f) => f.action === 'MANUAL').length;
 
   return {
-    edsUrl, sourceUrl,
+    edsUrl,
+    sourceUrl,
     timestamp: new Date().toISOString(),
     sourceTheme: sourceTheme || 'unknown',
-    edsFetch:    { statusCode: edsFetch.statusCode,    finalUrl: edsFetch.finalUrl },
+    edsFetch: { statusCode: edsFetch.statusCode, finalUrl: edsFetch.finalUrl },
     sourceFetch: { statusCode: sourceFetch.statusCode, finalUrl: sourceFetch.finalUrl },
-    refPages:    refPages || [],
+    refPages: refPages || [],
     rules: ruleResults,
     fixes,
     missingFromSheet: missingFromSheet || [],
     summary: {
-      rulesChecked:    RULES.length + 1, // +1 for Rule 0 (theme, always runs)
-      fieldsChecked:   total,
+      rulesChecked: RULES.length + 1, // +1 for Rule 0 (theme, always runs)
+      fieldsChecked: total,
       passed,
-      failed:          total - passed,
+      failed: total - passed,
       actionsRequired: autoFixes,
-      manualRequired:  manualFixes,
+      manualRequired: manualFixes,
       missingFromSheet: (missingFromSheet || []).length,
     },
   };
@@ -1104,7 +1176,8 @@ async function main() {
   console.error(`[compare-metadata] Rules  : ${RULES.join(', ')}`);
 
   // Always fetch both pages (metadata rule + EDS DOM for links/footnotes)
-  let edsFetch, sourceFetch;
+  let edsFetch; let
+    sourceFetch;
   try {
     [edsFetch, sourceFetch] = await Promise.all([
       fetchPage(EDS_URL),
@@ -1122,9 +1195,9 @@ async function main() {
   console.error(`[compare-metadata] Source theme: ${sourceTheme}`);
 
   // Playwright (links + footnotes + hrefs/4.4 share one browser session)
-  const needSups        = RULES.includes('links');
-  const needFootnotes   = RULES.includes('footnotes');
-  const needLinkStyles  = RULES.includes('hrefs');
+  const needSups = RULES.includes('links');
+  const needFootnotes = RULES.includes('footnotes');
+  const needLinkStyles = RULES.includes('hrefs');
   let rendered = { sups: [], footnotes: [], linkStyles: [] };
 
   if (needSups || needFootnotes || needLinkStyles) {
@@ -1132,7 +1205,7 @@ async function main() {
       rendered = await fetchSourceRendered(SOURCE_URL, { needSups, needFootnotes, needLinkStyles });
     } catch (err) {
       console.error(`[compare-metadata] Playwright error: ${err.message}`);
-      if (needSups)      RULES.splice(RULES.indexOf('links'), 1);
+      if (needSups) RULES.splice(RULES.indexOf('links'), 1);
       if (needFootnotes) RULES.splice(RULES.indexOf('footnotes'), 1);
       // hrefs 4.1–4.3 don't need Playwright; 4.4 just skips (linkStyles stays [])
     }
@@ -1140,16 +1213,16 @@ async function main() {
 
   // Reference pages (for links rule and hrefs rule)
   let refPages = [];
-  let refRoots = [];    // [{ pageKey, root }]
+  const refRoots = []; // [{ pageKey, root }]
 
   if (RULES.includes('links') || RULES.includes('hrefs')) {
     refPages = extractReferencePaths(edsFetch.root);
     if (refPages.length > 0) {
-      console.error(`[compare-metadata] [links] Reference pages found: ${refPages.map(r => r.path).join(', ')}`);
+      console.error(`[compare-metadata] [links] Reference pages found: ${refPages.map((r) => r.path).join(', ')}`);
 
       // Fetch all reference pages in parallel
       const fetches = await Promise.allSettled(
-        refPages.map(r => fetchPage(`${EDS_BASE_URL}${r.path}`))
+        refPages.map((r) => fetchPage(`${EDS_BASE_URL}${r.path}`)),
       );
 
       for (let i = 0; i < refPages.length; i++) {
@@ -1176,11 +1249,11 @@ async function main() {
   }
 
   // ---- Run rules ----
-  const ruleResults      = {};
-  let   missingFromSheet = [];
+  const ruleResults = {};
+  let missingFromSheet = [];
 
   // Rule 0 — always runs regardless of --rules flag
-  ruleResults['theme'] = ruleTheme(sourceFetch.root);
+  ruleResults.theme = ruleTheme(sourceFetch.root);
 
   for (const rule of RULES) {
     switch (rule) {
@@ -1231,9 +1304,11 @@ async function main() {
   }
 
   const report = buildReport({
-    edsUrl: EDS_URL, sourceUrl: SOURCE_URL,
+    edsUrl: EDS_URL,
+    sourceUrl: SOURCE_URL,
     sourceTheme,
-    edsFetch, sourceFetch,
+    edsFetch,
+    sourceFetch,
     ruleResults,
     missingFromSheet,
     refPages,
@@ -1251,7 +1326,7 @@ async function main() {
   process.exit(report.summary.actionsRequired > 0 ? 1 : 0);
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error(`[compare-metadata] Unexpected error: ${err.message}`);
   process.exit(2);
 });
