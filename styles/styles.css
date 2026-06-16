@@ -464,7 +464,8 @@ main .section.heading-bar.center-align h2::before {
 }
 
 /* heading-bar-bottom — same accent bar rendered beneath the heading */
-main .section.heading-bar-bottom h2::after {
+main .section.heading-bar-bottom h2::after,
+main .section.heading-bar-bottom h3::after {
   content: "";
   display: block;
   width: 96px;
@@ -473,7 +474,8 @@ main .section.heading-bar-bottom h2::after {
   background-color: var(--heading-bar-color);
 }
 
-main .section.heading-bar-bottom.center-align h2::after {
+main .section.heading-bar-bottom.center-align h2::after,
+main .section.heading-bar-bottom.center-align h3::after {
   margin: 25px auto 0;
 }
 
