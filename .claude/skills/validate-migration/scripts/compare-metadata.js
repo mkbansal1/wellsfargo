@@ -390,9 +390,25 @@ function ruleTheme(sourceRoot) {
  * @param {object} sourceMeta  — metadata extracted from source rendered page
  * @param {object} sourceRoot  — parsed source HTML root (for DOM checks)
  */
+// Fields that must NOT appear in page metadata — they come from global metadata only.
+const GLOBAL_ONLY_FIELDS = ['locale', 'nav', 'footer', 'template'];
+
 function ruleMetadata(edsMeta, sourceMeta, sourceRoot) {
   const FIELDS  = ['title', 'description', 'keywords'];
   const results = {};
+
+  // Check for global-metadata-only fields that must be removed from page metadata
+  for (const field of GLOBAL_ONLY_FIELDS) {
+    if (edsMeta[field]) {
+      results[field] = {
+        eds:    edsMeta[field],
+        source: null,
+        status: 'forbidden',
+        action: 'REMOVE',
+        note:   `"${field}" must come from global metadata, not page metadata. Will be removed.`,
+      };
+    }
+  }
 
   for (const field of FIELDS) {
     const edsVal    = edsMeta[field]    || '';

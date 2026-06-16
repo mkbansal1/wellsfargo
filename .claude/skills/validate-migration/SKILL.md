@@ -81,6 +81,24 @@ Validates that the following meta tags exist in the EDS page and match the sourc
 
 **Fix action:** When a field is missing or different in EDS, update the EDS document's metadata block with the value from the source page. `patch-document.js` auto-detects the document format and patches the correct block (see Metadata Block Formats below).
 
+#### Global-metadata-only fields (forbidden in page metadata)
+
+The following fields must **never** appear in page-level metadata. They are inherited from the site-wide global metadata sheet and must not be set on individual pages:
+
+| Field | Reason |
+|---|---|
+| `locale` | Determined by path prefix (e.g. `/es/`) via the global metadata sheet |
+| `nav` | Set globally per audience segment; overriding per-page breaks nav variant selection |
+| `footer` | Same as `nav` — global only |
+| `template` | Applied globally; per-page override causes inconsistent rendering |
+
+**Fix action:** If any of these fields are found in the EDS page metadata, action is `REMOVE` — the row is deleted from the DA metadata block automatically. No source-page comparison is needed.
+
+| EDS state | Status | Action |
+|---|---|---|
+| Field present in page metadata | `forbidden` | `REMOVE` (auto-fix) |
+| Field absent | — | `NONE` (skip) |
+
 #### Breadcrumb visibility (`hide-breadcrumb`)
 
 Some source pages suppress the breadcrumb navigation (e.g. landing pages, homepages). The check uses the **server-rendered** source HTML — no Playwright needed.
@@ -862,6 +880,7 @@ They must be added to the sheet before these footnotes will render on the EDS pa
 - ✅ `ok` — values match, no action taken
 - ⚠️ `mismatch` / `missing_anchor` — auto-fix applied
 - ❌ `eds_missing` — field absent in EDS, auto-fix applied
+- 🚫 `forbidden` — field must not appear in page metadata (locale/nav/footer/template); auto-removed
 - 🔴 `missing_content` — sup absent from EDS entirely; flagged as MANUAL (no auto-patch possible)
 - ℹ️ `source_missing` — source has no value, nothing to enforce
 - 📋 `missingFromSheet` — cid found on source page but not in `/data/footnotes.json` sheet; must be added manually to the sheet
