@@ -160,7 +160,16 @@ async function loadEager(doc) {
   if (main) {
     decorateMain(main);
     document.body.classList.add('appear');
-    await loadSection(main.querySelector('.section'), waitForFirstImage);
+    // The LCP image usually lives in the hero, but auto-blocks (e.g. breadcrumb)
+    // can be the first section. Eager-load through the first section that has an
+    // image so its LCP candidate is fetched eagerly, not lazily.
+    const sections = [...main.querySelectorAll('.section')];
+    const lcpIndex = Math.max(0, sections.findIndex((section) => section.querySelector('img')));
+    // Prioritize the LCP image: eager loading + high fetch priority.
+    sections[lcpIndex]?.querySelector('img')?.setAttribute('fetchpriority', 'high');
+    await Promise.all(sections.slice(0, lcpIndex + 1).map(
+      (section, i) => loadSection(section, i === lcpIndex ? waitForFirstImage : undefined),
+    ));
   }
 
   try {
@@ -189,13 +198,19 @@ async function loadLazy(doc) {
 
   loadFooter(doc.querySelector('footer'));
 
-  // Footnotes — only load JS if metadata exists
+  // Footnotes — load JS if metadata exists or any footnote superscript links are present
   const footnotesAttr = getMetadata('footnotes');
   const pageid = getMetadata('pageid');
-  if (footnotesAttr || pageid) {
+  const hasFootnoteLinks = !!main.querySelector('a[href*="#tcm:"]');
+  if (footnotesAttr || pageid || hasFootnoteLinks) {
     const { default: buildFootnotes } = await import('./footnotes.js');
     await buildFootnotes(footnotesAttr, pageid);
   }
+
+  // Leaving-site interstitial — delegated on document, so it covers links in
+  // main, header, footer, and lazily-injected fragments. The dialog is built
+  // on first qualifying click.
+  import('./leaving-site.js').then(({ default: initLeavingSite }) => initLeavingSite());
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
   loadFonts();

@@ -59,7 +59,48 @@ function buildContentPanel(contentCell) {
   return panel;
 }
 
+function decorateGrid(block) {
+  const heading = block.querySelector('h2');
+  const ul = document.createElement('ul');
+  ul.className = 'contact-bar-items';
+
+  [...block.children].forEach((row) => {
+    if (row.querySelector('h2')) return;
+    const cells = [...row.children];
+    const iconCell = cells[0];
+    const contentCell = cells[1] || iconCell;
+    if (!iconCell) return;
+
+    const li = document.createElement('li');
+    li.className = 'contact-bar-item';
+
+    const icon = iconCell.querySelector('.icon, picture');
+    if (icon) {
+      const iconWrap = document.createElement('div');
+      iconWrap.className = 'contact-bar-icon';
+      iconWrap.append(icon);
+      li.append(iconWrap);
+    }
+
+    const content = document.createElement('div');
+    content.className = 'contact-bar-content';
+    content.append(...contentCell.childNodes);
+    li.append(content);
+
+    ul.append(li);
+  });
+
+  block.textContent = '';
+  if (heading) block.append(heading);
+  block.append(ul);
+}
+
 export default function decorate(block) {
+  if (block.classList.contains('grid')) {
+    decorateGrid(block);
+    return;
+  }
+
   const heading = block.querySelector('h2');
   const ul = document.createElement('ul');
   ul.className = 'contact-bar-items';

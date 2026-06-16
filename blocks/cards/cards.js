@@ -21,11 +21,57 @@ export default function decorate(block) {
   });
   ul.querySelectorAll('picture > img').forEach((img) => {
     if (!img.src.startsWith('http') || img.src.includes(window.location.hostname)) {
-      img.closest('picture').replaceWith(createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }]));
+      // Preserve intrinsic dimensions so the optimized <img> has explicit width/height
+      // (avoids CLS / "Image elements do not have explicit width and height").
+      const width = img.getAttribute('width') || img.naturalWidth;
+      const height = img.getAttribute('height') || img.naturalHeight;
+      const optimized = createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }]);
+      const newImg = optimized.querySelector('img');
+      const setDimensions = (w, h) => {
+        if (w && h) {
+          newImg.setAttribute('width', w);
+          newImg.setAttribute('height', h);
+        }
+      };
+      if (width && height) {
+        setDimensions(width, height);
+      } else {
+        // Source not yet loaded — backfill from natural size once available.
+        newImg.addEventListener('load', () => setDimensions(newImg.naturalWidth, newImg.naturalHeight), { once: true });
+      }
+      img.closest('picture').replaceWith(optimized);
     }
   });
   ul.querySelectorAll('.cards-card-body a').forEach((a) => {
-    a.textContent = a.textContent.replace(/\s*>+\s*$/, '');
+    const last = a.lastChild;
+    if (last && last.nodeType === Node.TEXT_NODE) {
+      last.textContent = last.textContent.replace(/\s*>+\s*$/, '');
+    }
+  });
+
+  // Generic link text (e.g. "Learn more", "Más información (en inglés)") gives screen
+  // reader users no context. Add an aria-label combining the link text with the card's
+  // heading so the destination is clear out of context.
+  const GENERIC_LINK_TEXT = [
+    'learn more',
+    'más información (en inglés)',
+    'más información',
+    'get inspired',
+  ];
+  ul.querySelectorAll('li').forEach((li) => {
+    const heading = li.querySelector('h2, h3, h4');
+    if (!heading) return;
+    const headingText = heading.textContent.trim();
+    if (!headingText) return;
+    li.querySelectorAll('.cards-card-body a').forEach((a) => {
+      if (a.hasAttribute('aria-label')) return;
+      const linkText = a.textContent.trim();
+      if (GENERIC_LINK_TEXT.includes(linkText.toLowerCase())) {
+        const label = `${linkText} about ${headingText}`;
+        a.setAttribute('aria-label', label);
+        a.setAttribute('title', label);
+      }
+    });
   });
 
   // promo variant: restructure DOM — h3 on top, then image + text row below

@@ -400,6 +400,22 @@ main .section.cream {
   background-color: var(--wf-cream);
 }
 
+/* light-text — white text for content overlaid on a dark image (no background change).
+   Scoped to desktop where the hero text overlays the image; on mobile/tablet the first
+   hero shows a light text card (overlay-bottom-mobile) and must keep dark text. */
+@media (width >= 1024px) {
+  main .section.light-text,
+  main .section.light-text h1,
+  main .section.light-text h2,
+  main .section.light-text h3,
+  main .section.light-text h4,
+  main .section.light-text h5,
+  main .section.light-text h6,
+  main .section.light-text p {
+    color: var(--background-color);
+  }
+}
+
 /* Dark-blue — teal/navy gradient band with white text */
 main .section.dark-blue {
   background-image: linear-gradient(164deg, #01222d 1.06%, #017994 50.47%);
@@ -475,6 +491,31 @@ main .section.cols-2 .default-content-wrapper {
   main .section.cols-2 > div {
     min-width: 0;
   }
+}
+
+/* Arrow-prefixed lists: ul inside a default-content-wrapper that contains an h3 */
+main .section > div.default-content-wrapper:has(h3) ul {
+  list-style: none;
+  padding-left: 32px;
+}
+
+main .section > div.default-content-wrapper:has(h3) ul li {
+  position: relative;
+  padding-left: 24px;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+main .section > div.default-content-wrapper:has(h3) ul li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.3em;
+  width: 14px;
+  height: 14px;
+  background-color: var(--wf-text-secondary, #787070);
+  -webkit-mask: url("/icons/arrow-right.svg") no-repeat center / contain; /* stylelint-disable-line property-no-vendor-prefix */
+  mask: url("/icons/arrow-right.svg") no-repeat center / contain;
 }
 
 /* Arrow-prefixed lists: ul inside a default-content-wrapper that contains an h3 */
