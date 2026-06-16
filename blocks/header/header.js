@@ -380,7 +380,11 @@ function toggleMobileMenu(nav, open) {
 
 export default async function decorate(block) {
   const navMeta = getMetadata('nav');
-  const navPath = navMeta ? new URL(navMeta, window.location).pathname : '/nav';
+  // Locale-aware fallback: pages without a "nav" meta (e.g. error pages) use the
+  // Spanish nav under /es, otherwise the default nav.
+  const isSpanish = window.location.pathname.startsWith('/es/') || window.location.pathname === '/es';
+  const defaultNav = isSpanish ? '/es/nav' : '/nav';
+  const navPath = navMeta ? new URL(navMeta, window.location).pathname : defaultNav;
   const fragment = await loadFragment(navPath);
 
   block.textContent = '';

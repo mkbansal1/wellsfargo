@@ -3,12 +3,15 @@ import { loadFragment } from '../fragment/fragment.js';
 
 /**
  * Resolves the footer path for the current page.
- * Uses the page-level "footer" meta tag if present, otherwise falls back to /footer.
+ * Uses the page-level "footer" meta tag if present, otherwise falls back to a
+ * locale-aware default: /es/footer for Spanish pages (e.g. error pages with no
+ * metadata), /footer otherwise.
  */
 function resolveFooterPath() {
   const pageMeta = getMetadata('footer');
   if (pageMeta) return new URL(pageMeta, window.location).pathname;
-  return '/footer';
+  const isSpanish = window.location.pathname.startsWith('/es/') || window.location.pathname === '/es';
+  return isSpanish ? '/es/footer' : '/footer';
 }
 
 export default async function decorate(block) {
