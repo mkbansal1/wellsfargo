@@ -133,7 +133,13 @@ function patchDaMetadata(metaDiv, fixes) {
     const key = fix.field.toLowerCase();
     const val = fix.expectedValue || '';
 
-    if (rowMap.has(key)) {
+    if (fix.action === 'REMOVE') {
+      if (rowMap.has(key)) {
+        rowMap.get(key).rowNode.remove();
+        console.error(`  [metadata] Removed "${key}" (global-metadata-only field)`);
+        applied.push({ action: 'REMOVE', key });
+      }
+    } else if (rowMap.has(key)) {
       rowMap.get(key).valueNode.innerHTML = `<p>${escapeHtml(val)}</p>`;
       console.error(`  [metadata] Updated "${key}": "${val}"`);
       applied.push({ action: 'UPDATE', key, val });
