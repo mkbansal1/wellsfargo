@@ -395,6 +395,10 @@ main .section.cream {
   background-color: var(--wf-cream);
 }
 
+main .section.border{
+  border:1px solid var(--wf-dark);
+}
+
 /* light-text — white text for content overlaid on a dark image (no background change).
    Scoped to desktop where the hero text overlays the image; on mobile/tablet the first
    hero shows a light text card (overlay-bottom-mobile) and must keep dark text. */
