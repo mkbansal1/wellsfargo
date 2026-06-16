@@ -301,10 +301,14 @@ async function fetchSourceRendered(url, { needSups, needFootnotes, needLinkStyle
             valueText = c20Text.textContent.trim();
           } else {
             // Old theme: text is directly in the div; strip the .c20no number label
-            let raw = el.textContent;
-            if (c20no) raw = raw.replace(c20no.textContent, '');
-            value     = raw.trim();
-            valueText = value;
+            // Clone to avoid mutating the live DOM, then remove the number span
+            const clone = el.cloneNode(true);
+            const cloneNo = clone.querySelector('.c20no');
+            if (cloneNo) cloneNo.remove();
+            // Remove non-standard attributes (e.g. enrollmentid) from all anchors
+            clone.querySelectorAll('a[enrollmentid]').forEach((a) => a.removeAttribute('enrollmentid'));
+            value     = clone.innerHTML.trim();
+            valueText = clone.textContent.trim();
           }
           return { cid, ctid, numbered, value, valueText, footnotesTheme };
         }).filter(f => f.cid);

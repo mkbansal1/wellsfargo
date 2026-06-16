@@ -261,7 +261,7 @@ Both `footnotes` and `pageid` fixes are written to the DA metadata block by `pat
 
 **Missing-from-sheet table columns:** `cid | ctid | numbered | value`
 
-> **Format rule:** The `value` column must always be wrapped in `<p>` tags — e.g. `<p>Footnote text here.</p>`. This is the exact format required by the footnotes sheet. Never display the raw text without the `<p>` wrapper.
+> **Format rule:** The `value` column is the **full inner HTML** of the footnote — links, `<sup>`, and any other inline markup must be preserved. It is always wrapped in one or more `<p>` tags (e.g. `<p>Text with <a href="...">link</a>.</p>`). The `.c20no` number label and non-standard attributes (e.g. `enrollmentid`) are stripped automatically. Never display raw plain text without HTML markup and `<p>` wrapping.
 
 ### Rule 4 — `hrefs` ✅ (implemented)
 
@@ -830,7 +830,7 @@ The author must locate the correct paragraph and insert the anchor manually:
 These cids appear on the source page but are not in `/data/footnotes.json?sheet=en`.
 They must be added to the sheet before these footnotes will render on the EDS page.
 
-**Always wrap the `value` column in `<p>` tags.** This is the exact format required by the sheet — never display raw text without the wrapper.
+**Always output the full inner HTML for the `value` column** — preserve all links, `<sup>` tags, and inline markup, wrapped in `<p>` tags. Never strip HTML down to plain text.
 
 | cid | ctid | numbered | value |
 |-----|------|----------|-------|
