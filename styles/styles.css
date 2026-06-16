@@ -391,6 +391,22 @@ main .section.cream {
   background-color: var(--wf-cream);
 }
 
+/* light-text — white text for content overlaid on a dark image (no background change).
+   Scoped to desktop where the hero text overlays the image; on mobile/tablet the first
+   hero shows a light text card (overlay-bottom-mobile) and must keep dark text. */
+@media (width >= 1024px) {
+  main .section.light-text,
+  main .section.light-text h1,
+  main .section.light-text h2,
+  main .section.light-text h3,
+  main .section.light-text h4,
+  main .section.light-text h5,
+  main .section.light-text h6,
+  main .section.light-text p {
+    color: var(--background-color);
+  }
+}
+
 /* Dark-blue — teal/navy gradient band with white text */
 main .section.dark-blue {
   background-image: linear-gradient(164deg, #01222d 1.06%, #017994 50.47%);
