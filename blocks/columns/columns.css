@@ -278,6 +278,28 @@
   height: 40px;
 }
 
+/* app-promo purple — matches the live WF "Bank Easy" promo panel.
+   Authored as | Columns (app-promo, purple) |. */
+.columns.app-promo.purple {
+  background: linear-gradient(164deg, #21184e 3.72%, #6064d1 54.36%);
+  padding: 40px 24px;
+}
+
+.columns.app-promo.purple,
+.columns.app-promo.purple :is(h2, h3, h4, p, li, strong, em) {
+  color: var(--wf-bg-white);
+}
+
+.columns.app-promo.purple a:not(:has(img)) {
+  color: var(--wf-bg-white);
+}
+
+@media (width >= 768px) {
+  .columns.app-promo.purple {
+    padding: 56px 48px;
+  }
+}
+
 /* --- Variant: tabular --- */
 
 .columns.tabular {
