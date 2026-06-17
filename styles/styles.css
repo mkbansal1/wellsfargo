@@ -416,7 +416,7 @@ main .section.promo {
   padding: 23px 18px 37px;
   margin-bottom: 10px;
   position: relative;
-  background: url(https://www17.wellsfargomedia.com/assets/images/css/template/bg-footer.png) repeat-x scroll left bottom transparent;
+  background: transparent url('/assets/bg-footer.png') repeat-x scroll left bottom;
 }
 
 main .section.promo > div {
