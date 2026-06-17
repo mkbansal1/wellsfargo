@@ -73,27 +73,56 @@ export default async function decorate(block) {
   const tbody = document.createElement('tbody');
 
   const isNoBorder = block.classList.contains('no-border');
-  const hasColHeader = !block.classList.contains('no-header') && !isNoBorder;
+  const isProductCard = block.classList.contains('product-card');
+  const hasColHeader = !block.classList.contains('no-header') && !isNoBorder && !isProductCard;
   const hasRowHeader = block.classList.contains('row-header') || isNoBorder;
+
+  if (isProductCard) {
+    const headingText = block.children[0]?.textContent || '';
+    if (block.classList.contains('relationship') || /relationship/i.test(headingText)) {
+      block.classList.add('relationship');
+    }
+  }
+
+  const maxCols = Math.max(
+    1,
+    ...[...block.children].map((row) => row.children.length),
+  );
+
+  let headerRowAssigned = false;
 
   if (hasColHeader) table.append(thead);
   table.append(tbody);
 
   [...block.children].forEach((child, i) => {
     const row = document.createElement('tr');
+    const isFullWidthRow = isProductCard && child.children.length === 1;
+    const isHeaderRow = isProductCard && child.children.length > 1 && !headerRowAssigned;
+
+    if (isFullWidthRow) row.classList.add('full-width-row');
+    if (isHeaderRow) {
+      row.classList.add('header-row');
+      headerRowAssigned = true;
+    }
     if (hasColHeader && i === 0) thead.append(row);
     else tbody.append(row);
 
     [...child.children].forEach((col, j) => {
       let cell;
-      if (hasRowHeader && j === 0) {
+      if (isFullWidthRow) {
+        cell = document.createElement('td');
+        cell.colSpan = maxCols;
+      } else if (isHeaderRow) {
+        cell = document.createElement('th');
+        cell.setAttribute('scope', 'col');
+      } else if (hasRowHeader && j === 0) {
         cell = buildCell(i, true);
       } else {
         cell = buildCell(hasColHeader ? i : i + 1, false);
       }
       const align = col.getAttribute('data-align');
       const valign = col.getAttribute('data-valign');
-      if (align) cell.style.textAlign = align;
+      if (align && !(isFullWidthRow && isProductCard)) cell.style.textAlign = align;
       if (valign) cell.style.verticalAlign = valign;
       cell.innerHTML = col.innerHTML;
       row.append(cell);

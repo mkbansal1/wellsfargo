@@ -262,106 +262,143 @@
 }
 
 /* --- product-card variant ---
-   Self-contained product card: full-width centered heading (row 1) with a
-   yellow accent bar beneath it, full-width APY spotlight, striped 2-column
-   rate rows in the middle, and a full-width centered footer with a pill CTA.
-   Full-width rows are single-cell colspan rows (.full-width-row from JS). */
+   Rate product card matching live site: centered heading, optional yellow
+   separator row (relationship rates), 3-column rate table with beige header
+   row, and centered footer notes + pill CTA.
+   Full-width rows = single-cell authored rows (.full-width-row from JS).
+   First multi-column row = column headers (.header-row from JS). */
 .table.product-card {
   border: 1px solid var(--wf-bg-gray, #e2dede);
   border-radius: 16px;
-  padding: 32px 24px;
-  margin: 0 auto;
-  max-width: 66.6%;
+  padding: 24px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
 }
 
 .table.product-card table {
-  font-size: 16px;
+  font-size: 15px;
+  table-layout: fixed;
+  width: 100%;
 }
 
-/* All data cells: no per-cell borders; spacing handled per row type */
 .table.product-card table th,
 .table.product-card table td {
   border: 0;
-  padding: 14px 8px;
+  padding: 12px 8px;
   color: var(--wf-text-primary, #3b3331);
+  vertical-align: middle;
 }
 
-/* 2-column rate rows: label left, value right */
-.table.product-card table tr:not(.full-width-row) td:first-child {
-  text-align: left;
-  font-weight: 400;
-}
-
-.table.product-card table tr:not(.full-width-row) td:last-child {
-  text-align: right;
-  font-weight: 400;
-  white-space: nowrap;
-}
-
-/* Stripe the 2-column data rows only (every other rate row) */
-.table.product-card table tr:not(.full-width-row):nth-of-type(even) td {
-  background-color: var(--wf-bg-light, #f9f7f6);
-}
-
-/* Full-width rows: centered, span the whole card */
+/* Full-width rows: centered heading, separator, linked text, footer */
 .table.product-card table tr.full-width-row td {
   text-align: center;
-  padding: 8px;
+  padding: 8px 0;
 }
 
-/* Row 1 — product heading with a yellow accent bar beneath it */
-.table.product-card table tr.full-width-row:first-child td {
-  padding-bottom: 20px;
+/* Row 1 — product name + rate type subtitle */
+.table.product-card table tr.full-width-row:first-of-type td {
+  padding-bottom: 16px;
 }
 
-.table.product-card table tr.full-width-row:first-child td h3 {
-  font-size: 24px;
+.table.product-card table tr.full-width-row:first-of-type td h3 {
+  font-size: var(--heading-font-size-l, 22px);
   font-weight: 600;
-  line-height: 1.25;
-  margin: 0 0 16px;
+  line-height: 1.3;
+  margin: 0;
 }
 
-.table.product-card table tr.full-width-row:first-child td h3::after {
+.table.product-card table tr.full-width-row:first-of-type td h3 .headingText,
+.table.product-card table tr.full-width-row:first-of-type td h3 > div:first-child {
+  font-weight: 600;
+}
+
+.table.product-card table tr.full-width-row:first-of-type td h3 > div + div,
+.table.product-card table tr.full-width-row:first-of-type td h3 p + p {
+  margin-top: 4px;
+  font-weight: 400;
+  font-size: var(--body-font-size-m, 17px);
+}
+
+/* Yellow separator — relationship rates only (below heading, before linked text) */
+.table.product-card.relationship table tr.full-width-row:first-of-type td::after {
   content: "";
   display: block;
   width: 64px;
   height: 3px;
   margin: 16px auto 0;
-  background-color: var(--wf-yellow, #ffcd41);
+  background-color: var(--wf-yellow, #fcc60a);
 }
 
-/* Row 2 — APY spotlight */
-.table.product-card table tr.full-width-row:nth-child(2) td {
-  padding-bottom: 16px;
+/* Yellow separator — also supported when authored as a full-width row with <hr> */
+.table.product-card table tr.full-width-row td hr {
+  border: 0;
+  height: 3px;
+  width: 64px;
+  margin: 8px auto;
+  background-color: var(--wf-yellow, #fcc60a);
 }
 
-.table.product-card table tr.full-width-row:nth-child(2) td p:first-child,
-.table.product-card table tr.full-width-row:nth-child(2) td strong {
-  font-size: 34px;
+/* Column header row — beige background, first col left, others centered */
+.table.product-card table tr.header-row th {
+  background-color: var(--wf-bg-warm, #f4f0ed);
+  font-weight: 600;
+  font-size: var(--body-font-size-s, 15px);
+  text-align: center;
+  padding: 12px 8px;
+}
+
+.table.product-card table tr.header-row th:first-child {
+  text-align: left;
+}
+
+/* Data rows — balance left-aligned, rate columns centered */
+.table.product-card table tr:not(.full-width-row):not(.header-row) td {
+  text-align: center;
   font-weight: 400;
-  color: var(--wf-text-primary, #3b3331);
 }
 
-.table.product-card table tr.full-width-row:nth-child(2) td p + p {
-  font-size: 14px;
-  color: var(--wf-text-secondary, #787070);
-  margin-top: 4px;
+.table.product-card table tr:not(.full-width-row):not(.header-row) td:first-child {
+  text-align: left;
 }
 
-/* Footer full-width rows (after the data rows): notes + pill CTA */
+/* Footer — first full-width row after data gets top border */
+.table.product-card table tr:not(.full-width-row) + tr.full-width-row td {
+  padding-top: 20px;
+  border-top: 1px solid var(--wf-bg-gray, #e2dede);
+}
+
+/* Footer full-width rows: notes + pill CTA */
 .table.product-card table tr.full-width-row td p {
   margin: 0;
+  font-size: var(--body-font-size-m, 17px);
+  line-height: 1.5;
+}
+
+.table.product-card table tr.full-width-row td p + p {
+  margin-top: 8px;
 }
 
 .table.product-card table tr.full-width-row td a.button,
+.table.product-card table tr.full-width-row td .button-wrapper a,
 .table.product-card table tr.full-width-row td strong > a {
   display: inline-block;
-  margin-top: 12px;
-  padding: 12px 40px;
+  margin-top: 16px;
+  padding: 9px 16px;
+  min-width: 177px;
   border-radius: 24px;
   background-color: var(--wf-red, #d71e28);
   color: #fff;
   font-weight: 600;
+  font-size: var(--body-font-size-m, 17px);
+  text-decoration: none;
+}
+
+.table.product-card table tr.full-width-row td a.button:hover,
+.table.product-card table tr.full-width-row td .button-wrapper a:hover,
+.table.product-card table tr.full-width-row td strong > a:hover {
+  background-color: #b01c24;
   text-decoration: none;
 }
 

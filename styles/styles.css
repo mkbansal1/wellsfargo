@@ -204,6 +204,15 @@ p.button-wrapper {
   margin: 12px 0;
   text-align: center;
 }
+/* Adjacent authored buttons align horizontally instead of stacking. */
+p.button-wrapper:has(+ p.button-wrapper) {
+  display: inline-flex;
+  margin-right: 12px;
+}
+
+p.button-wrapper + p.button-wrapper {
+  display: inline-flex;
+}
 
 a.button:any-link,
 button.button {
@@ -401,6 +410,21 @@ main .section.cream {
   background-color: var(--wf-cream);
 }
 
+/* promo — footer-style background band (section metadata: style: promo) */
+main .section.promo {
+  overflow: auto;
+  padding: 23px 18px 37px;
+  margin-bottom: 10px;
+  position: relative;
+  background: transparent url('/assets/bg-footer.png') repeat-x scroll left bottom;
+}
+
+main .section.promo > div {
+  padding-left: 0;
+  padding-right: 0;
+  padding-bottom: 0;
+}
+
 main .section.border{
   border:1px solid var(--wf-dark);
 }
@@ -490,9 +514,13 @@ main .section.cols-2 .default-content-wrapper {
   main .section.cols-2 > .section-container,
   main .section.cols-2 {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 16px;
     align-items: start;
+  }
+
+  main .section.cols-2 > div {
+    min-width: 0;
   }
 }
 
