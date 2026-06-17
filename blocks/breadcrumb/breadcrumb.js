@@ -68,21 +68,54 @@ function createBreadcrumbItem(title, path) {
   return li;
 }
 
+// Line-of-business base paths whose pages start their breadcrumb at the base
+// itself (dropping the "Personal"/"Inicio" home root). Longest prefixes first
+// so e.g. /es/biz wins over /es.
+const BREADCRUMB_BASES = [
+  '/es/biz',
+  '/es/about',
+  '/es/cib',
+  '/investing-wealth',
+  '/biz',
+  '/com',
+  '/cib',
+  '/about',
+];
+
+function findBasePath(pathname) {
+  const match = BREADCRUMB_BASES.find(
+    (base) => pathname === base || pathname.startsWith(`${base}/`),
+  );
+  if (match) return match;
+  if (pathname === '/es' || pathname.startsWith('/es/')) return '/es';
+  return '/';
+}
+
 async function buildBreadcrumbFromPath() {
   const { pathname } = window.location;
   const segments = pathname.split('/').filter(Boolean);
   const items = [];
-  const isSpanish = pathname.startsWith('/es/');
 
-  const homePath = isSpanish ? '/es' : '/';
-  const homeTitle = isSpanish ? 'Inicio' : 'Personal';
-  items.push(createBreadcrumbItem(homeTitle, homePath));
+  const base = findBasePath(pathname);
+  const baseSegments = base === '/' ? [] : base.split('/').filter(Boolean);
+  const baseIsCurrent = baseSegments.length === segments.length;
 
-  const startIdx = isSpanish ? 1 : 0;
-  let accumulated = isSpanish ? '/es' : '';
-  for (let i = startIdx; i < segments.length; i += 1) {
-    const segment = segments[i];
-    accumulated += `/${segment}`;
+  // On an LOB base landing page (e.g. /biz, /es/about) the only crumb would be
+  // the base itself, which offers no navigation — render nothing so the block
+  // can be hidden.
+  if (baseIsCurrent && base !== '/' && base !== '/es') return [];
+
+  // Starting crumb: the home root for default/Spanish-home paths, otherwise the
+  // matched LOB base path itself.
+  let startTitle;
+  if (base === '/') startTitle = 'Personal';
+  else if (base === '/es') startTitle = 'Inicio';
+  else startTitle = await lookupTitle(base);
+  items.push(createBreadcrumbItem(startTitle, baseIsCurrent ? null : base));
+
+  let accumulated = base === '/' ? '' : base;
+  for (let i = baseSegments.length; i < segments.length; i += 1) {
+    accumulated += `/${segments[i]}`;
     const isLast = i === segments.length - 1;
 
     /* eslint-disable no-await-in-loop */
@@ -97,8 +130,14 @@ export default async function decorate(block) {
   const nav = document.createElement('nav');
   nav.setAttribute('aria-label', 'Breadcrumb');
 
-  const ol = document.createElement('ol');
   const items = await buildBreadcrumbFromPath();
+  if (items.length === 0) {
+    block.textContent = '';
+    block.setAttribute('hidden', '');
+    return;
+  }
+
+  const ol = document.createElement('ol');
   items.forEach((li) => ol.append(li));
 
   nav.append(ol);
