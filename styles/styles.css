@@ -410,6 +410,21 @@ main .section.cream {
   background-color: var(--wf-cream);
 }
 
+/* promo — footer-style background band (section metadata: style: promo) */
+main .section.promo {
+  overflow: auto;
+  padding: 23px 18px 37px;
+  margin-bottom: 10px;
+  position: relative;
+  background: transparent url('/assets/bg-footer.png') repeat-x scroll left bottom;
+}
+
+main .section.promo > div {
+  padding-left: 0;
+  padding-right: 0;
+  padding-bottom: 0;
+}
+
 main .section.border{
   border:1px solid var(--wf-dark);
 }
