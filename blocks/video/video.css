@@ -15,6 +15,24 @@
   border-radius: 0;
 }
 
+/* Audio variant — rendered in a <video> element so it looks like the source's
+   video-style player: full-width 16:9 gray box with a centered microphone
+   graphic and native controls. */
+.video.audio .video-player-wrapper {
+  aspect-ratio: 16 / 9;
+  background-color: #ebebeb;
+  background-image: url("/icons/audio-static-image.jpg");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+}
+
+.video.audio .video-player-wrapper video {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+}
+
 /* Transcript toggle */
 .video .video-transcript {
   margin-top: 16px;

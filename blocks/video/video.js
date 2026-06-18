@@ -2,33 +2,69 @@ function isVideoUrl(url) {
   return /\.(mp4|webm|ogg)(\?.*)?$/i.test(url);
 }
 
+function isAudioUrl(url) {
+  return /\.(mp3|m4a|wav|aac|oga)(\?.*)?$/i.test(url);
+}
+
 function isImageUrl(url) {
   return /\.(png|jpg|jpeg|gif|webp|svg)(\?.*)?$/i.test(url);
 }
+
+const AUDIO_MIME = {
+  mp3: 'audio/mpeg',
+  m4a: 'audio/mp4',
+  aac: 'audio/aac',
+  wav: 'audio/wav',
+  oga: 'audio/ogg',
+};
 
 export default function decorate(block) {
   const rows = [...block.children];
   const videoRow = rows[0];
   const transcriptRow = rows[1];
 
-  // Extract video and poster from all links in the video row
+  // Extract video/audio and poster from all links in the first row
   const links = videoRow.querySelectorAll('a[href]');
   const picture = videoRow.querySelector('picture img');
   let videoSrc = '';
+  let audioSrc = '';
   let posterSrc = '';
 
   links.forEach((a) => {
     const { href } = a;
     if (isVideoUrl(href)) videoSrc = href;
+    else if (isAudioUrl(href)) audioSrc = href;
     else if (isImageUrl(href)) posterSrc = href;
   });
 
   if (picture) posterSrc = picture.src;
 
-  // Build video player
+  // Build the player
   block.textContent = '';
 
-  if (videoSrc) {
+  if (audioSrc && !videoSrc) {
+    // Render audio inside a <video> element so it gets the same player-box look
+    // as an mp4 (full-width 16:9 box with native controls), matching the source.
+    block.classList.add('audio');
+    const audioWrapper = document.createElement('div');
+    audioWrapper.className = 'video-player-wrapper';
+
+    const video = document.createElement('video');
+    video.controls = true;
+    video.preload = 'metadata';
+    video.playsInline = true;
+    // An authored poster image (if any) overrides the default microphone chrome
+    // applied via CSS background on the wrapper.
+    if (posterSrc) video.poster = posterSrc;
+
+    const source = document.createElement('source');
+    source.src = audioSrc;
+    const ext = (audioSrc.split('?')[0].split('.').pop() || '').toLowerCase();
+    source.type = AUDIO_MIME[ext] || 'audio/mpeg';
+    video.append(source);
+    audioWrapper.append(video);
+    block.append(audioWrapper);
+  } else if (videoSrc) {
     const videoWrapper = document.createElement('div');
     videoWrapper.className = 'video-player-wrapper';
 
