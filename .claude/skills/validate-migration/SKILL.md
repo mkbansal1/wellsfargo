@@ -424,7 +424,42 @@ DA source section-metadata format:
 </div>
 ```
 
-### Rule 6 — *(planned)* `og-tags`
+### Rule 6 — `broken-links` ✅ (implemented)
+
+Extracts every internal (root-relative) link from the rendered EDS page, deduplicates, then HEAD-checks each against the EDS domain with 10 concurrent workers and a 10-second timeout per link.
+
+#### Link extraction
+
+- Only `href` values starting with `/` are checked (root-relative internal links).
+- Fragment-only paths (`#...`), the bare root `/`, `mailto:`, `tel:`, and external URLs are excluded.
+- The path is deduplicated (query strings and fragments stripped before dedup) — each unique path is only checked once.
+
+#### Classification and fix actions
+
+| HTTP status | Link type | Status | Action |
+|---|---|---|---|
+| 200 | any | `ok` | `NONE` |
+| 301 / 302 / 307 / 308 | any | `redirect` | `NONE` — redirect is intentional |
+| 404 | `.pdf` | `broken-pdf` | `FIX_PDF` (auto-fix) |
+| 404 | page | `broken-page` | `MANUAL` — publish page or add redirect |
+| other (5xx, etc.) | any | `unexpected` | `MANUAL` — report only |
+| timeout / network error | any | `error` | `MANUAL` — report only |
+
+#### Auto-fix: `FIX_PDF`
+
+When a PDF link returns 404 on EDS, the skill:
+1. Downloads the PDF from the equivalent source URL (`https://www.wellsfargo.com{path}`)
+2. Uploads it to DA at the same path (`https://admin.da.live/source/{org}/{site}{path}`)
+
+This is handled in **Step 4c** of the workflow (after the main page patch).
+
+#### Manual fixes: broken page links
+
+Pages returning 404 are listed in the report. The author must either:
+- Publish the missing page on EDS, or
+- Configure a redirect rule
+
+### Rule 7 — *(planned)* `og-tags`
 Validate `og:title`, `og:description`, `og:image`, `og:url`.
 
 ---
@@ -691,6 +726,60 @@ PYEOF
 > export EDS_SITE="${EDS_SITE}"
 > ```
 
+#### 4c. Download and upload broken PDF files (Rule 6 — `FIX_PDF`)
+
+> Skip if no `broken-links` rule was run, or if `brokenPdfs = 0` in the summary.
+
+For each fix in the report where `rule === 'broken-links'` and `action === 'FIX_PDF'`:
+1. Download the PDF from the source URL (`fix.expectedValue`)
+2. Upload it to DA at the EDS path (`fix.currentValue` → strip host → DA source path)
+
+```bash
+python3 << 'PYEOF'
+import json, subprocess, os, sys, urllib.request, tempfile
+
+r    = json.load(open('./validate-work/report.json'))
+IMS  = os.environ.get('IMS_TOKEN', '')
+ORG  = os.environ.get('EDS_ORG', '')
+SITE = os.environ.get('EDS_SITE', '')
+
+pdf_fixes = [f for f in r.get('fixes', []) if f.get('rule') == 'broken-links' and f.get('action') == 'FIX_PDF']
+
+if not pdf_fixes:
+    print('No broken PDF fixes required.')
+    sys.exit(0)
+
+for fix in pdf_fixes:
+    path       = fix['field']          # root-relative path, e.g. /assets/pdf/foo.pdf
+    source_url = fix['expectedValue']  # https://www.wellsfargo.com/assets/pdf/foo.pdf
+
+    # Download PDF from source
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
+    try:
+        print(f'  Downloading {source_url}...')
+        urllib.request.urlretrieve(source_url, tmp.name)
+        size = os.path.getsize(tmp.name)
+        print(f'  Downloaded: {size} bytes')
+    except Exception as e:
+        print(f'  FAILED to download {source_url}: {e}')
+        continue
+
+    # Upload to DA
+    da_url = f'https://admin.da.live/source/{ORG}/{SITE}{path}'
+    result = subprocess.run(
+        ['curl', '-s', '-o', '/dev/null', '-w', '%{http_code}', '-X', 'POST',
+         '-H', f'Authorization: Bearer {IMS}',
+         '-F', f'data=@{tmp.name};type=application/pdf',
+         da_url],
+        capture_output=True, text=True
+    )
+    code = result.stdout.strip()
+    status = 'OK' if code in ('200', '201') else f'FAILED (HTTP {code})'
+    print(f'  Upload {path}: {status}')
+    os.unlink(tmp.name)
+PYEOF
+```
+
 **Mark todo 4 complete.**
 
 ---
@@ -854,6 +943,13 @@ They must be added to the sheet before these footnotes will render on the EDS pa
 |-----|------|----------|-------|
 | tcm:84-999999-16 | tcm:91-000000-32 | true | `<p>Example missing footnote text.</p>` |
 
+### Rule 6 — Broken Links
+
+| Path | Type | HTTP | Action |
+|---|---|---|---|
+| /assets/pdf/foo.pdf | pdf | 404 | 🔧 FIX_PDF — downloaded from source and uploaded to DA |
+| /some/missing-page | page | 404 | 🔴 MANUAL — publish the page or add a redirect |
+
 ### Summary
 
 | Metric                  | Value |
@@ -864,6 +960,8 @@ They must be added to the sheet before these footnotes will render on the EDS pa
 | Auto-fixes applied      | 5     |
 | Manual fixes req'd      | 1     |
 | Missing from sheet      | 1     |
+| Broken PDFs fixed       | 1     |
+| Broken pages (manual)   | 1     |
 | Preview triggered       | ✅    |
 
 ### Actions Performed
@@ -874,6 +972,8 @@ They must be added to the sheet before these footnotes will render on the EDS pa
 4. [WRAP_ANCHOR] links.sup-3           — wrapped with <a href="#tcm:84-284821-16">
 5. [MANUAL]      links.sup-4           — sup absent from EDS, manual fix required
 6. [ADD]         footnotes.footnotes   — added ordered cid list from source
+7. [FIX_PDF]     broken-links          — /assets/pdf/foo.pdf downloaded and uploaded to DA
+8. [MANUAL]      broken-links          — /some/missing-page is 404 on EDS; publish or redirect
 ```
 
 **Status icons:**
@@ -881,7 +981,8 @@ They must be added to the sheet before these footnotes will render on the EDS pa
 - ⚠️ `mismatch` / `missing_anchor` — auto-fix applied
 - ❌ `eds_missing` — field absent in EDS, auto-fix applied
 - 🚫 `forbidden` — field must not appear in page metadata (locale/nav/footer/template); auto-removed
-- 🔴 `missing_content` — sup absent from EDS entirely; flagged as MANUAL (no auto-patch possible)
+- 🔴 `missing_content` / `broken-page` — cannot be auto-fixed; manual action required
+- 🔧 `broken-pdf` — PDF was 404 on EDS; auto-downloaded from source and uploaded to DA
 - ℹ️ `source_missing` — source has no value, nothing to enforce
 - 📋 `missingFromSheet` — cid found on source page but not in `/data/footnotes.json` sheet; must be added manually to the sheet
 

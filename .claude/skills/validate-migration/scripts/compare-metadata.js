@@ -20,6 +20,7 @@
  *   footnotes        — footnotes metadata sequence + sheet coverage      (Rule 3)
  *   hrefs            — link rewrite checks (4.1–4.5)                    (Rule 4)
  *   section-metadata — section style generation checks                  (Rule 5)
+ *   broken-links     — HEAD-check all internal links; fix broken PDFs   (Rule 6)
  *
  * Rule 2 (links) — reference page support:
  *   The EDS page is scanned for blocks that reference other pages:
@@ -740,6 +741,102 @@ function ruleSectionMetadata(edsRoot) {
 }
 
 // ---------------------------------------------------------------------------
+// Rule 6: broken-links — check all internal links on the EDS page
+//
+// Extracts every root-relative href from the rendered EDS HTML, deduplicates,
+// then HEAD-checks each against the EDS domain (10 concurrent, 10s timeout).
+//
+//   200           → ok  (NONE)
+//   301/302/3xx   → redirect  (NONE — redirect is intentional)
+//   404, pdf      → FIX_PDF   (auto: download from source, upload to DA)
+//   404, page     → MANUAL    (report — page must be published or redirected)
+//   other         → MANUAL    (report — unexpected status)
+// ---------------------------------------------------------------------------
+
+const BROKEN_LINKS_CONCURRENCY = 10;
+const BROKEN_LINKS_TIMEOUT_MS = 10000;
+
+/**
+ * Check all internal links found in the EDS page root.
+ * Returns a plain object keyed by path (used as the "field" id in the report).
+ */
+async function ruleBrokenLinks(edsRoot, edsBaseUrl, sourceBaseUrl) {
+  // Collect unique root-relative paths (strip fragment + query for dedup)
+  const seen = new Set();
+  const links = [];
+
+  for (const a of edsRoot.querySelectorAll('a[href]')) {
+    const href = (a.getAttribute('href') || '').trim();
+    if (!href.startsWith('/')) continue; // skip external, mailto:, tel:, etc.
+    const path = href.split('?')[0].split('#')[0].replace(/\/$/, '') || '/';
+    if (path === '/' || seen.has(path)) continue;
+    seen.add(path);
+    links.push({ path, url: `${edsBaseUrl}${path}`, isPdf: path.toLowerCase().endsWith('.pdf') });
+  }
+
+  console.error(`[compare-metadata] [broken-links] ${links.length} unique internal link(s) to check...`);
+
+  const results = {};
+  let idx = 0;
+
+  async function worker() {
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      // eslint-disable-next-line no-plusplus
+      const link = links[idx++];
+      if (!link) break;
+      try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), BROKEN_LINKS_TIMEOUT_MS);
+        const res = await fetch(link.url, { method: 'HEAD', signal: controller.signal, redirect: 'follow' });
+        clearTimeout(timer);
+        const { status } = res;
+
+        if (status === 200) {
+          results[link.path] = { path: link.path, url: link.url, status, type: link.isPdf ? 'pdf' : 'page', action: 'NONE', note: 'OK' };
+        } else if (status === 404) {
+          if (link.isPdf) {
+            results[link.path] = {
+              path: link.path,
+              url: link.url,
+              sourceUrl: `${sourceBaseUrl}${link.path}`,
+              status,
+              type: 'pdf',
+              action: 'FIX_PDF',
+              note: `PDF 404 on EDS. Will download from source (${sourceBaseUrl}${link.path}) and upload to DA.`,
+            };
+          } else {
+            results[link.path] = { path: link.path, url: link.url, status, type: 'page', action: 'MANUAL', note: 'Page not found on EDS (404). Publish the page or configure a redirect.' };
+          }
+        } else if ([301, 302, 307, 308].includes(status)) {
+          results[link.path] = { path: link.path, url: link.url, status, type: link.isPdf ? 'pdf' : 'page', action: 'NONE', note: `Redirect (${status}) — intentional, no action needed.` };
+        } else {
+          results[link.path] = { path: link.path, url: link.url, status, type: link.isPdf ? 'pdf' : 'page', action: 'MANUAL', note: `Unexpected HTTP status ${status}.` };
+        }
+      } catch (err) {
+        const isTimeout = err.name === 'AbortError';
+        results[link.path] = {
+          path: link.path,
+          url: link.url,
+          status: isTimeout ? 'TIMEOUT' : 'ERROR',
+          type: link.isPdf ? 'pdf' : 'page',
+          action: 'MANUAL',
+          note: isTimeout ? 'Request timed out after 10s.' : `Network error: ${err.message}`,
+        };
+      }
+    }
+  }
+
+  await Promise.all(Array.from({ length: BROKEN_LINKS_CONCURRENCY }, worker));
+
+  const ok = Object.values(results).filter((r) => r.action === 'NONE').length;
+  const broken = Object.values(results).filter((r) => r.action !== 'NONE').length;
+  console.error(`[compare-metadata] [broken-links] Done — ${ok} ok, ${broken} broken/issue(s).`);
+
+  return results;
+}
+
+// ---------------------------------------------------------------------------
 // Rule 4: hrefs — link-rewrite validation
 //
 // Detects five classes of link problems in the EDS page (main + reference pages):
@@ -1114,6 +1211,18 @@ function buildReport({
           fix.wrapper = detail.wrapper; // 'strong' or 'em'
           fix.buttonStyle = detail.buttonStyle; // 'primary' or 'secondary'
         }
+      } else if (ruleName === 'broken-links') {
+        fix = {
+          rule: 'broken-links',
+          field,
+          action: detail.action,
+          page: 'main',
+          type: detail.type,       // 'pdf' or 'page'
+          httpStatus: detail.status,
+          currentValue: detail.url,
+          expectedValue: detail.action === 'FIX_PDF' ? detail.sourceUrl : null,
+          note: detail.note,
+        };
       } else {
         fix = {
           rule: ruleName,
@@ -1163,6 +1272,8 @@ function buildReport({
       actionsRequired: autoFixes,
       manualRequired: manualFixes,
       missingFromSheet: (missingFromSheet || []).length,
+      brokenPdfs: fixes.filter((f) => f.rule === 'broken-links' && f.action === 'FIX_PDF').length,
+      brokenPages: fixes.filter((f) => f.rule === 'broken-links' && f.action === 'MANUAL' && f.type === 'page').length,
     },
   };
 }
@@ -1295,6 +1406,14 @@ async function main() {
 
       case 'section-metadata': {
         ruleResults['section-metadata'] = ruleSectionMetadata(edsFetch.root);
+        break;
+      }
+
+      case 'broken-links': {
+        // Derive source base URL (strip path from SOURCE_URL)
+        const srcBase = SOURCE_URL.replace(/\/[^/]*$/, '').replace(/\/$/, '');
+        // eslint-disable-next-line no-await-in-loop
+        ruleResults['broken-links'] = await ruleBrokenLinks(edsFetch.root, EDS_BASE_URL, srcBase);
         break;
       }
 
