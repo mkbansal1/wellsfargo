@@ -309,6 +309,7 @@
   margin: 0;
 }
 
+/* stylelint-disable-next-line selector-class-pattern */
 .table.product-card table tr.full-width-row:first-of-type td h3 .headingText,
 .table.product-card table tr.full-width-row:first-of-type td h3 > div:first-child {
   font-weight: 600;
@@ -354,12 +355,12 @@
 }
 
 /* Data rows — balance left-aligned, rate columns centered */
-.table.product-card table tr:not(.full-width-row):not(.header-row) td {
+.table.product-card table tr:not(.full-width-row, .header-row) td {
   text-align: center;
   font-weight: 400;
 }
 
-.table.product-card table tr:not(.full-width-row):not(.header-row) td:first-child {
+.table.product-card table tr:not(.full-width-row, .header-row) td:first-child {
   text-align: left;
 }
 
@@ -402,4 +403,136 @@
   text-decoration: none;
 }
 
+/* stylelint-enable no-descending-specificity */
+
+/* ---------------------------------------------------------------------------
+   compare variant — one continuous product comparison table.
+   Row archetypes (classed by table.js):
+     .compare-header-row  → 4 product columns with gradient accent bars
+     .compare-section-row → full-width centered large divider
+     .compare-label-row   → full-width left-aligned label
+     (plain data rows)    → 4 equal value columns
+--------------------------------------------------------------------------- */
+/* stylelint-disable no-descending-specificity */
+.table.compare {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  overflow-x: auto;
+}
+
+.table.compare table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.table.compare th,
+.table.compare td {
+  border: 0;
+  padding: 16px 12px;
+  text-align: center;
+  vertical-align: top;
+  color: var(--wf-text-primary, #3b3331);
+  width: 25%;
+}
+
+/* product-name header with gradient accent bar — left aligned */
+.table.compare thead th {
+  position: relative;
+  padding-bottom: 16px;
+  font-weight: 600;
+  font-size: 17px;
+  color: var(--wf-text-secondary, #787070);
+  text-align: left;
+}
+
+.table.compare thead th a {
+  color: var(--wf-link, #5a469b);
+  text-decoration: none;
+  font-weight: 400;
+}
+
+.table.compare thead th a:hover {
+  text-decoration: underline;
+}
+
+.table.compare thead th::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 0;
+  height: 4px;
+  border-radius: 2px;
+}
+
+.table.compare thead th:nth-child(1)::after {
+  background: linear-gradient(191deg, #dea63c, #fade8d);
+}
+
+.table.compare thead th:nth-child(2)::after {
+  background: linear-gradient(191deg, #a245b0, #d988df);
+}
+
+.table.compare thead th:nth-child(3)::after {
+  background: linear-gradient(191deg, #2c64d4, #81a9f8);
+}
+
+.table.compare thead th:nth-child(4)::after {
+  background: linear-gradient(191deg, #8d6337, #bfa58a);
+}
+
+/* full-width label row — centered by default (matches detail sections) */
+.table.compare td.compare-label {
+  width: auto;
+  font-weight: 600;
+  border-top: 1px solid var(--wf-bg-gray, #e2dede);
+  padding: 20px 12px 12px;
+}
+
+/* full-width centered section divider */
+.table.compare td.compare-section {
+  width: auto;
+  text-align: center;
+  font-weight: 600;
+  padding: 40px 12px 24px;
+  border-top: 1px solid var(--wf-bg-gray, #e2dede);
+}
+
+.table.compare td.compare-section :is(h2, h3, h4) {
+  margin: 0;
+  font-size: var(--heading-font-size-l, 24px);
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+/* data-row cells */
+.table.compare tbody tr:not(.compare-section-row, .compare-label-row) td p {
+  margin: 0 0 8px;
+}
+
+.table.compare tbody tr:not(.compare-section-row, .compare-label-row) td p:last-child {
+  margin-bottom: 0;
+}
+
+.table.compare td ul {
+  margin: 0;
+  padding-left: 1.25em;
+}
+
+.table.compare td li {
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.table.compare td a:not(.button) {
+  color: var(--wf-link, #5a469b);
+}
+
+/* mobile: keep 4 columns readable via horizontal scroll */
+@media (width < 768px) {
+  .table.compare table {
+    min-width: 720px;
+  }
+}
 /* stylelint-enable no-descending-specificity */
