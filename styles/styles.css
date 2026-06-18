@@ -464,6 +464,16 @@ main .section.dark-blue a:any-link {
   color: var(--background-color);
 }
 
+/* Gray gradient section variation */
+main .section.gray {
+  background: linear-gradient(166deg, #1a1a1a -0.51%, #7c7270 59.54%);
+  color: var(--background-color);
+}
+
+main .section.gray :is(h1, h2, h3, h4, h5, h6, a) {
+  color: inherit;
+}
+
 main .section.center-align .default-content-wrapper {
   text-align: center;
 }
