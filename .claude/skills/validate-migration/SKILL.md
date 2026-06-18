@@ -55,6 +55,26 @@ Rules are applied in order. Only enabled rules run per invocation.
 
 Identifies the source-page theme before any other rule executes. The result is always present in the report under `rules.theme` regardless of which `--rules` flags are passed.
 
+#### Step 0a — Fetch DA source (always runs first, before any rule)
+
+**Before running any rule, the DA source HTML must be fetched fresh from DA.** Never use a local copy of the document. This ensures validation and patching always operate on the latest authored content.
+
+```bash
+curl -s \
+  -H "Authorization: Bearer ${IMS_TOKEN}" \
+  "https://admin.da.live/source/${EDS_ORG}/${EDS_SITE}${EDS_PATH}.html" \
+  -o ./validate-work/source-main.html
+echo "DA source: $(wc -c < ./validate-work/source-main.html) bytes"
+```
+
+- If the response is empty or returns an error status, **stop and report** — do not proceed with validation on a missing or stale document.
+- The fetched file (`./validate-work/source-main.html`) is the single source of truth used by all subsequent patch steps. It is never re-fetched after this point.
+- If `IMS_TOKEN` is not available, ask the user before proceeding (see troubleshooting).
+
+#### Theme detection
+
+Identifies the source-page theme before any other rule executes. The result is always present in the report under `rules.theme` regardless of which `--rules` flags are passed.
+
 | Theme | Detection signal | Description |
 |---|---|---|
 | **New theme** | `<body id="ps-rsk-foundation">` present | ps-rsk CSS/JS stack |
@@ -483,12 +503,13 @@ Where `<skill-dir>` is the path to this skill's folder (printed at the top of th
 **Create a todo list** with these tasks:
 
 1. Parse inputs and load configuration
-2. Run comparison script (`compare-metadata.js`)
-3. **Create version snapshots** — main page + all reference pages (before any edits)
-4. Apply fixes to EDS document source (`patch-document.js`)
-5. Upload patched documents to DA / content source
-6. Preview pages via AEM Admin API
-7. Display final report
+2. **Fetch DA source** — pull latest content from DA (never use local copy)
+3. Run comparison script (`compare-metadata.js`)
+4. **Create version snapshots** — main page + all reference pages (before any edits)
+5. Apply fixes to EDS document source (`patch-document.js`)
+6. Upload patched documents to DA / content source
+7. Preview pages via AEM Admin API
+8. Display final report
 
 **Install script dependencies** if not already installed:
 
@@ -537,6 +558,28 @@ if m:
 " 2>/dev/null)
 echo "EDS parsed: org=$EDS_ORG site=$EDS_SITE ref=$EDS_REF path=$EDS_PATH"
 ```
+
+#### 1c. Fetch DA source HTML (Rule 0 — always required)
+
+**Always fetch fresh from DA. Never use a local or previously downloaded copy.**
+
+```bash
+curl -s \
+  -H "Authorization: Bearer ${IMS_TOKEN}" \
+  "https://admin.da.live/source/${EDS_ORG}/${EDS_SITE}${EDS_PATH}.html" \
+  -o ./validate-work/source-main.html
+
+DA_SIZE=$(wc -c < ./validate-work/source-main.html)
+echo "DA source fetched: ${DA_SIZE} bytes"
+
+# Fail fast if the response is empty or suspiciously small
+if [ "$DA_SIZE" -lt 100 ]; then
+  echo "ERROR: DA source appears empty or missing — check org/site/path and IMS token."
+  exit 1
+fi
+```
+
+> If this step fails with 401, the IMS token is missing or expired — ask the user to provide a fresh token before continuing.
 
 ---
 
@@ -653,15 +696,11 @@ This step patches **two categories** of pages from the report:
 | **Main page** | metadata + footnotes + links (page = "main") | `EDS_PATH` |
 | **Reference pages** | links only (page = that fragment path) | the fragment's own path |
 
-#### 4a. Fetch and patch the main page
+#### 4a. Patch the main page
+
+The DA source was already fetched in **Step 1c** (`./validate-work/source-main.html`). Do **not** re-fetch it here — always use the file pulled in Step 1c.
 
 ```bash
-curl -s \
-  -H "Authorization: Bearer ${IMS_TOKEN}" \
-  "https://admin.da.live/source/${EDS_ORG}/${EDS_SITE}${EDS_PATH}.html" \
-  -o ./validate-work/source-main.html
-echo "Main source: $(wc -c < ./validate-work/source-main.html) bytes"
-
 node <skill-dir>/scripts/patch-document.js \
   --source ./validate-work/source-main.html \
   --report ./validate-work/report.json \
