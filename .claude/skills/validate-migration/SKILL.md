@@ -55,6 +55,26 @@ Rules are applied in order. Only enabled rules run per invocation.
 
 Identifies the source-page theme before any other rule executes. The result is always present in the report under `rules.theme` regardless of which `--rules` flags are passed.
 
+#### Step 0a — Fetch DA source (always runs first, before any rule)
+
+**Before running any rule, the DA source HTML must be fetched fresh from DA.** Never use a local copy of the document. This ensures validation and patching always operate on the latest authored content.
+
+```bash
+curl -s \
+  -H "Authorization: Bearer ${IMS_TOKEN}" \
+  "https://admin.da.live/source/${EDS_ORG}/${EDS_SITE}${EDS_PATH}.html" \
+  -o ./validate-work/source-main.html
+echo "DA source: $(wc -c < ./validate-work/source-main.html) bytes"
+```
+
+- If the response is empty or returns an error status, **stop and report** — do not proceed with validation on a missing or stale document.
+- The fetched file (`./validate-work/source-main.html`) is the single source of truth used by all subsequent patch steps. It is never re-fetched after this point.
+- If `IMS_TOKEN` is not available, ask the user before proceeding (see troubleshooting).
+
+#### Theme detection
+
+Identifies the source-page theme before any other rule executes. The result is always present in the report under `rules.theme` regardless of which `--rules` flags are passed.
+
 | Theme | Detection signal | Description |
 |---|---|---|
 | **New theme** | `<body id="ps-rsk-foundation">` present | ps-rsk CSS/JS stack |
@@ -424,7 +444,53 @@ DA source section-metadata format:
 </div>
 ```
 
-### Rule 6 — *(planned)* `og-tags`
+### Rule 6 — `broken-links` ✅ (implemented)
+
+Extracts every internal (root-relative) link from the rendered EDS page, deduplicates, then HEAD-checks each against the EDS domain with 10 concurrent workers and a 10-second timeout per link.
+
+#### Link extraction
+
+- Only `href` values starting with `/` are checked (root-relative internal links).
+- Fragment-only paths (`#...`), the bare root `/`, `mailto:`, `tel:`, and external URLs are excluded.
+- The path is deduplicated (query strings and fragments stripped before dedup) — each unique path is only checked once.
+
+#### Classification and fix actions
+
+Two passes run in sequence:
+
+**Pass 1 — Dead links** (no HTTP check needed, detected by href value alone):
+
+| `href` value | Status | Action |
+|---|---|---|
+| `""` (empty) | `DEAD` | `MANUAL` — placeholder link with no destination |
+| `"#"` (bare fragment) | `DEAD` | `MANUAL` — unresolved or stub link |
+
+**Pass 2 — HTTP HEAD-check** (root-relative hrefs only, 10 concurrent, 10s timeout):
+
+| HTTP status | Link type | Status | Action |
+|---|---|---|---|
+| 200 | any | `ok` | `NONE` |
+| 301 / 302 / 307 / 308 | any | `redirect` | `NONE` — redirect is intentional |
+| 404 | `.pdf` | `broken-pdf` | `FIX_PDF` (auto-fix) |
+| 404 | page | `broken-page` | `MANUAL` — publish page or add redirect |
+| other (5xx, etc.) | any | `unexpected` | `MANUAL` — report only |
+| timeout / network error | any | `error` | `MANUAL` — report only |
+
+#### Auto-fix: `FIX_PDF`
+
+When a PDF link returns 404 on EDS, the skill:
+1. Downloads the PDF from the equivalent source URL (`https://www.wellsfargo.com{path}`)
+2. Uploads it to DA at the same path (`https://admin.da.live/source/{org}/{site}{path}`)
+
+This is handled in **Step 4c** of the workflow (after the main page patch).
+
+#### Manual fixes: broken page links
+
+Pages returning 404 are listed in the report. The author must either:
+- Publish the missing page on EDS, or
+- Configure a redirect rule
+
+### Rule 7 — *(planned)* `og-tags`
 Validate `og:title`, `og:description`, `og:image`, `og:url`.
 
 ---
@@ -448,12 +514,13 @@ Where `<skill-dir>` is the path to this skill's folder (printed at the top of th
 **Create a todo list** with these tasks:
 
 1. Parse inputs and load configuration
-2. Run comparison script (`compare-metadata.js`)
-3. **Create version snapshots** — main page + all reference pages (before any edits)
-4. Apply fixes to EDS document source (`patch-document.js`)
-5. Upload patched documents to DA / content source
-6. Preview pages via AEM Admin API
-7. Display final report
+2. **Fetch DA source** — pull latest content from DA (never use local copy)
+3. Run comparison script (`compare-metadata.js`)
+4. **Create version snapshots** — main page + all reference pages (before any edits)
+5. Apply fixes to EDS document source (`patch-document.js`)
+6. Upload patched documents to DA / content source
+7. Preview pages via AEM Admin API
+8. Display final report
 
 **Install script dependencies** if not already installed:
 
@@ -502,6 +569,28 @@ if m:
 " 2>/dev/null)
 echo "EDS parsed: org=$EDS_ORG site=$EDS_SITE ref=$EDS_REF path=$EDS_PATH"
 ```
+
+#### 1c. Fetch DA source HTML (Rule 0 — always required)
+
+**Always fetch fresh from DA. Never use a local or previously downloaded copy.**
+
+```bash
+curl -s \
+  -H "Authorization: Bearer ${IMS_TOKEN}" \
+  "https://admin.da.live/source/${EDS_ORG}/${EDS_SITE}${EDS_PATH}.html" \
+  -o ./validate-work/source-main.html
+
+DA_SIZE=$(wc -c < ./validate-work/source-main.html)
+echo "DA source fetched: ${DA_SIZE} bytes"
+
+# Fail fast if the response is empty or suspiciously small
+if [ "$DA_SIZE" -lt 100 ]; then
+  echo "ERROR: DA source appears empty or missing — check org/site/path and IMS token."
+  exit 1
+fi
+```
+
+> If this step fails with 401, the IMS token is missing or expired — ask the user to provide a fresh token before continuing.
 
 ---
 
@@ -618,15 +707,11 @@ This step patches **two categories** of pages from the report:
 | **Main page** | metadata + footnotes + links (page = "main") | `EDS_PATH` |
 | **Reference pages** | links only (page = that fragment path) | the fragment's own path |
 
-#### 4a. Fetch and patch the main page
+#### 4a. Patch the main page
+
+The DA source was already fetched in **Step 1c** (`./validate-work/source-main.html`). Do **not** re-fetch it here — always use the file pulled in Step 1c.
 
 ```bash
-curl -s \
-  -H "Authorization: Bearer ${IMS_TOKEN}" \
-  "https://admin.da.live/source/${EDS_ORG}/${EDS_SITE}${EDS_PATH}.html" \
-  -o ./validate-work/source-main.html
-echo "Main source: $(wc -c < ./validate-work/source-main.html) bytes"
-
 node <skill-dir>/scripts/patch-document.js \
   --source ./validate-work/source-main.html \
   --report ./validate-work/report.json \
@@ -690,6 +775,60 @@ PYEOF
 > export EDS_ORG="${EDS_ORG}"
 > export EDS_SITE="${EDS_SITE}"
 > ```
+
+#### 4c. Download and upload broken PDF files (Rule 6 — `FIX_PDF`)
+
+> Skip if no `broken-links` rule was run, or if `brokenPdfs = 0` in the summary.
+
+For each fix in the report where `rule === 'broken-links'` and `action === 'FIX_PDF'`:
+1. Download the PDF from the source URL (`fix.expectedValue`)
+2. Upload it to DA at the EDS path (`fix.currentValue` → strip host → DA source path)
+
+```bash
+python3 << 'PYEOF'
+import json, subprocess, os, sys, urllib.request, tempfile
+
+r    = json.load(open('./validate-work/report.json'))
+IMS  = os.environ.get('IMS_TOKEN', '')
+ORG  = os.environ.get('EDS_ORG', '')
+SITE = os.environ.get('EDS_SITE', '')
+
+pdf_fixes = [f for f in r.get('fixes', []) if f.get('rule') == 'broken-links' and f.get('action') == 'FIX_PDF']
+
+if not pdf_fixes:
+    print('No broken PDF fixes required.')
+    sys.exit(0)
+
+for fix in pdf_fixes:
+    path       = fix['field']          # root-relative path, e.g. /assets/pdf/foo.pdf
+    source_url = fix['expectedValue']  # https://www.wellsfargo.com/assets/pdf/foo.pdf
+
+    # Download PDF from source
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
+    try:
+        print(f'  Downloading {source_url}...')
+        urllib.request.urlretrieve(source_url, tmp.name)
+        size = os.path.getsize(tmp.name)
+        print(f'  Downloaded: {size} bytes')
+    except Exception as e:
+        print(f'  FAILED to download {source_url}: {e}')
+        continue
+
+    # Upload to DA
+    da_url = f'https://admin.da.live/source/{ORG}/{SITE}{path}'
+    result = subprocess.run(
+        ['curl', '-s', '-o', '/dev/null', '-w', '%{http_code}', '-X', 'POST',
+         '-H', f'Authorization: Bearer {IMS}',
+         '-F', f'data=@{tmp.name};type=application/pdf',
+         da_url],
+        capture_output=True, text=True
+    )
+    code = result.stdout.strip()
+    status = 'OK' if code in ('200', '201') else f'FAILED (HTTP {code})'
+    print(f'  Upload {path}: {status}')
+    os.unlink(tmp.name)
+PYEOF
+```
 
 **Mark todo 4 complete.**
 
@@ -854,6 +993,15 @@ They must be added to the sheet before these footnotes will render on the EDS pa
 |-----|------|----------|-------|
 | tcm:84-999999-16 | tcm:91-000000-32 | true | `<p>Example missing footnote text.</p>` |
 
+### Rule 6 — Broken Links
+
+| Path / href | Link text | Type | HTTP | Action |
+|---|---|---|---|---|
+| (empty) | "Click here" | dead | DEAD | 🔴 MANUAL — empty href, update or remove anchor |
+| # | "Learn more" | dead | DEAD | 🔴 MANUAL — bare "#" placeholder, add real href |
+| /assets/pdf/foo.pdf | — | pdf | 404 | 🔧 FIX_PDF — downloaded from source and uploaded to DA |
+| /some/missing-page | — | page | 404 | 🔴 MANUAL — publish the page or add a redirect |
+
 ### Summary
 
 | Metric                  | Value |
@@ -864,6 +1012,9 @@ They must be added to the sheet before these footnotes will render on the EDS pa
 | Auto-fixes applied      | 5     |
 | Manual fixes req'd      | 1     |
 | Missing from sheet      | 1     |
+| Broken PDFs fixed       | 1     |
+| Broken pages (manual)   | 1     |
+| Dead links (manual)     | 2     |
 | Preview triggered       | ✅    |
 
 ### Actions Performed
@@ -874,6 +1025,8 @@ They must be added to the sheet before these footnotes will render on the EDS pa
 4. [WRAP_ANCHOR] links.sup-3           — wrapped with <a href="#tcm:84-284821-16">
 5. [MANUAL]      links.sup-4           — sup absent from EDS, manual fix required
 6. [ADD]         footnotes.footnotes   — added ordered cid list from source
+7. [FIX_PDF]     broken-links          — /assets/pdf/foo.pdf downloaded and uploaded to DA
+8. [MANUAL]      broken-links          — /some/missing-page is 404 on EDS; publish or redirect
 ```
 
 **Status icons:**
@@ -881,7 +1034,9 @@ They must be added to the sheet before these footnotes will render on the EDS pa
 - ⚠️ `mismatch` / `missing_anchor` — auto-fix applied
 - ❌ `eds_missing` — field absent in EDS, auto-fix applied
 - 🚫 `forbidden` — field must not appear in page metadata (locale/nav/footer/template); auto-removed
-- 🔴 `missing_content` — sup absent from EDS entirely; flagged as MANUAL (no auto-patch possible)
+- 🔴 `missing_content` / `broken-page` — cannot be auto-fixed; manual action required
+- 🔧 `broken-pdf` — PDF was 404 on EDS; auto-downloaded from source and uploaded to DA
+- 💀 `dead` — link has empty `href=""` or bare `href="#"`; placeholder that must be resolved manually
 - ℹ️ `source_missing` — source has no value, nothing to enforce
 - 📋 `missingFromSheet` — cid found on source page but not in `/data/footnotes.json` sheet; must be added manually to the sheet
 
