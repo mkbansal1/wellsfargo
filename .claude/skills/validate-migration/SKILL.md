@@ -456,6 +456,17 @@ Extracts every internal (root-relative) link from the rendered EDS page, dedupli
 
 #### Classification and fix actions
 
+Two passes run in sequence:
+
+**Pass 1 — Dead links** (no HTTP check needed, detected by href value alone):
+
+| `href` value | Status | Action |
+|---|---|---|
+| `""` (empty) | `DEAD` | `MANUAL` — placeholder link with no destination |
+| `"#"` (bare fragment) | `DEAD` | `MANUAL` — unresolved or stub link |
+
+**Pass 2 — HTTP HEAD-check** (root-relative hrefs only, 10 concurrent, 10s timeout):
+
 | HTTP status | Link type | Status | Action |
 |---|---|---|---|
 | 200 | any | `ok` | `NONE` |
@@ -984,10 +995,12 @@ They must be added to the sheet before these footnotes will render on the EDS pa
 
 ### Rule 6 — Broken Links
 
-| Path | Type | HTTP | Action |
-|---|---|---|---|
-| /assets/pdf/foo.pdf | pdf | 404 | 🔧 FIX_PDF — downloaded from source and uploaded to DA |
-| /some/missing-page | page | 404 | 🔴 MANUAL — publish the page or add a redirect |
+| Path / href | Link text | Type | HTTP | Action |
+|---|---|---|---|---|
+| (empty) | "Click here" | dead | DEAD | 🔴 MANUAL — empty href, update or remove anchor |
+| # | "Learn more" | dead | DEAD | 🔴 MANUAL — bare "#" placeholder, add real href |
+| /assets/pdf/foo.pdf | — | pdf | 404 | 🔧 FIX_PDF — downloaded from source and uploaded to DA |
+| /some/missing-page | — | page | 404 | 🔴 MANUAL — publish the page or add a redirect |
 
 ### Summary
 
@@ -1001,6 +1014,7 @@ They must be added to the sheet before these footnotes will render on the EDS pa
 | Missing from sheet      | 1     |
 | Broken PDFs fixed       | 1     |
 | Broken pages (manual)   | 1     |
+| Dead links (manual)     | 2     |
 | Preview triggered       | ✅    |
 
 ### Actions Performed
@@ -1022,6 +1036,7 @@ They must be added to the sheet before these footnotes will render on the EDS pa
 - 🚫 `forbidden` — field must not appear in page metadata (locale/nav/footer/template); auto-removed
 - 🔴 `missing_content` / `broken-page` — cannot be auto-fixed; manual action required
 - 🔧 `broken-pdf` — PDF was 404 on EDS; auto-downloaded from source and uploaded to DA
+- 💀 `dead` — link has empty `href=""` or bare `href="#"`; placeholder that must be resolved manually
 - ℹ️ `source_missing` — source has no value, nothing to enforce
 - 📋 `missingFromSheet` — cid found on source page but not in `/data/footnotes.json` sheet; must be added manually to the sheet
 

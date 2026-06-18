@@ -743,14 +743,17 @@ function ruleSectionMetadata(edsRoot) {
 // ---------------------------------------------------------------------------
 // Rule 6: broken-links — check all internal links on the EDS page
 //
-// Extracts every root-relative href from the rendered EDS HTML, deduplicates,
-// then HEAD-checks each against the EDS domain (10 concurrent, 10s timeout).
+// Two passes:
+//   Pass 1 — Dead links (no HTTP check needed):
+//     href=""   → empty href, link goes nowhere
+//     href="#"  → bare fragment, placeholder/unresolved link
 //
-//   200           → ok  (NONE)
-//   301/302/3xx   → redirect  (NONE — redirect is intentional)
-//   404, pdf      → FIX_PDF   (auto: download from source, upload to DA)
-//   404, page     → MANUAL    (report — page must be published or redirected)
-//   other         → MANUAL    (report — unexpected status)
+//   Pass 2 — HTTP HEAD-check root-relative hrefs (10 concurrent, 10s timeout):
+//     200           → ok  (NONE)
+//     301/302/3xx   → redirect  (NONE — redirect is intentional)
+//     404, pdf      → FIX_PDF   (auto: download from source, upload to DA)
+//     404, page     → MANUAL    (report — page must be published or redirected)
+//     other         → MANUAL    (report — unexpected status)
 // ---------------------------------------------------------------------------
 
 const BROKEN_LINKS_CONCURRENCY = 10;
@@ -758,16 +761,42 @@ const BROKEN_LINKS_TIMEOUT_MS = 10000;
 
 /**
  * Check all internal links found in the EDS page root.
- * Returns a plain object keyed by path (used as the "field" id in the report).
+ * Returns a plain object keyed by a unique field id per finding.
  */
 async function ruleBrokenLinks(edsRoot, edsBaseUrl, sourceBaseUrl) {
+  const results = {};
+
+  // --- Pass 1: Dead links (empty href or bare "#") ---
+  let deadIdx = 0;
+  for (const a of edsRoot.querySelectorAll('a')) {
+    const rawHref = (a.getAttribute('href') ?? '').trim();
+    const text = (a.textContent || '').trim().slice(0, 80);
+    if (rawHref === '' || rawHref === '#') {
+      const key = `dead-link-${++deadIdx}`;
+      const reason = rawHref === '' ? 'Empty href ("")' : 'Bare fragment href ("#")';
+      results[key] = {
+        path: rawHref || '(empty)',
+        url: null,
+        status: 'DEAD',
+        type: 'dead',
+        action: 'MANUAL',
+        linkText: text,
+        note: `${reason} — placeholder or unresolved link. Update href or remove the anchor.`,
+      };
+    }
+  }
+  if (deadIdx > 0) {
+    console.error(`[compare-metadata] [broken-links] ${deadIdx} dead link(s) found (empty or "#" href).`);
+  }
+
+  // --- Pass 2: HTTP HEAD-check root-relative paths ---
   // Collect unique root-relative paths (strip fragment + query for dedup)
   const seen = new Set();
   const links = [];
 
   for (const a of edsRoot.querySelectorAll('a[href]')) {
     const href = (a.getAttribute('href') || '').trim();
-    if (!href.startsWith('/')) continue; // skip external, mailto:, tel:, etc.
+    if (!href.startsWith('/')) continue; // skip external, mailto:, tel:, dead links already handled
     const path = href.split('?')[0].split('#')[0].replace(/\/$/, '') || '/';
     if (path === '/' || seen.has(path)) continue;
     seen.add(path);
@@ -776,7 +805,6 @@ async function ruleBrokenLinks(edsRoot, edsBaseUrl, sourceBaseUrl) {
 
   console.error(`[compare-metadata] [broken-links] ${links.length} unique internal link(s) to check...`);
 
-  const results = {};
   let idx = 0;
 
   async function worker() {
@@ -1217,10 +1245,11 @@ function buildReport({
           field,
           action: detail.action,
           page: 'main',
-          type: detail.type,       // 'pdf' or 'page'
+          type: detail.type,       // 'pdf' | 'page' | 'dead'
           httpStatus: detail.status,
-          currentValue: detail.url,
+          currentValue: detail.url ?? detail.path,
           expectedValue: detail.action === 'FIX_PDF' ? detail.sourceUrl : null,
+          ...(detail.linkText ? { linkText: detail.linkText } : {}),
           note: detail.note,
         };
       } else {
@@ -1274,6 +1303,7 @@ function buildReport({
       missingFromSheet: (missingFromSheet || []).length,
       brokenPdfs: fixes.filter((f) => f.rule === 'broken-links' && f.action === 'FIX_PDF').length,
       brokenPages: fixes.filter((f) => f.rule === 'broken-links' && f.action === 'MANUAL' && f.type === 'page').length,
+      deadLinks: fixes.filter((f) => f.rule === 'broken-links' && f.type === 'dead').length,
     },
   };
 }
