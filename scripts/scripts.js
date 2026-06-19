@@ -86,8 +86,10 @@ function loadErrorPage(main) {
  */
 function buildAutoBlocks(main, isFragment = false) {
   try {
-    // auto load `*/fragments/*` references
-    const fragments = [...main.querySelectorAll('a[href*="/fragments/"]')].filter((f) => !f.closest('.fragment'));
+    // auto load `*/fragments/*` references, except those owned by reference-style
+    // blocks (e.g. Accordion/Tabs reference variants) which load lazily themselves
+    const fragments = [...main.querySelectorAll('a[href*="/fragments/"]')]
+      .filter((f) => !f.closest('.fragment, .accordion.reference, .tabs.reference'));
     if (fragments.length > 0) {
       // eslint-disable-next-line import/no-cycle
       import('../blocks/fragment/fragment.js').then(({ loadFragment }) => {
