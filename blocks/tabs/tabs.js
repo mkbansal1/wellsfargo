@@ -53,6 +53,10 @@ async function decorateReferenceTabs(block) {
   tablist.setAttribute('role', 'tablist');
 
   const rows = [...block.children];
+
+  const hasIcons = rows.some((row) => row.firstElementChild?.querySelector('img'));
+  if (hasIcons) block.classList.add('icons');
+
   rows.forEach((row, i) => {
     const tabCell = row.firstElementChild;
     const contentCell = row.lastElementChild;
@@ -65,7 +69,7 @@ async function decorateReferenceTabs(block) {
     const button = document.createElement('button');
     button.className = 'tabs-tab';
     button.id = `tab-${id}`;
-    button.textContent = label;
+    button.innerHTML = tabCell.innerHTML;
     button.setAttribute('aria-controls', `tabpanel-${id}`);
     button.setAttribute('aria-selected', !i);
     button.setAttribute('role', 'tab');
