@@ -1,3 +1,4 @@
+/* eslint-disable */
 var CustomImportScript = (() => {
   var __defProp = Object.defineProperty;
   var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -575,10 +576,11 @@ var CustomImportScript = (() => {
       const processed = /* @__PURE__ */ new Set();
       main.querySelectorAll(".c60").forEach((c60) => {
         if (processed.has(c60)) return;
+        if (c60.closest(".rebranded-show-hide, .c16content")) return;
         const childDivs = Array.from(c60.querySelectorAll(":scope > div"));
         if (childDivs.length < 2) return;
         const firstImg = c60.querySelector("img");
-        const src = (firstImg && (firstImg.getAttribute("src") || "")).toLowerCase();
+        const src = (firstImg ? firstImg.getAttribute("src") || "" : "").toLowerCase();
         const width = parseInt(firstImg && firstImg.getAttribute("width") || "0", 10);
         const isIcon = width > 0 && width <= 100 || src.includes("64x64") || src.includes("icon") || src.includes("gradient-64") || src.includes("-64x");
         const variant = isIcon ? "Cards (icons, bg-image)" : "Cards (separator)";
@@ -596,6 +598,22 @@ var CustomImportScript = (() => {
             if (p.querySelector("img")) return;
             if (p.textContent.trim()) contentCell.push(p.cloneNode(true));
           });
+          const descNodes = [];
+          Array.from(div.childNodes).forEach((node) => {
+            if (node.nodeType === 3) {
+              if (node.textContent.trim()) descNodes.push(node.cloneNode(true));
+            } else if (node.nodeType === 1) {
+              const tag = node.tagName;
+              if (tag === "IMG" || tag === "PICTURE" || tag === "P" || /^H[1-6]$/.test(tag)) return;
+              if (tag === "A" && node.closest("p")) return;
+              if (node.textContent.trim() || node.querySelector("a, sup")) descNodes.push(node.cloneNode(true));
+            }
+          });
+          if (descNodes.length > 0) {
+            const descP = document.createElement("p");
+            descNodes.forEach((n) => descP.appendChild(n));
+            if (descP.textContent.trim()) contentCell.push(descP);
+          }
           if (img || contentCell.length > 0) {
             cells.push([img || "", contentCell]);
           }
@@ -695,6 +713,13 @@ var CustomImportScript = (() => {
                 currentGroup = [];
                 currentHeading = null;
               }
+            } else if (el.tagName === "BR" || !el.textContent.trim()) {
+            } else {
+              if (currentGroup.length > 0) {
+                groups.push({ items: currentGroup, heading: currentHeading, beforeEl: currentGroup[0] });
+                currentGroup = [];
+              }
+              currentHeading = el.tagName === "H2" ? el : null;
             }
           });
           if (currentGroup.length > 0) {
@@ -703,9 +728,22 @@ var CustomImportScript = (() => {
           groups.forEach(({ items, heading, beforeEl }) => {
             const cells = [];
             items.forEach((item) => {
-              const h2 = item.querySelector("h2");
-              const questionText = h2 ? h2.textContent.trim() : "";
-              const answerEls = Array.from(item.children).filter((c) => c.tagName !== "H2");
+              const header = item.querySelector("h2, h3.c16header, h3");
+              let questionText = "";
+              if (header) {
+                const link = header.querySelector("a");
+                const sourceEl = link || header;
+                const clone = sourceEl.cloneNode(true);
+                clone.querySelectorAll("img, picture").forEach((img) => img.remove());
+                questionText = clone.textContent.trim();
+              }
+              const answerPanel = item.querySelector(".c16content");
+              let answerEls;
+              if (answerPanel) {
+                answerEls = Array.from(answerPanel.children).filter((c) => c.textContent.trim() || c.querySelector("img, picture"));
+              } else {
+                answerEls = Array.from(item.children).filter((c) => c !== header && c.tagName !== "H2");
+              }
               if (questionText) {
                 const qH3 = document.createElement("h3");
                 qH3.textContent = questionText;

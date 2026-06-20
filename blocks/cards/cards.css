@@ -369,6 +369,13 @@
   object-fit: contain;
 }
 
+/* Wide banner-style icons (e.g. 227x84) render at natural size, not squared */
+.cards.bg-image.icons .cards-card-image img[src*="227x84"] {
+  width: 227px;
+  height: auto;
+  max-width: 100%;
+}
+
 .cards.bg-image.icons .cards-card-body {
   margin-left: 0;
   margin-top: 16px;
