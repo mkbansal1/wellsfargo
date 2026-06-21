@@ -94,6 +94,117 @@
   background-color: var(--wf-bg-light, #f9f7f6);
 }
 
+/* fee-summary variant — matches the live WF "Quick view of account fees" layout.
+   Mobile-first: each row stacks (fee name, prominent amount, description), rows
+   separated by a thin top rule. At 768px+ it becomes a 3-column row:
+   name | amount | description.
+   (descending-specificity is a false positive: this variant never coexists with
+   .no-border/.striped, which target the same th/td.) */
+/* stylelint-disable no-descending-specificity */
+.table.fee-summary {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  overflow: visible;
+}
+
+.table.fee-summary table {
+  width: 100%;
+  font-size: var(--body-font-size-m, 17px);
+}
+
+/* Mobile: cells stack within each row */
+.table.fee-summary tr {
+  display: block;
+  border-top: 1px solid var(--wf-bg-gray, #e2dede);
+  padding: 20px 0;
+}
+
+.table.fee-summary th,
+.table.fee-summary td {
+  display: block;
+  padding: 0;
+  border: 0;
+  text-align: left;
+  vertical-align: top;
+  color: var(--wf-text-primary, #3b3331);
+}
+
+/* Fee name — first column, bold heading */
+.table.fee-summary th[scope="row"] {
+  font-size: var(--heading-font-size-s, 18px);
+  font-weight: 600;
+  color: var(--wf-text-primary, #3b3331);
+  margin-bottom: 4px;
+}
+
+/* Prominent amount — the bold value in the amount column */
+.table.fee-summary td:nth-child(2) {
+  font-size: var(--heading-font-size-m, 22px);
+  font-weight: 600;
+  margin: 4px 0;
+}
+
+.table.fee-summary td:nth-child(2) strong {
+  font-weight: 600;
+}
+
+/* Description column — secondary body text */
+.table.fee-summary td:nth-child(3) {
+  font-size: var(--body-font-size-s, 15px);
+  color: var(--wf-text-secondary, #787070);
+}
+
+.table.fee-summary td p {
+  margin: 0;
+}
+
+.table.fee-summary td p + p {
+  margin-top: 0.5em;
+}
+
+.table.fee-summary td ul,
+.table.fee-summary td ol {
+  margin: 0.5em 0;
+  padding-left: 1.25em;
+}
+
+.table.fee-summary td li {
+  margin-bottom: 0.25em;
+}
+
+/* Desktop (tablet+): 3-column row layout */
+@media (width >= 768px) {
+  .table.fee-summary tr {
+    display: flex;
+    gap: 24px;
+    align-items: baseline;
+    padding: 24px 8px;
+  }
+
+  .table.fee-summary th[scope="row"] {
+    flex: 0 0 30%;
+    margin-bottom: 0;
+  }
+
+  .table.fee-summary td:nth-child(2) {
+    flex: 0 0 18%;
+    margin: 0;
+  }
+
+  .table.fee-summary td:nth-child(3) {
+    flex: 1;
+  }
+
+  /* Rows that omit the amount (e.g. Wire transfer): description fills remaining */
+  .table.fee-summary tr:has(td:only-of-type) td {
+    flex: 1;
+  }
+}
+
+/* Last row keeps its top rule but no trailing border needed */
+/* stylelint-enable no-descending-specificity */
+
 /* Last row — remove bottom border (must be last for specificity) */
 .table.table table tbody tr:last-child th,
 .table.table table tbody tr:last-child td {
@@ -240,17 +351,67 @@
     width: 50%;
   }
 
-  .table.comparison[data-start="1"] :is(th, td):nth-child(n+3) {
+  .table.comparison:not(.labeled)[data-start="1"] :is(th, td):nth-child(n+3) {
     display: none;
   }
 
-  .table.comparison[data-start="2"] :is(th, td):nth-child(1),
-  .table.comparison[data-start="2"] :is(th, td):nth-child(n+4) {
+  .table.comparison:not(.labeled)[data-start="2"] :is(th, td):nth-child(1),
+  .table.comparison:not(.labeled)[data-start="2"] :is(th, td):nth-child(n+4) {
     display: none;
   }
 
-  .table.comparison[data-start="3"] :is(th, td):nth-child(-n+2) {
+  .table.comparison:not(.labeled)[data-start="3"] :is(th, td):nth-child(-n+2) {
     display: none;
+  }
+}
+
+/* labeled variant: column 1 is a pinned feature-name label; only the product
+   columns (2..n) paginate. Override the unlabeled window rules above. */
+@media (width < 1024px) {
+  .table.comparison.labeled :is(th, td):first-child {
+    width: 34%;
+    text-align: left;
+  }
+
+  .table.comparison.labeled :is(th, td):not(:first-child) {
+    width: 33%;
+  }
+
+  /* show pinned label (col 1) + first 2 products (cols 2,3); hide the rest */
+  .table.comparison.labeled[data-start="1"] :is(th, td):nth-child(n+4) {
+    display: none;
+  }
+
+  .table.comparison.labeled[data-start="2"] :is(th, td):nth-child(2),
+  .table.comparison.labeled[data-start="2"] :is(th, td):nth-child(n+5) {
+    display: none;
+  }
+
+  .table.comparison.labeled[data-start="3"] :is(th, td):nth-child(2),
+  .table.comparison.labeled[data-start="3"] :is(th, td):nth-child(3) {
+    display: none;
+  }
+
+  /* the pinned first column has no product accent bar */
+  .table.comparison.labeled thead th:first-child::after {
+    display: none;
+  }
+
+  /* labeled product accent bars: shift palette by one (col 2 = first product) */
+  .table.comparison.labeled thead th:nth-child(2)::after {
+    background: linear-gradient(191deg, #dea63c, #fade8d);
+  }
+
+  .table.comparison.labeled thead th:nth-child(3)::after {
+    background: linear-gradient(191deg, #a245b0, #d988df);
+  }
+
+  .table.comparison.labeled thead th:nth-child(4)::after {
+    background: linear-gradient(191deg, #2c64d4, #81a9f8);
+  }
+
+  .table.comparison.labeled thead th:nth-child(5)::after {
+    background: linear-gradient(191deg, #8d6337, #bfa58a);
   }
 }
 
@@ -258,6 +419,32 @@
 @media (width >= 1024px) {
   .table.comparison .table-pagination {
     display: none;
+  }
+
+  /* labeled: pinned label column left-aligned, no accent bar */
+  .table.comparison.labeled :is(th, td):first-child {
+    text-align: left;
+  }
+
+  .table.comparison.labeled thead th:first-child::after {
+    display: none;
+  }
+
+  /* shift product accent bars by one to start at column 2 */
+  .table.comparison.labeled thead th:nth-child(2)::after {
+    background: linear-gradient(191deg, #dea63c, #fade8d);
+  }
+
+  .table.comparison.labeled thead th:nth-child(3)::after {
+    background: linear-gradient(191deg, #a245b0, #d988df);
+  }
+
+  .table.comparison.labeled thead th:nth-child(4)::after {
+    background: linear-gradient(191deg, #2c64d4, #81a9f8);
+  }
+
+  .table.comparison.labeled thead th:nth-child(5)::after {
+    background: linear-gradient(191deg, #8d6337, #bfa58a);
   }
 }
 
@@ -309,7 +496,6 @@
   margin: 0;
 }
 
-.table.product-card table tr.full-width-row:first-of-type td h3 .headingText,
 .table.product-card table tr.full-width-row:first-of-type td h3 > div:first-child {
   font-weight: 600;
 }
@@ -354,12 +540,12 @@
 }
 
 /* Data rows — balance left-aligned, rate columns centered */
-.table.product-card table tr:not(.full-width-row):not(.header-row) td {
+.table.product-card table tr:not(.full-width-row, .header-row) td {
   text-align: center;
   font-weight: 400;
 }
 
-.table.product-card table tr:not(.full-width-row):not(.header-row) td:first-child {
+.table.product-card table tr:not(.full-width-row, .header-row) td:first-child {
   text-align: left;
 }
 

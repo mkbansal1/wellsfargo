@@ -17,9 +17,13 @@ function buildCell(rowIndex, isRowHeader) {
 function decorateComparison(block, table) {
   const firstRow = table.querySelector('tr');
   const colCount = firstRow ? firstRow.children.length : 0;
-  const perScreen = 2;
-  if (colCount <= perScreen) return;
-  const screens = colCount - perScreen + 1;
+  // labeled variant pins column 1 (the feature label) and paginates only the
+  // product columns; the unlabeled variant paginates all columns.
+  const isLabeled = block.classList.contains('labeled');
+  const productCount = isLabeled ? colCount - 1 : colCount;
+  const windowSize = 2;
+  if (productCount <= windowSize) return;
+  const screens = productCount - windowSize + 1;
 
   const nav = document.createElement('nav');
   nav.className = 'table-pagination';
@@ -74,8 +78,9 @@ export default async function decorate(block) {
 
   const isNoBorder = block.classList.contains('no-border');
   const isProductCard = block.classList.contains('product-card');
-  const hasColHeader = !block.classList.contains('no-header') && !isNoBorder && !isProductCard;
-  const hasRowHeader = block.classList.contains('row-header') || isNoBorder;
+  const isFeeSummary = block.classList.contains('fee-summary');
+  const hasColHeader = !block.classList.contains('no-header') && !isNoBorder && !isProductCard && !isFeeSummary;
+  const hasRowHeader = block.classList.contains('row-header') || isNoBorder || isFeeSummary;
 
   if (isProductCard) {
     const headingText = block.children[0]?.textContent || '';
