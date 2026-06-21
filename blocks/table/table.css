@@ -5,20 +5,20 @@
   border-radius: 16px;
   padding: 24px 16px 16px;
 }
-
+ 
 .table table {
   width: 100%;
   max-width: 100%;
   border-collapse: collapse;
   font-size: 15px;
 }
-
+ 
 .table table th {
   font-weight: 600;
   color: var(--wf-text-secondary, #787070);
   vertical-align: top;
 }
-
+ 
 .table table th,
 .table table td {
   padding: 12px 16px 12px 8px;
@@ -27,38 +27,38 @@
   border-bottom: 1px solid var(--wf-bg-gray, #e2dede);
   color: var(--wf-text-secondary, #787070);
 }
-
+ 
 .table table th p,
 .table table td p {
   margin: 0;
 }
-
+ 
 .table table td p + p {
   margin-top: 0.5em;
 }
-
+ 
 .table table td ul,
 .table table td ol {
   margin: 0.5em 0;
   padding-left: 1.25em;
 }
-
+ 
 .table table td li {
   margin-bottom: 0.25em;
 }
-
+ 
 /* no-border variant — no card wrapper, rows separated by top border, centered */
 .table.no-border {
   border: 0;
   border-radius: 0;
   padding: 0;
 }
-
+ 
 .table.no-border table {
   margin: 0 auto;
   width: auto;
 }
-
+ 
 .table.no-border table th,
 .table.no-border table td {
   padding: 24px 16px;
@@ -66,46 +66,44 @@
   border-top: 1px solid #d9d9d9;
   color: var(--wf-text-primary, #3b3331);
 }
-
+ 
 .table.no-border table th[scope="row"] {
   text-align: right;
   font-weight: 400;
 }
-
+ 
 /* no-header variant */
 .table.no-header table th {
   font-weight: 400;
 }
-
+ 
 /* row-header variant — first column is th */
 .table.row-header table th[scope="row"] {
   font-weight: 600;
 }
-
+ 
 /* bordered variant */
 .table.bordered table th,
 .table.bordered table td {
   border: 1px solid var(--wf-bg-gray, #e2dede);
 }
-
+ 
 /* striped variant */
 .table.striped tbody tr:nth-child(even) th,
 .table.striped tbody tr:nth-child(even) td {
   background-color: var(--wf-bg-light, #f9f7f6);
 }
-
-/* Last row — remove bottom border (must be last for specificity) */
-.table.table table tbody tr:last-child th,
-.table.table table tbody tr:last-child td {
+ 
+/* Last row — remove bottom border */
+.table table tbody tr:last-child th,
+.table table tbody tr:last-child td {
   border-bottom: none;
 }
-
+ 
 /* ---------------------------------------------------------------------------
    comparison variant — mobile-first product comparison grid
    Mobile: 2-column sliding window with prev/next + dot pagination.
    Desktop: all columns side by side, no pagination.
-   (descending-specificity is a false positive here: this variant never
-   coexists with .striped/.bordered, which target the same th/td.)
 --------------------------------------------------------------------------- */
 /* stylelint-disable no-descending-specificity */
 .table.comparison {
@@ -114,13 +112,13 @@
   padding: 0;
   overflow: visible;
 }
-
+ 
 .table.comparison table {
   table-layout: fixed;
   width: 100%;
   text-align: center;
 }
-
+ 
 .table.comparison table th,
 .table.comparison table td {
   padding: 16px 12px;
@@ -129,7 +127,7 @@
   border: 0;
   color: var(--wf-text-primary, #3b3331);
 }
-
+ 
 /* product-name header: accent bar + brand link color */
 .table.comparison thead th {
   position: relative;
@@ -137,17 +135,17 @@
   font-weight: 600;
   font-size: 17px;
 }
-
+ 
 .table.comparison thead th a {
   color: var(--wf-link, #5a469b);
   text-decoration: none;
 }
-
+ 
 .table.comparison thead th a:hover {
   text-decoration: underline;
 }
-
-/* 4px gradient accent bar under each product name (colors confirmed from source) */
+ 
+/* 4px gradient accent bar under each product name */
 .table.comparison thead th::after {
   content: "";
   position: absolute;
@@ -157,28 +155,28 @@
   height: 4px;
   border-radius: 2px;
 }
-
+ 
 .table.comparison thead th:nth-child(1)::after {
   background: linear-gradient(191deg, #dea63c, #fade8d);
 }
-
+ 
 .table.comparison thead th:nth-child(2)::after {
   background: linear-gradient(191deg, #a245b0, #d988df);
 }
-
+ 
 .table.comparison thead th:nth-child(3)::after {
   background: linear-gradient(191deg, #2c64d4, #81a9f8);
 }
-
+ 
 .table.comparison thead th:nth-child(4)::after {
   background: linear-gradient(191deg, #8d6337, #bfa58a);
 }
-
+ 
 .table.comparison table strong {
   font-weight: 600;
 }
-
-/* CTA links render as pill buttons (Open now / Avoid the fee stay as links) */
+ 
+/* CTA links render as pill buttons */
 .table.comparison tbody tr:last-child td a {
   display: inline-block;
   background: var(--wf-red, #d71e28);
@@ -188,11 +186,11 @@
   text-decoration: none;
   font-weight: 600;
 }
-
+ 
 .table.comparison tbody tr:last-child td a:hover {
   background: #b3161f;
 }
-
+ 
 /* pagination controls — mobile only */
 .table.comparison .table-pagination {
   display: flex;
@@ -201,7 +199,7 @@
   gap: 12px;
   margin-bottom: 16px;
 }
-
+ 
 .table.comparison .table-page-prev,
 .table.comparison .table-page-next {
   background: none;
@@ -212,13 +210,13 @@
   cursor: pointer;
   padding: 4px 8px;
 }
-
+ 
 .table.comparison .table-page-prev:disabled,
 .table.comparison .table-page-next:disabled {
   color: var(--wf-bg-gray, #e2dede);
   cursor: default;
 }
-
+ 
 .table.comparison .table-page-dot {
   width: 12px;
   height: 12px;
@@ -228,45 +226,42 @@
   background: transparent;
   cursor: pointer;
 }
-
+ 
 .table.comparison .table-page-dot[aria-current="true"] {
   background: var(--wf-dark, #141414);
 }
-
+ 
 /* mobile sliding window: show 2 columns based on data-start (step of 1) */
 @media (width < 1024px) {
   .table.comparison table th,
   .table.comparison table td {
     width: 50%;
   }
-
+ 
   .table.comparison[data-start="1"] :is(th, td):nth-child(n+3) {
     display: none;
   }
-
+ 
   .table.comparison[data-start="2"] :is(th, td):nth-child(1),
   .table.comparison[data-start="2"] :is(th, td):nth-child(n+4) {
     display: none;
   }
-
+ 
   .table.comparison[data-start="3"] :is(th, td):nth-child(-n+2) {
     display: none;
   }
 }
-
+ 
 /* desktop: all columns side by side, no pagination */
 @media (width >= 1024px) {
   .table.comparison .table-pagination {
     display: none;
   }
 }
-
-/* --- product-card variant ---
-   Rate product card matching live site: centered heading, optional yellow
-   separator row (relationship rates), 3-column rate table with beige header
-   row, and centered footer notes + pill CTA.
-   Full-width rows = single-cell authored rows (.full-width-row from JS).
-   First multi-column row = column headers (.header-row from JS). */
+ 
+/* ---------------------------------------------------------------------------
+   product-card variant
+--------------------------------------------------------------------------- */
 .table.product-card {
   border: 1px solid var(--wf-bg-gray, #e2dede);
   border-radius: 16px;
@@ -276,13 +271,13 @@
   box-sizing: border-box;
   min-width: 0;
 }
-
+ 
 .table.product-card table {
   font-size: 15px;
   table-layout: fixed;
   width: 100%;
 }
-
+ 
 .table.product-card table th,
 .table.product-card table td {
   border: 0;
@@ -290,39 +285,39 @@
   color: var(--wf-text-primary, #3b3331);
   vertical-align: middle;
 }
-
+ 
 /* Full-width rows: centered heading, separator, linked text, footer */
 .table.product-card table tr.full-width-row td {
   text-align: center;
   padding: 8px 0;
 }
-
+ 
 /* Row 1 — product name + rate type subtitle */
 .table.product-card table tr.full-width-row:first-of-type td {
   padding-bottom: 16px;
 }
-
+ 
 .table.product-card table tr.full-width-row:first-of-type td h3 {
   font-size: var(--heading-font-size-l, 22px);
   font-weight: 600;
   line-height: 1.3;
   margin: 0;
 }
-
+ 
 /* stylelint-disable-next-line selector-class-pattern */
 .table.product-card table tr.full-width-row:first-of-type td h3 .headingText,
 .table.product-card table tr.full-width-row:first-of-type td h3 > div:first-child {
   font-weight: 600;
 }
-
+ 
 .table.product-card table tr.full-width-row:first-of-type td h3 > div + div,
 .table.product-card table tr.full-width-row:first-of-type td h3 p + p {
   margin-top: 4px;
   font-weight: 400;
   font-size: var(--body-font-size-m, 17px);
 }
-
-/* Yellow separator — relationship rates only (below heading, before linked text) */
+ 
+/* Yellow separator — relationship rates only */
 .table.product-card.relationship table tr.full-width-row:first-of-type td::after {
   content: "";
   display: block;
@@ -331,8 +326,8 @@
   margin: 16px auto 0;
   background-color: var(--wf-yellow, #fcc60a);
 }
-
-/* Yellow separator — also supported when authored as a full-width row with <hr> */
+ 
+/* Yellow separator — authored as a full-width row with <hr> */
 .table.product-card table tr.full-width-row td hr {
   border: 0;
   height: 3px;
@@ -340,8 +335,8 @@
   margin: 8px auto;
   background-color: var(--wf-yellow, #fcc60a);
 }
-
-/* Column header row — beige background, first col left, others centered */
+ 
+/* Column header row — beige background */
 .table.product-card table tr.header-row th {
   background-color: var(--wf-bg-warm, #f4f0ed);
   font-weight: 600;
@@ -349,38 +344,38 @@
   text-align: center;
   padding: 12px 8px;
 }
-
+ 
 .table.product-card table tr.header-row th:first-child {
   text-align: left;
 }
-
-/* Data rows — balance left-aligned, rate columns centered */
+ 
+/* Data rows */
 .table.product-card table tr:not(.full-width-row, .header-row) td {
   text-align: center;
   font-weight: 400;
 }
-
+ 
 .table.product-card table tr:not(.full-width-row, .header-row) td:first-child {
   text-align: left;
 }
-
+ 
 /* Footer — first full-width row after data gets top border */
 .table.product-card table tr:not(.full-width-row) + tr.full-width-row td {
   padding-top: 20px;
   border-top: 1px solid var(--wf-bg-gray, #e2dede);
 }
-
+ 
 /* Footer full-width rows: notes + pill CTA */
 .table.product-card table tr.full-width-row td p {
   margin: 0;
   font-size: var(--body-font-size-m, 17px);
   line-height: 1.5;
 }
-
+ 
 .table.product-card table tr.full-width-row td p + p {
   margin-top: 8px;
 }
-
+ 
 .table.product-card table tr.full-width-row td a.button,
 .table.product-card table tr.full-width-row td .button-wrapper a,
 .table.product-card table tr.full-width-row td strong > a {
@@ -395,37 +390,37 @@
   font-size: var(--body-font-size-m, 17px);
   text-decoration: none;
 }
-
+ 
 .table.product-card table tr.full-width-row td a.button:hover,
 .table.product-card table tr.full-width-row td .button-wrapper a:hover,
 .table.product-card table tr.full-width-row td strong > a:hover {
   background-color: #b01c24;
   text-decoration: none;
 }
-
+ 
 /* stylelint-enable no-descending-specificity */
-
+ 
 /* ---------------------------------------------------------------------------
    compare variant — one continuous product comparison table.
-   Row archetypes (classed by table.js):
-     .compare-header-row  → 4 product columns with gradient accent bars
-     .compare-section-row → full-width centered large divider
-     .compare-label-row   → full-width left-aligned label
-     (plain data rows)    → 4 equal value columns
+   FIX: overflow must be visible (not auto/hidden) for position:sticky
+   on thead to work. The JS also walks ancestors and resets any overflow
+   that would break stickiness.
 --------------------------------------------------------------------------- */
 /* stylelint-disable no-descending-specificity */
 .table.compare {
   border: 0;
   border-radius: 0;
   padding: 0;
-  overflow-x: auto;
+  /* Critical: overflow:visible is required for position:sticky on thead.
+     The base .table sets overflow-x:auto which would break it. */
+  overflow: visible;
 }
-
+ 
 .table.compare table {
   table-layout: fixed;
   width: 100%;
 }
-
+ 
 .table.compare th,
 .table.compare td {
   border: 0;
@@ -435,27 +430,33 @@
   color: var(--wf-text-primary, #3b3331);
   width: 25%;
 }
-
-/* product-name header with gradient accent bar — left aligned */
+ 
+/* Sticky product-name header row.
+   background:white is required — without it the rows below show through
+   while scrolling. top:0 assumes no fixed site header; adjust if needed
+   (e.g. top: var(--nav-height, 0px)). */
 .table.compare thead th {
-  position: relative;
+  position: sticky;
+  top: 0;
+  z-index: 2;
   padding-bottom: 16px;
   font-weight: 600;
   font-size: 17px;
   color: var(--wf-text-secondary, #787070);
   text-align: left;
+  background: #fff;
 }
-
+ 
 .table.compare thead th a {
   color: var(--wf-link, #5a469b);
   text-decoration: none;
   font-weight: 400;
 }
-
+ 
 .table.compare thead th a:hover {
   text-decoration: underline;
 }
-
+ 
 .table.compare thead th::after {
   content: "";
   position: absolute;
@@ -465,31 +466,31 @@
   height: 4px;
   border-radius: 2px;
 }
-
+ 
 .table.compare thead th:nth-child(1)::after {
   background: linear-gradient(191deg, #dea63c, #fade8d);
 }
-
+ 
 .table.compare thead th:nth-child(2)::after {
   background: linear-gradient(191deg, #a245b0, #d988df);
 }
-
+ 
 .table.compare thead th:nth-child(3)::after {
   background: linear-gradient(191deg, #2c64d4, #81a9f8);
 }
-
+ 
 .table.compare thead th:nth-child(4)::after {
   background: linear-gradient(191deg, #8d6337, #bfa58a);
 }
-
-/* full-width label row — centered by default (matches detail sections) */
+ 
+/* full-width label row */
 .table.compare td.compare-label {
   width: auto;
   font-weight: 600;
   border-top: 1px solid var(--wf-bg-gray, #e2dede);
   padding: 20px 12px 12px;
 }
-
+ 
 /* full-width centered section divider */
 .table.compare td.compare-section {
   width: auto;
@@ -498,39 +499,44 @@
   padding: 40px 12px 24px;
   border-top: 1px solid var(--wf-bg-gray, #e2dede);
 }
-
+ 
 .table.compare td.compare-section :is(h2, h3, h4) {
   margin: 0;
   font-size: var(--heading-font-size-l, 24px);
   font-weight: 600;
   line-height: 1.25;
 }
-
-/* data-row cells */
-.table.compare tbody tr:not(.compare-section-row, .compare-label-row) td p {
+ 
+.table.compare td p {
   margin: 0 0 8px;
 }
-
-.table.compare tbody tr:not(.compare-section-row, .compare-label-row) td p:last-child {
+ 
+.table.compare td p:last-child {
   margin-bottom: 0;
 }
-
+ 
 .table.compare td ul {
   margin: 0;
   padding-left: 1.25em;
 }
-
+ 
 .table.compare td li {
   margin-bottom: 8px;
   line-height: 1.4;
 }
-
+ 
 .table.compare td a:not(.button) {
   color: var(--wf-link, #5a469b);
 }
-
-/* mobile: keep 4 columns readable via horizontal scroll */
+ 
+/* Mobile: horizontal scroll. Note this re-introduces overflow on .compare
+   itself but only on narrow viewports where sticky is less critical and
+   the table needs to scroll horizontally to be usable. */
 @media (width < 768px) {
+  .table.compare {
+    overflow-x: auto;
+  }
+ 
   .table.compare table {
     min-width: 720px;
   }

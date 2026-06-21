@@ -130,6 +130,21 @@ export default async function decorate(block) {
     decorateCompare(block, table, maxCompareCols);
     block.innerHTML = '';
     block.append(table);
+    // Fix: remove overflow:auto from any ancestor EDS wrappers that break
+    // position:sticky on the thead. We walk up and neutralise overflow on
+    // .section and .section-wrapper elements only — safe to do because the
+    // compare variant is always full-bleed and never needs to clip content.
+    let ancestor = block.parentElement;
+    while (ancestor && ancestor !== document.body) {
+      const { overflow, overflowX, overflowY } = window.getComputedStyle(ancestor);
+      const breaksSticky = ['auto', 'scroll', 'hidden'].includes(overflow)
+        || ['auto', 'scroll', 'hidden'].includes(overflowX)
+        || ['auto', 'scroll', 'hidden'].includes(overflowY);
+      if (breaksSticky) {
+        ancestor.style.overflow = 'visible';
+      }
+      ancestor = ancestor.parentElement;
+    }
     return;
   }
 
