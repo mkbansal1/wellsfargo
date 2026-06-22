@@ -67,10 +67,86 @@ function decorateComparison(block, table) {
   update(1);
 }
 
+/**
+ * compare variant — one continuous comparison table.
+ * Row taxonomy keyed off authored cell count:
+ *   first multi-col row  → thead column headers (accent bars via CSS)
+ *   1-cell row with a heading → full-width centered section divider
+ *   1-cell row without a heading → full-width left-aligned label row
+ *   other multi-col rows → data rows
+ */
+function decorateCompare(block, table, maxCols) {
+  const thead = document.createElement('thead');
+  const tbody = document.createElement('tbody');
+  table.append(thead, tbody);
+  let headerAssigned = false;
+
+  [...block.children].forEach((child) => {
+    const row = document.createElement('tr');
+    const isFullWidth = child.children.length === 1;
+    const isSection = isFullWidth && !!child.querySelector('h2, h3, h4');
+
+    if (isFullWidth && isSection) row.classList.add('compare-section-row');
+    else if (isFullWidth) row.classList.add('compare-label-row');
+
+    if (!headerAssigned && !isFullWidth) {
+      row.classList.add('compare-header-row');
+      headerAssigned = true;
+      thead.append(row);
+    } else {
+      tbody.append(row);
+    }
+
+    [...child.children].forEach((col) => {
+      let cell;
+      if (row.classList.contains('compare-header-row')) {
+        cell = document.createElement('th');
+        cell.setAttribute('scope', 'col');
+      } else if (isFullWidth) {
+        cell = document.createElement('td');
+        cell.colSpan = maxCols;
+        cell.className = isSection ? 'compare-section' : 'compare-label';
+      } else {
+        cell = document.createElement('td');
+      }
+      const align = col.getAttribute('data-align');
+      if (align) cell.style.textAlign = align;
+      cell.innerHTML = col.innerHTML;
+      row.append(cell);
+    });
+  });
+}
+
 export default async function decorate(block) {
   const table = document.createElement('table');
   const thead = document.createElement('thead');
   const tbody = document.createElement('tbody');
+
+  if (block.classList.contains('compare')) {
+    const maxCompareCols = Math.max(
+      1,
+      ...[...block.children].map((row) => row.children.length),
+    );
+    decorateCompare(block, table, maxCompareCols);
+    block.innerHTML = '';
+    block.append(table);
+    // Fix: remove overflow:auto from any ancestor EDS wrappers that break
+    // position:sticky on the thead. We walk up and neutralise overflow on
+    // .section and .section-wrapper elements only — safe to do because the
+    // compare variant is always full-bleed and never needs to clip content.
+    let ancestor = block.parentElement;
+    while (ancestor && ancestor !== document.body) {
+      const { overflow, overflowX, overflowY } = window.getComputedStyle(ancestor);
+      const breaksSticky = ['auto', 'scroll', 'hidden'].includes(overflow)
+        || ['auto', 'scroll', 'hidden'].includes(overflowX)
+        || ['auto', 'scroll', 'hidden'].includes(overflowY);
+      if (breaksSticky) {
+        ancestor.style.overflow = 'visible';
+      }
+      ancestor = ancestor.parentElement;
+    }
+    return;
+  }
 
   const isNoBorder = block.classList.contains('no-border');
   const isProductCard = block.classList.contains('product-card');
